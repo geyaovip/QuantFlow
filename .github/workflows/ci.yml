@@ -12,7 +12,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install documentation tooling
         run: sudo apt-get update && sudo apt-get install --yes ripgrep
       - uses: pnpm/action-setup@v4

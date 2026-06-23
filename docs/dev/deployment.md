@@ -21,7 +21,7 @@ QuantFlow 复用现有 Petory/CryptoPilot 所在的 Ubuntu 云服务器，但必
 | ------------- | --------------- | ---------------- | -------------------------------- |
 | Web / 用户端  | `web:3000`      | `127.0.0.1:3100` | Cloudflare Tunnel Web hostname   |
 | 管理端        | `admin:3000`    | `127.0.0.1:3101` | Cloudflare Tunnel Admin hostname |
-| API           | `api:3000`      | `127.0.0.1:3102` | Cloudflare Tunnel API hostname   |
+| API           | `api:3002`      | `127.0.0.1:3102` | Cloudflare Tunnel API hostname   |
 | Worker        | Compose network | 无               | 无公网入口                       |
 | PostgreSQL 18 | Compose network | 无               | 无公网入口                       |
 
@@ -30,7 +30,7 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 ## 3. Cloudflare
 
 1. 复用服务器现有 `cloudflared` 服务和共享 Tunnel；将 QuantFlow ingress 加在最终 `http_status:404` 规则之前。
-2. Web、Admin、API 使用三个独立 hostname；实际域名在域名接入 Cloudflare 后写入部署环境，不在代码中硬编码。
+2. 当前生产 hostname 为 `quantflow.chat`、`www.quantflow.chat`、`admin.quantflow.chat` 和 `api.quantflow.chat`；四条 DNS 记录均代理到现有 Tunnel，应用代码不硬编码 Tunnel ID。
 3. Tunnel 只连接 `127.0.0.1:3100–3102`。服务器防火墙不开放应用的 80/443/3100–3102 入站端口，只保留密钥登录所需的 SSH 管理入口。
 4. Cloudflare 负责公网 DNS、边缘 TLS、DDoS 防护和可用套餐内的 WAF Managed Rules。
 5. 缓存只覆盖版本化静态资源、Logo、favicon 和 Next.js `/_next/static/*`；`/api/*`、登录、会话、用户数据及管理操作必须 bypass cache。
@@ -62,3 +62,5 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 4. Worker 和 API 不得同时运行不兼容 schema；发布顺序遵循 expand → deploy → contract。
 
 当前仓库已初始化 Web、Admin、API 和 Worker。`deploy/Dockerfile` 使用 `APP=web|admin|api|worker` 构建对应镜像；`deploy/compose.production.yml` 要求显式提供镜像 registry、镜像 tag 和服务器环境文件。部署失败时脚本恢复上一健康镜像 tag。
+
+当前生产仓库为 [geyaovip/QuantFlow](https://github.com/geyaovip/QuantFlow)（private）。PostgreSQL 18 named volume 挂载到 `/var/lib/postgresql`，以符合 18+ 官方镜像的版本化数据目录布局。

@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.2.0-dev.2` - 2026-06-23
+
+- 类型：Ops / Fixed / Docs
+- 摘要：创建私有 GitHub 仓库与 production environment，接入 GitHub Actions SSH 发布；在现有 Ubuntu VPS 启动 Web、Admin、API、Worker 和独立 PostgreSQL 18，并将 `quantflow.chat`、`www`、`admin`、`api` 接入 Cloudflare Tunnel。
+- MVP 边界影响：无；五个未来能力开关在线上均验证为 `false`，未增加实盘或在线支付入口。
+- API / 数据 / 权限 / 风控影响：健康检查与只读 feature flags 已上线；认证、Resend OTP、RBAC 和业务数据库 schema 仍未实现。
+- 迁移与兼容：首次创建生产数据库；PostgreSQL 18 volume 使用 `/var/lib/postgresql` 的版本化目录布局，无既有数据迁移。
+- 验证：本地 `pnpm check`、GitHub CI、生产发布任务、Compose 健康检查、HTTPS 页面/API、用户端与管理端路由检查通过。
+- 监控与回滚：发布脚本记录健康镜像 tag 并支持失败回滚；Cloudflare Tunnel 与服务器 ingress 已验证。R2 备份、WAL 归档、Sentry 和告警仍待后续落地。
+
 ### `v0.2.0-dev.1` - 2026-06-23
 
 - 类型：Added / Architecture / Frontend / Backend / Ops
@@ -39,7 +49,7 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 - API / 数据 / 权限 / 风控影响：新增健康检查和只读 feature flags 接口；所有未来能力固定为 `false`；认证、数据库迁移和 RBAC 尚未实现。
 - 迁移与兼容：首次代码初始化，无既有应用迁移；生产数据库尚未创建。
 - 验证：文档、格式、lint、TypeScript、5 项测试、Next/Nest 生产构建、桌面与移动端视觉检查通过。
-- 监控与回滚：尚未发布生产；通过提交和镜像 tag 回滚。下一切片优先实现 PostgreSQL schema 与 Resend/Turnstile OTP。
+- 监控与回滚：该开发切片完成时尚未发布生产；后续生产发布见 `v0.2.0-dev.2`。下一切片优先实现 PostgreSQL schema 与 Resend/Turnstile OTP。
 
 ### `docs-v0.4.0` - 2026-06-23
 
