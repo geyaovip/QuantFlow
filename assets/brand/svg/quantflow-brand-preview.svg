@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="QuantFlow 品牌资源预览">
+  <title>QuantFlow 品牌资源预览</title>
+  <rect width="1200" height="720" fill="#F7F8FA"/>
+  <text x="64" y="72" fill="#111827" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="30" font-weight="700">QuantFlow 品牌资源</text>
+  <text x="64" y="108" fill="#4B5563" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16">浏览器 · 用户端 · 管理端 · 深色表面</text>
+
+  <rect x="64" y="144" width="336" height="224" rx="20" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <rect x="96" y="180" width="104" height="104" rx="22" fill="#050505"/>
+  <g transform="translate(96 180) scale(0.7647058824)"><g color="#FFFFFF" transform="translate(2 -7)">
+    <path d="M 100 95 A 42 42 0 1 0 81 112" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="butt"/>
+    <path d="M 79 94 L 93 94 L 117 118 L 103 118 Z" fill="currentColor"/>
+    <path d="M 50 77 H 52 V 98 H 50 Z M 47 82 H 55 V 93 H 47 Z" fill="currentColor"/>
+    <path d="M 61 71 H 63 V 95 H 61 Z M 58 76 H 66 V 90 H 58 Z" fill="currentColor"/>
+    <path d="M 73 63 H 75 V 86 H 73 Z M 70 69 H 78 V 82 H 70 Z" fill="currentColor"/>
+    <path d="M 84 54 H 86 V 82 H 84 Z M 81 60 H 89 V 77 H 81 Z" fill="currentColor"/>
+  </g></g>
+  <text x="96" y="326" fill="#111827" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="600">浏览器 / PWA</text>
+  <text x="96" y="350" fill="#4B5563" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="14">方形应用图标与 favicon</text>
+
+  <rect x="424" y="144" width="712" height="224" rx="20" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <g transform="translate(464 213) scale(0.3529411765)"><g color="#111827" transform="translate(2 -7)">
+    <path d="M 100 95 A 42 42 0 1 0 81 112" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="butt"/>
+    <path d="M 79 94 L 93 94 L 117 118 L 103 118 Z" fill="currentColor"/>
+    <path d="M 50 77 H 52 V 98 H 50 Z M 47 82 H 55 V 93 H 47 Z" fill="currentColor"/>
+    <path d="M 61 71 H 63 V 95 H 61 Z M 58 76 H 66 V 90 H 58 Z" fill="currentColor"/>
+    <path d="M 73 63 H 75 V 86 H 73 Z M 70 69 H 78 V 82 H 70 Z" fill="currentColor"/>
+    <path d="M 84 54 H 86 V 82 H 84 Z M 81 60 H 89 V 77 H 81 Z" fill="currentColor"/>
+  </g></g>
+  <text x="514" y="249" fill="#111827" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="30" font-weight="650" letter-spacing="-0.5">QuantFlow</text>
+  <text x="464" y="326" fill="#111827" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="600">官网 / 用户端</text>
+  <text x="464" y="350" fill="#4B5563" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="14">浅色表面的标准横版组合</text>
+
+  <rect x="64" y="392" width="696" height="264" rx="20" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <g transform="translate(104 457) scale(0.3529411765)"><g color="#111827" transform="translate(2 -7)">
+    <path d="M 100 95 A 42 42 0 1 0 81 112" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="butt"/>
+    <path d="M 79 94 L 93 94 L 117 118 L 103 118 Z" fill="currentColor"/>
+    <path d="M 50 77 H 52 V 98 H 50 Z M 47 82 H 55 V 93 H 47 Z" fill="currentColor"/>
+    <path d="M 61 71 H 63 V 95 H 61 Z M 58 76 H 66 V 90 H 58 Z" fill="currentColor"/>
+    <path d="M 73 63 H 75 V 86 H 73 Z M 70 69 H 78 V 82 H 70 Z" fill="currentColor"/>
+    <path d="M 84 54 H 86 V 82 H 84 Z M 81 60 H 89 V 77 H 81 Z" fill="currentColor"/>
+  </g></g>
+  <text x="154" y="493" fill="#111827" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="30" font-weight="650" letter-spacing="-0.5">QuantFlow</text>
+  <text x="316" y="492" fill="#4B5563" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="16" font-weight="500">管理后台</text>
+  <text x="104" y="594" fill="#111827" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="600">管理端</text>
+  <text x="104" y="620" fill="#4B5563" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="14">“管理后台”仅作产品区域说明，不作为中文品牌名</text>
+
+  <rect x="784" y="392" width="352" height="264" rx="20" fill="#111827"/>
+  <g transform="translate(824 455) scale(0.3529411765)"><g color="#FFFFFF" transform="translate(2 -7)">
+    <path d="M 100 95 A 42 42 0 1 0 81 112" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="butt"/>
+    <path d="M 79 94 L 93 94 L 117 118 L 103 118 Z" fill="currentColor"/>
+    <path d="M 50 77 H 52 V 98 H 50 Z M 47 82 H 55 V 93 H 47 Z" fill="currentColor"/>
+    <path d="M 61 71 H 63 V 95 H 61 Z M 58 76 H 66 V 90 H 58 Z" fill="currentColor"/>
+    <path d="M 73 63 H 75 V 86 H 73 Z M 70 69 H 78 V 82 H 70 Z" fill="currentColor"/>
+    <path d="M 84 54 H 86 V 82 H 84 Z M 81 60 H 89 V 77 H 81 Z" fill="currentColor"/>
+  </g></g>
+  <text x="874" y="491" fill="#FFFFFF" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="28" font-weight="650" letter-spacing="-0.5">QuantFlow</text>
+  <text x="824" y="594" fill="#FFFFFF" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="18" font-weight="600">深色表面</text>
+  <text x="824" y="620" fill="#D1D5DB" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="14">仅用于页脚等局部深色区域</text>
+</svg>

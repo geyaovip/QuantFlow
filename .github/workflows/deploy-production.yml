@@ -1,0 +1,62 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quantflow-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SSH key
+        env:
+          DEPLOY_KEY: ${{ secrets.QUANTFLOW_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ vars.QUANTFLOW_DEPLOY_HOST }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/quantflow_deploy
+          chmod 600 ~/.ssh/quantflow_deploy
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Sync release to VPS
+        env:
+          DEPLOY_HOST: ${{ vars.QUANTFLOW_DEPLOY_HOST }}
+          DEPLOY_PATH: ${{ vars.QUANTFLOW_DEPLOY_PATH }}
+          DEPLOY_USER: ${{ vars.QUANTFLOW_DEPLOY_USER }}
+        run: |
+          rsync -az --delete \
+            --exclude .git \
+            --exclude .env \
+            --exclude node_modules \
+            --exclude '**/.next' \
+            --exclude '**/dist' \
+            -e 'ssh -i ~/.ssh/quantflow_deploy -o IdentitiesOnly=yes' \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+
+      - name: Build and deploy
+        env:
+          DEPLOY_HOST: ${{ vars.QUANTFLOW_DEPLOY_HOST }}
+          DEPLOY_PATH: ${{ vars.QUANTFLOW_DEPLOY_PATH }}
+          DEPLOY_USER: ${{ vars.QUANTFLOW_DEPLOY_USER }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          ssh -i ~/.ssh/quantflow_deploy -o IdentitiesOnly=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$DEPLOY_PATH' && chmod +x scripts/deploy-production.sh && QUANTFLOW_IMAGE_TAG='$IMAGE_TAG' scripts/deploy-production.sh"
+
+      - name: Verify public endpoints
+        run: |
+          curl --fail --retry 12 --retry-delay 5 --retry-all-errors https://quantflow.chat
+          curl --fail --retry 12 --retry-delay 5 --retry-all-errors https://admin.quantflow.chat/admin
+          curl --fail --retry 12 --retry-delay 5 --retry-all-errors https://api.quantflow.chat/api/v1/health

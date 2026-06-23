@@ -1,0 +1,60 @@
+name: quantflow
+
+services:
+  web:
+    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/web:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
+    restart: unless-stopped
+    env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    ports:
+      - "127.0.0.1:3100:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  admin:
+    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/admin:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
+    restart: unless-stopped
+    env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    ports:
+      - "127.0.0.1:3101:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  api:
+    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/api:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
+    restart: unless-stopped
+    env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    ports:
+      - "127.0.0.1:3102:3002"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3002/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/worker:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
+    restart: unless-stopped
+    env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    volumes:
+      - quantflow-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  quantflow-postgres-data:

@@ -1,0 +1,38 @@
+---
+description: QuantFlow always-on MVP, risk, language, and change rules
+alwaysApply: true
+---
+
+# QuantFlow Core Rules
+
+Before editing, read `AGENTS.md` and only the task-specific sources listed in `docs/README.md`. Follow the closed decisions in `docs/project/decision-log.md`; record any genuinely new decision before implementation.
+
+- MVP is a strategy-signal, membership, and paper-trading product; it is not a live-trading product.
+- Product surfaces are separated: `/` is the marketing website, `/app` is the user application workspace, and `/admin` is the operations admin console.
+- The marketing website owns brand, trust, conversion, and risk education; its primary CTA is `进入应用`, routing to `/app/strategies`.
+- The `/app` workspace owns strategies, signals, paper trading, membership, and profile; `/app` must redirect to `/app/strategies`, and desktop uses top navigation.
+- The `/admin` console owns dashboards, users, strategies, signals, paper accounts, memberships, risks, permissions, and audit logs; CMS is P1.
+- Mobile navigation: the marketing website may use a top nav plus hamburger menu; `/app` mobile must use a fixed four-item bottom tab nav and must not use a top-left hamburger as primary navigation; `/admin` is desktop-first but essential permitted operations remain available on mobile.
+- `/app` top bars are for page title, back, notifications, search, and auxiliary actions. Bottom nav must respect safe-area and not cover primary actions or risk notices.
+- Never expose exchange connections, exchange API keys, real assets, real orders, semi-auto trading, or auto trading.
+- Keep `enableExchangeConnection`, `enableSemiAutoTrading`, `enableAutoTrading`, `enableAuthorPortal`, and `enableProductionPayments` false.
+- All user-facing copy defaults to Simplified Chinese; the brand remains `QuantFlow`.
+- MVP UI defaults to a restrained light data-platform theme: white/gray/black, dark primary actions, and low-frequency muted blue; reserve dark tokens but do not implement dark mode yet.
+- Use the v0 color tokens and P0 component order in `docs/design/`; every page must adapt across viewport widths without hiding risk, permission, or status information.
+- Every list is server-paginated: user default 20 rows, admin default 50 rows, API maximum 100; no infinite scroll in MVP.
+- Pair returns with same-period drawdown, win rate with trade count and profit/loss ratio, and rankings with risk level.
+- Label every paper balance, position, order, trade, and chart as simulated.
+- Enforce entitlements, object state, risk rules, and admin RBAC on the server; audit sensitive admin mutations.
+- Backend uses lightweight DDD in a modular monolith. Split by business domain, not by dumping technical services together.
+- Core modules use domain/application/infrastructure/interfaces layers; simple modules may be simplified without heavy DDD ceremony.
+- Do not use microservices, complex CQRS, Event Sourcing, or a complex event bus in MVP.
+- Domain events are allowed, e.g. StrategySignalGenerated, PaperOrderExecuted, RiskEventTriggered; first version may use local events or PostgreSQL outbox/worker.
+- Controllers handle request/response only; Use Cases orchestrate; Domain owns core rules; Repositories handle data access.
+- Never put trading, strategy, paper trading, or risk logic directly in controllers.
+- Use decimal semantics for prices, quantities, money, fees, and ratios.
+- User and admin login use backend-managed email OTP delivered through Resend; never treat Resend as the identity provider or expose its API key.
+- Update the owning source document when scope, API, schema, permission, risk, or calculation behavior changes.
+
+Required risk disclosure:
+
+QuantFlow 不提供投资建议，不承诺任何收益。所有策略信号仅供参考，加密资产价格波动较大，用户需自行承担交易风险。历史表现不代表未来收益。

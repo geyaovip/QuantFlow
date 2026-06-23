@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="QuantFlow app icon">
+  <title>QuantFlow app icon</title>
+  <rect width="512" height="512" fill="#050505"/>
+  <g transform="translate(0 0) scale(3.764705882352941)"><g color="#FFFFFF" transform="translate(2 -7)">
+    <path d="M 100 95 A 42 42 0 1 0 81 112" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="butt"/>
+    <path d="M 79 94 L 93 94 L 117 118 L 103 118 Z" fill="currentColor"/>
+    <path d="M 50 77 H 52 V 98 H 50 Z M 47 82 H 55 V 93 H 47 Z" fill="currentColor"/>
+    <path d="M 61 71 H 63 V 95 H 61 Z M 58 76 H 66 V 90 H 58 Z" fill="currentColor"/>
+    <path d="M 73 63 H 75 V 86 H 73 Z M 70 69 H 78 V 82 H 70 Z" fill="currentColor"/>
+    <path d="M 84 54 H 86 V 82 H 84 Z M 81 60 H 89 V 77 H 81 Z" fill="currentColor"/>
+  </g></g>
+</svg>

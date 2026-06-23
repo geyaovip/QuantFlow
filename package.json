@@ -1,0 +1,30 @@
+{
+  "name": "quantflow",
+  "version": "0.2.0",
+  "private": true,
+  "packageManager": "pnpm@11.2.2",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm sync:brand && pnpm --parallel --filter @quantflow/web --filter @quantflow/admin --filter @quantflow/api --filter @quantflow/worker dev",
+    "build": "pnpm sync:brand && pnpm -r build",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:docs": "./scripts/check-docs.sh",
+    "check": "pnpm check:docs && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "sync:brand": "node scripts/sync-brand-assets.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.2",
+    "@types/node": "26.0.0",
+    "eslint": "10.5.0",
+    "prettier": "3.8.4",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.62.0",
+    "vitest": "4.1.9"
+  }
+}

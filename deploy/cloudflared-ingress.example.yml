@@ -1,0 +1,13 @@
+# Merge these routes into the shared VPS tunnel configuration.
+# Keep existing project routes first and the 404 catch-all last.
+tunnel: <EXISTING_SHARED_TUNNEL_UUID>
+credentials-file: /etc/cloudflared/<EXISTING_SHARED_TUNNEL_UUID>.json
+
+ingress:
+  - hostname: <QUANTFLOW_WEB_HOSTNAME>
+    service: http://127.0.0.1:3100
+  - hostname: <QUANTFLOW_ADMIN_HOSTNAME>
+    service: http://127.0.0.1:3101
+  - hostname: <QUANTFLOW_API_HOSTNAME>
+    service: http://127.0.0.1:3102
+  - service: http_status:404

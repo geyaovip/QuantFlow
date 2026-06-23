@@ -1,0 +1,23 @@
+name: quantflow
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: quantflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: quantflow
+      POSTGRES_USER: quantflow
+      POSTGRES_PASSWORD: quantflow_dev
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - quantflow-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quantflow -d quantflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  quantflow-postgres-data:
