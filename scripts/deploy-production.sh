@@ -55,6 +55,8 @@ for app in web admin api worker; do
   build_image "$app"
 done
 
+compose "$IMAGE_TAG" up "-d postgres"
+compose "$IMAGE_TAG" run "--rm api pnpm --filter @quantflow/api db:deploy"
 compose "$IMAGE_TAG" up "-d --remove-orphans"
 
 if wait_for_url http://127.0.0.1:3100 45 \

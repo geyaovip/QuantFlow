@@ -1,6 +1,8 @@
 # QuantFlow 数据模型
 
-状态：逻辑模型基线｜实现后以迁移文件为结构事实来源
+状态：逻辑模型基线｜认证基础已迁移｜实现后以迁移文件为结构事实来源
+
+当前已落地 migration：`apps/api/prisma/migrations/202606250001_auth_foundation/migration.sql`，覆盖用户、管理员、邮箱验证码、会话和安全事件。策略、信号、行情、模拟盘、会员、通知、RBAC、审计和 outbox 仍按后续业务切片逐步迁移。
 
 ## 1. 全局约束
 

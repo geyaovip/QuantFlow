@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.2.0-dev.3` - 2026-06-25
+
+- 类型：Added / Security / Backend / Ops / Docs
+- 摘要：新增 Prisma 7 数据库配置、认证基础 migration、用户/管理员邮箱 OTP 领域服务、Resend 发信 adapter、Cloudflare Turnstile 服务端校验 adapter、认证 API 控制器和生产迁移发布步骤。
+- MVP 边界影响：无；未增加交易所连接、真实下单、半自动/自动交易或在线支付入口。
+- API / 数据 / 权限 / 风控影响：新增 `/api/v1/auth/email-otp/request`、`/api/v1/auth/email-otp/verify`、`/api/v1/auth/logout` 的初始实现；新增 `users`、`admin_users`、`auth_email_challenges`、`auth_sessions`、`user_security_events` 表；管理端仍只允许预授权 `admin_users` 登录。
+- 迁移与兼容：首次业务 migration `202606250001_auth_foundation`；生产发布脚本在启动服务前执行 `prisma migrate deploy`。生产环境必须配置新的 Resend API Key、发信域名、Turnstile keys 和 OTP pepper，否则 API 启动失败。
+- 验证：`pnpm --filter @quantflow/api db:generate`、`pnpm check`、`pnpm build` 通过；API 3 个测试文件 8 项、contracts 3 项测试通过。
+- 监控与回滚：Resend 投递失败不会签发会话；验证码和 session 只保存 hash。域名 DNS 传播、Turnstile widget 创建和生产环境变量仍需上线前确认。
+
 ### `v0.2.0-dev.2` - 2026-06-23
 
 - 类型：Ops / Fixed / Docs

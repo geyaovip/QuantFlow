@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  active
+  disabled
+  risk_watch
+  deleting
+
+  @@map("user_status")
+}
+
+enum AdminUserStatus {
+  active
+  disabled
+
+  @@map("admin_user_status")
+}
+
+enum AuthPortal {
+  user
+  admin
+
+  @@map("auth_portal")
+}
+
+enum AuthSessionAudience {
+  user
+  admin
+
+  @@map("auth_session_audience")
+}
+
+enum SecurityEventType {
+  auth_otp_requested
+  auth_otp_sent
+  auth_otp_send_failed
+  auth_otp_verified
+  auth_otp_failed
+  auth_session_created
+  auth_logout
+
+  @@map("security_event_type")
+}
+
+model User {
+  id              String              @id @default(uuid()) @db.Uuid
+  emailNormalized String              @unique @map("email_normalized")
+  email           String
+  status          UserStatus          @default(active)
+  lastLoginAt     DateTime?           @map("last_login_at") @db.Timestamptz(6)
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  securityEvents  UserSecurityEvent[]
+
+  @@map("users")
+}
+
+model AdminUser {
+  id              String          @id @default(uuid()) @db.Uuid
+  emailNormalized String          @unique @map("email_normalized")
+  email           String
+  status          AdminUserStatus @default(active)
+  lastLoginAt     DateTime?       @map("last_login_at") @db.Timestamptz(6)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("admin_users")
+}
+
+model AuthEmailChallenge {
+  id              String     @id @default(uuid()) @db.Uuid
+  emailNormalized String     @map("email_normalized")
+  emailHash       String     @map("email_hash")
+  portal          AuthPortal
+  codeHash        String     @map("code_hash")
+  expiresAt       DateTime   @map("expires_at") @db.Timestamptz(6)
+  usedAt          DateTime?  @map("used_at") @db.Timestamptz(6)
+  failedAttempts  Int        @default(0) @map("failed_attempts")
+  requestedIp     String?    @map("requested_ip")
+  requestedUa     String?    @map("requested_ua")
+  resendMessageId String?    @map("resend_message_id")
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([emailNormalized, portal, createdAt(sort: Desc), id(sort: Desc)], map: "idx_auth_email_challenges_lookup")
+  @@index([expiresAt], map: "idx_auth_email_challenges_expires")
+  @@map("auth_email_challenges")
+}
+
+model AuthSession {
+  id           String              @id @default(uuid()) @db.Uuid
+  subjectId    String              @map("subject_id") @db.Uuid
+  audience     AuthSessionAudience
+  tokenHash    String              @unique @map("token_hash")
+  expiresAt    DateTime            @map("expires_at") @db.Timestamptz(6)
+  revokedAt    DateTime?           @map("revoked_at") @db.Timestamptz(6)
+  lastSeenAt   DateTime?           @map("last_seen_at") @db.Timestamptz(6)
+  createdIp    String?             @map("created_ip")
+  createdUa    String?             @map("created_ua")
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([subjectId, audience, revokedAt], map: "idx_auth_sessions_subject")
+  @@index([expiresAt], map: "idx_auth_sessions_expires")
+  @@map("auth_sessions")
+}
+
+model UserSecurityEvent {
+  id              String            @id @default(uuid()) @db.Uuid
+  userId          String?           @map("user_id") @db.Uuid
+  user            User?             @relation(fields: [userId], references: [id])
+  emailNormalized String?           @map("email_normalized")
+  eventType       SecurityEventType @map("event_type")
+  portal          AuthPortal?
+  ip              String?
+  userAgent       String?           @map("user_agent")
+  metadata        Json?
+  occurredAt      DateTime          @default(now()) @map("occurred_at") @db.Timestamptz(6)
+
+  @@index([userId, occurredAt(sort: Desc), id(sort: Desc)], map: "idx_user_security_events_user")
+  @@index([emailNormalized, occurredAt(sort: Desc), id(sort: Desc)], map: "idx_user_security_events_email")
+  @@map("user_security_events")
+}

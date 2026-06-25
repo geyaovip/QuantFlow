@@ -57,9 +57,9 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 ## 6. 发布与回滚
 
 1. PR 必须通过文档、lint、typecheck、unit、contract 和 build 门禁。
-2. 生产发布由 `.github/workflows/deploy-production.yml` 通过 SSH/rsync 同步固定 commit，再调用 `scripts/deploy-production.sh` 顺序构建四个镜像、更新 Compose 服务并检查本机与 Cloudflare 公网健康端点。
-3. 健康检查失败立即恢复上一镜像 tag；数据库变更优先前滚，任何不可逆 migration 必须先备份并单独审批。
-4. Worker 和 API 不得同时运行不兼容 schema；发布顺序遵循 expand → deploy → contract。
+2. 生产发布由 `.github/workflows/deploy-production.yml` 通过 SSH/rsync 同步固定 commit，再调用 `scripts/deploy-production.sh` 顺序构建四个镜像、启动 PostgreSQL、执行 `prisma migrate deploy`、更新 Compose 服务并检查本机与 Cloudflare 公网健康端点。
+3. migration 失败必须阻断发布；健康检查失败立即恢复上一镜像 tag。数据库变更优先前滚，任何不可逆 migration 必须先备份并单独审批。
+4. Worker 和 API 不得同时运行不兼容 schema；发布顺序遵循 expand → migrate → deploy → contract。
 
 当前仓库已初始化 Web、Admin、API 和 Worker。`deploy/Dockerfile` 使用 `APP=web|admin|api|worker` 构建对应镜像；`deploy/compose.production.yml` 要求显式提供镜像 registry、镜像 tag 和服务器环境文件。部署失败时脚本恢复上一健康镜像 tag。
 

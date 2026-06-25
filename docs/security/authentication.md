@@ -37,7 +37,7 @@ MVP 不实现密码注册、密码登录或密码重置。不得把 Resend API K
 
 ## 4. 配置
 
-应用初始化后在 `.env.example` 中声明且不提供真实值：
+应用初始化后在 `.env.example` 中声明且不提供真实值。生产环境当前使用独立 Resend 账号；`quantflow.chat` 发信域名和 API Key 必须由该账号单独创建，不复用其他项目 key。
 
 ```text
 RESEND_API_KEY=
@@ -48,6 +48,7 @@ AUTH_OTP_PEPPER=
 AUTH_OTP_TTL_SECONDS=600
 AUTH_OTP_RESEND_COOLDOWN_SECONDS=60
 AUTH_OTP_MAX_ATTEMPTS=5
+AUTH_SESSION_TTL_SECONDS=2592000
 ```
 
 启动时校验生产环境的 Resend API Key、发件地址、Turnstile keys 和 pepper。邮件与 Turnstile adapter 必须可在测试中替换为 fake，不允许单元测试调用外部服务。Turnstile token 必须服务端校验且单次使用；前端组件成功不构成安全验证。

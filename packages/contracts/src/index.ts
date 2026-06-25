@@ -8,6 +8,18 @@ export const emailOtpRequestSchema = z.object({
   turnstileToken: z.string().min(1).optional(),
 });
 
+export const emailOtpVerifySchema = z.object({
+  email: z.email(),
+  portal: portalSchema,
+  code: z.string().regex(/^\d{6}$/),
+});
+
+export const authSessionSchema = z.object({
+  subjectId: z.uuid(),
+  audience: portalSchema,
+  expiresAt: z.iso.datetime(),
+});
+
 export const featureFlagsSchema = z.object({
   enableExchangeConnection: z.literal(false),
   enableSemiAutoTrading: z.literal(false),
@@ -17,6 +29,8 @@ export const featureFlagsSchema = z.object({
 });
 
 export type EmailOtpRequest = z.infer<typeof emailOtpRequestSchema>;
+export type EmailOtpVerify = z.infer<typeof emailOtpVerifySchema>;
+export type AuthSession = z.infer<typeof authSessionSchema>;
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {

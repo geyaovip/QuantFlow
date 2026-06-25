@@ -13,4 +13,10 @@ describe("loadAppConfig", () => {
   it("rejects attempts to enable real trading", () => {
     expect(() => loadAppConfig({ ENABLE_AUTO_TRADING: "true" })).toThrow();
   });
+
+  it("requires production auth secrets", () => {
+    expect(() => loadAppConfig({ NODE_ENV: "production" })).toThrow(
+      /Missing production auth config/,
+    );
+  });
 });
