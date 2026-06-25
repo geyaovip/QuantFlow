@@ -5,7 +5,7 @@ alwaysApply: true
 
 # QuantFlow Core Rules
 
-Before editing, read `AGENTS.md` and only the task-specific sources listed in `docs/README.md`. Follow the closed decisions in `docs/project/decision-log.md`; record any genuinely new decision before implementation.
+Before editing, read `AGENTS.md`, `docs/dev/task-router.md`, and `docs/project/implementation-status.md`. Follow closed decisions in `docs/project/decision-log.md`; record any genuinely new decision before implementation.
 
 - MVP is a strategy-signal, membership, and paper-trading product; it is not a live-trading product.
 - Product surfaces are separated: `/` is the marketing website, `/app` is the user application workspace, and `/admin` is the operations admin console.

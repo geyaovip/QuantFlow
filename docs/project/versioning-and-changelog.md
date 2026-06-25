@@ -31,6 +31,15 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `docs-v0.5.0` - 2026-06-25
+
+- 类型：Docs / Ops
+- 摘要：为 AI 全自动开发优化文档体系；新增实现状态地图与任务路由；压缩 `AGENTS.md` 重复内容；决策日志增加 ADR 状态与 Agent 约束列；明确代码/迁移/测试为运行时事实来源。
+- MVP 边界影响：无。
+- API / 数据 / 权限 / 风控影响：无；仅文档与 Agent 执行路径变化。
+- 验证：`./scripts/check-docs.sh`、`pnpm check`。
+- 监控与回滚：文档变更可通过 Git 回滚；`implementation-status.md` 需随实现持续更新。
+
 ### `v0.2.0-dev.3` - 2026-06-25
 
 - 类型：Added / Security / Backend / Ops / Docs

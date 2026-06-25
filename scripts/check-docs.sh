@@ -41,6 +41,16 @@ if rg -n 'documentation-review\.md|prd-adjustments\.md' $files; then
   failed=1
 fi
 
+if [ ! -f docs/project/implementation-status.md ] || [ ! -f docs/dev/task-router.md ]; then
+  echo "missing AI execution documents"
+  failed=1
+fi
+
+if ! rg -n 'implementation-status\.md' AGENTS.md docs/README.md docs/dev/ai-development-workflow.md >/dev/null; then
+  echo "implementation-status.md is not linked from agent entry documents"
+  failed=1
+fi
+
 root_version=$(sed -n 's/.*文档基线.*`\(docs-v[0-9.]*\)`.*/\1/p' README.md | head -n 1)
 index_version=$(sed -n 's/.*文档基线为 `\(docs-v[0-9.]*\)`.*/\1/p' docs/README.md | head -n 1)
 latest_version=$(rg -o 'docs-v[0-9]+\.[0-9]+\.[0-9]+' docs/project/versioning-and-changelog.md | head -n 1)
