@@ -51,7 +51,7 @@ wait_for_url() {
 
 build_release_image
 
-compose "$IMAGE_TAG" up "-d postgres"
+compose "$IMAGE_TAG" up "-d --no-recreate postgres"
 compose "$IMAGE_TAG" run "--rm api pnpm --filter @quantflow/api db:deploy"
 if ! compose "$IMAGE_TAG" up "-d --remove-orphans"; then
   echo "compose up failed" >&2
