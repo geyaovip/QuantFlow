@@ -22,6 +22,8 @@ MVP 不实现密码注册、密码登录或密码重置。不得把 Resend API K
 
 用户会话与管理员会话必须区分 audience、cookie 名称和授权 guard；管理员验证码不能用于用户端会话，反之亦然。
 
+MVP 当前唯一预授权管理员邮箱为 `geyaovip@163.com`。其他管理员邮箱即使请求验证码也不得发送邮件；后续新增管理员必须通过 migration 或已审计的管理端权限流程显式启用。
+
 ## 3. 安全默认值
 
 | 项目       | 默认值               | 规则                               |
@@ -50,11 +52,12 @@ AUTH_OTP_RESEND_COOLDOWN_SECONDS=60
 AUTH_OTP_MAX_ATTEMPTS=5
 AUTH_SESSION_TTL_SECONDS=2592000
 AUTH_ALLOWED_ORIGINS=https://quantflow.chat,https://admin.quantflow.chat
+AUTH_COOKIE_DOMAIN=.quantflow.chat
 ```
 
 启动时校验生产环境的 Resend API Key、发件地址、Turnstile keys 和 pepper。邮件与 Turnstile adapter 必须可在测试中替换为 fake，不允许单元测试调用外部服务。Turnstile token 必须服务端校验且单次使用；前端组件成功不构成安全验证。
 
-浏览器登录页跨域请求 `api.quantflow.chat` 时必须使用 CORS credentials；生产只允许官网和管理端域名来源。会话 Cookie 仅由 API 域写入和接收，前端不能读取 Cookie 明文。
+浏览器登录页跨域请求 `api.quantflow.chat` 时必须使用 CORS credentials；生产只允许官网和管理端域名来源。生产会话 Cookie domain 必须为 `.quantflow.chat`，这样用户端和管理端 proxy 可以把 HttpOnly session cookie 转发给 API 做真实校验；前端代码仍不能读取 Cookie 明文。
 
 ## 5. 邮件内容
 

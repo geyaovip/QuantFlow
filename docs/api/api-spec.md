@@ -67,6 +67,7 @@ K 线、权益曲线等时间序列不是“列表页”，使用 `from/to/inter
 | ----- | ---------------------------- | --------------- | ------------------------------------------------------------------------------- |
 | POST  | `/auth/email-otp/request`    | 否              | 请求邮箱验证码；`portal=user/admin`，生产必传 `turnstile_token`，统一响应防枚举 |
 | POST  | `/auth/email-otp/verify`     | 否              | 验证邮箱验证码并签发对应 audience 会话                                          |
+| GET   | `/auth/session`              | Session Cookie  | 校验当前 audience 会话；`audience=user/admin`，供 Web/Admin guard 使用          |
 | POST  | `/auth/refresh`              | Refresh session | 轮换会话                                                                        |
 | POST  | `/auth/logout`               | 是              | 撤销当前会话                                                                    |
 | GET   | `/me`                        | 是              | 资料、会员、权益、风险确认状态                                                  |

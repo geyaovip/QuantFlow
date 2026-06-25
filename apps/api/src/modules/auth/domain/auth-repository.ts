@@ -1,5 +1,6 @@
 import type {
   AuthPortal,
+  AuthSessionSubject,
   AuthSubject,
   CreateChallengeInput,
   CreateSessionInput,
@@ -50,5 +51,11 @@ export interface AuthRepository {
   incrementChallengeFailures(challengeId: string): Promise<void>;
   markChallengeUsed(challengeId: string, at: Date): Promise<void>;
   createSession(input: CreateSessionInput): Promise<void>;
+  findActiveSessionByTokenHash(
+    tokenHash: string,
+    audience: AuthPortal,
+    now: Date,
+  ): Promise<AuthSessionSubject | null>;
+  touchSession(tokenHash: string, at: Date): Promise<void>;
   recordSecurityEvent(input: SecurityEventInput): Promise<void>;
 }

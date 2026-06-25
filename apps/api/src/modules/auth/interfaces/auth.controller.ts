@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
   Post,
+  Query,
   Req,
   Res,
 } from "@nestjs/common";
@@ -29,7 +31,7 @@ type CookieResponse = {
   cookie(name: string, value: string, options: CookieOptions): void;
   clearCookie(
     name: string,
-    options: Pick<CookieOptions, "path" | "sameSite">,
+    options: Pick<CookieOptions, "path" | "sameSite" | "domain">,
   ): void;
 };
 
@@ -38,11 +40,14 @@ type CookieOptions = {
   secure: boolean;
   sameSite: "lax" | "strict" | "none";
   path: string;
+  domain?: string;
   expires: Date;
 };
 
 @Controller("auth")
 export class AuthController {
+  private readonly cookieDomain = process.env.AUTH_COOKIE_DOMAIN || undefined;
+
   constructor(private readonly authService: AuthService) {}
 
   @Post("email-otp/request")
@@ -94,6 +99,7 @@ export class AuthController {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
+        domain: this.cookieDomain,
         expires: session.expiresAt,
       });
       return {
@@ -108,16 +114,58 @@ export class AuthController {
     }
   }
 
+  @Get("session")
+  async getSession(
+    @Query("audience") audience: "user" | "admin" | undefined,
+    @Req() request: RequestLike,
+  ) {
+    if (audience !== "user" && audience !== "admin") {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    try {
+      const session = await this.authService.validateSession(
+        cookieValue(headerValue(request.headers.cookie), cookieName(audience)),
+        audience,
+      );
+      return {
+        data: {
+          subjectId: session.subjectId,
+          audience: session.audience,
+          expiresAt: session.expiresAt.toISOString(),
+        },
+      };
+    } catch (error) {
+      throw toHttpError(error);
+    }
+  }
+
   @Post("logout")
   logout(@Res({ passthrough: true }) response: CookieResponse) {
-    response.clearCookie(cookieName("user"), { path: "/", sameSite: "lax" });
-    response.clearCookie(cookieName("admin"), { path: "/", sameSite: "lax" });
+    response.clearCookie(cookieName("user"), {
+      path: "/",
+      sameSite: "lax",
+      domain: this.cookieDomain,
+    });
+    response.clearCookie(cookieName("admin"), {
+      path: "/",
+      sameSite: "lax",
+      domain: this.cookieDomain,
+    });
     return { data: { message: "已退出登录" } };
   }
 }
 
 function cookieName(audience: "user" | "admin") {
   return audience === "admin" ? "qf_admin_session" : "qf_user_session";
+}
+
+function cookieValue(cookieHeader: string | undefined, name: string) {
+  return cookieHeader
+    ?.split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
 }
 
 function headerValue(value: string | string[] | undefined) {

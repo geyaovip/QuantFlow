@@ -9,13 +9,17 @@ import type {
 } from "../domain/auth-repository.js";
 import type {
   AuthPortal,
+  AuthSessionSubject,
   AuthSubject,
   CreateChallengeInput,
   CreateSessionInput,
   EmailChallenge,
 } from "../domain/auth-types.js";
 import type { Clock } from "../domain/clock.js";
-import { InvalidOtpError } from "../domain/auth-errors.js";
+import {
+  AuthAccessDeniedError,
+  InvalidOtpError,
+} from "../domain/auth-errors.js";
 import { AuthService } from "./auth.service.js";
 
 class MutableClock implements Clock {
@@ -126,6 +130,29 @@ class MemoryAuthRepository implements AuthRepository {
     this.sessions.push(input);
   }
 
+  async findActiveSessionByTokenHash(
+    tokenHash: string,
+    audience: AuthPortal,
+    now: Date,
+  ): Promise<AuthSessionSubject | null> {
+    const session =
+      this.sessions.find(
+        (item) =>
+          item.tokenHash === tokenHash &&
+          item.audience === audience &&
+          item.expiresAt > now,
+      ) ?? null;
+    return session
+      ? {
+          subjectId: session.subjectId,
+          audience: session.audience,
+          expiresAt: session.expiresAt,
+        }
+      : null;
+  }
+
+  async touchSession() {}
+
   async recordSecurityEvent(input: SecurityEventInput) {
     this.events.push(input);
   }
@@ -190,5 +217,25 @@ describe("AuthService", () => {
     await service.requestEmailOtp("user@example.com", "user");
 
     expect(mailer.sent).toHaveLength(1);
+  });
+
+  it("validates an active session token for the expected audience", async () => {
+    await service.requestEmailOtp("user@example.com", "user");
+    const code = mailer.sent[0]?.code ?? "";
+    const session = await service.verifyEmailOtp(
+      "user@example.com",
+      "user",
+      code,
+    );
+
+    await expect(
+      service.validateSession(session.token, "user"),
+    ).resolves.toMatchObject({
+      audience: "user",
+      subjectId: "user:user@example.com",
+    });
+    await expect(
+      service.validateSession(session.token, "admin"),
+    ).rejects.toBeInstanceOf(AuthAccessDeniedError);
   });
 });

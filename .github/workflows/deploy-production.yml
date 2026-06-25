@@ -56,7 +56,10 @@ jobs:
             "cd '$DEPLOY_PATH' && chmod +x scripts/deploy-production.sh && QUANTFLOW_IMAGE_TAG='$IMAGE_TAG' scripts/deploy-production.sh"
 
       - name: Verify public endpoints
+        env:
+          DEPLOY_HOST: ${{ vars.QUANTFLOW_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.QUANTFLOW_DEPLOY_USER }}
         run: |
-          curl --fail --retry 12 --retry-delay 5 --retry-all-errors https://quantflow.chat
-          curl --fail --retry 12 --retry-delay 5 --retry-all-errors https://admin.quantflow.chat/admin
-          curl --fail --retry 12 --retry-delay 5 --retry-all-errors https://api.quantflow.chat/api/v1/health
+          ssh -i ~/.ssh/quantflow_deploy -o IdentitiesOnly=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "curl --fail --retry 12 --retry-delay 5 --retry-all-errors http://127.0.0.1:3100 && curl --fail --retry 12 --retry-delay 5 --retry-all-errors http://127.0.0.1:3101/admin && curl --fail --retry 12 --retry-delay 5 --retry-all-errors http://127.0.0.1:3102/api/v1/health"

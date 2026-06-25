@@ -41,6 +41,7 @@ const environmentSchema = z.object({
     .string()
     .optional()
     .default("https://quantflow.chat,https://admin.quantflow.chat"),
+  AUTH_COOKIE_DOMAIN: z.string().optional().default(""),
   TURNSTILE_SITE_KEY: z.string().optional().default(""),
   TURNSTILE_SECRET_KEY: z.string().optional().default(""),
 });
@@ -54,6 +55,7 @@ export function loadAppConfig(environment: NodeJS.ProcessEnv = process.env) {
       ["RESEND_API_KEY", parsed.RESEND_API_KEY],
       ["AUTH_EMAIL_FROM", parsed.AUTH_EMAIL_FROM],
       ["AUTH_OTP_PEPPER", parsed.AUTH_OTP_PEPPER],
+      ["AUTH_COOKIE_DOMAIN", parsed.AUTH_COOKIE_DOMAIN],
       ["TURNSTILE_SITE_KEY", parsed.TURNSTILE_SITE_KEY],
       ["TURNSTILE_SECRET_KEY", parsed.TURNSTILE_SECRET_KEY],
     ].flatMap(([key, value]) => (value ? [] : [key]));
@@ -75,6 +77,7 @@ export function loadAppConfig(environment: NodeJS.ProcessEnv = process.env) {
       allowedOrigins: parsed.AUTH_ALLOWED_ORIGINS.split(",")
         .map((origin) => origin.trim())
         .filter(Boolean),
+      cookieDomain: parsed.AUTH_COOKIE_DOMAIN || undefined,
       turnstileSiteKey: parsed.TURNSTILE_SITE_KEY,
       turnstileSecretKey: parsed.TURNSTILE_SECRET_KEY,
     },

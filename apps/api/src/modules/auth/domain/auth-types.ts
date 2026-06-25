@@ -43,3 +43,9 @@ export type AuthSessionRecord = {
   token: string;
   expiresAt: Date;
 };
+
+export type AuthSessionSubject = {
+  subjectId: string;
+  audience: AuthPortal;
+  expiresAt: Date;
+};

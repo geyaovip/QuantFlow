@@ -21,12 +21,10 @@ if [ -f "$CURRENT_TAG_FILE" ]; then
   PREVIOUS_TAG=$(cat "$CURRENT_TAG_FILE")
 fi
 
-build_image() {
-  app=$1
+build_release_image() {
   docker build \
-    --file "$ROOT/deploy/Dockerfile" \
-    --build-arg "APP=$app" \
-    --tag "$IMAGE_REGISTRY/$app:$IMAGE_TAG" \
+    --file "$ROOT/deploy/Dockerfile.release" \
+    --tag "$IMAGE_REGISTRY/app:$IMAGE_TAG" \
     "$ROOT"
 }
 
@@ -51,13 +49,18 @@ wait_for_url() {
   return 1
 }
 
-for app in web admin api worker; do
-  build_image "$app"
-done
+build_release_image
 
 compose "$IMAGE_TAG" up "-d postgres"
 compose "$IMAGE_TAG" run "--rm api pnpm --filter @quantflow/api db:deploy"
-compose "$IMAGE_TAG" up "-d --remove-orphans"
+if ! compose "$IMAGE_TAG" up "-d --remove-orphans"; then
+  echo "compose up failed" >&2
+  if [ -n "$PREVIOUS_TAG" ]; then
+    echo "rolling back to: $PREVIOUS_TAG" >&2
+    compose "$PREVIOUS_TAG" up "-d --remove-orphans" || true
+  fi
+  exit 1
+fi
 
 if wait_for_url http://127.0.0.1:3100 45 \
   && wait_for_url http://127.0.0.1:3101/admin 45 \

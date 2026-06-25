@@ -222,6 +222,26 @@ export class AuthService {
     };
   }
 
+  async validateSession(token: string | undefined, audience: AuthPortal) {
+    if (!token) {
+      throw new AuthAccessDeniedError();
+    }
+
+    const tokenHash = this.crypto.hashToken(token);
+    const session = await this.repository.findActiveSessionByTokenHash(
+      tokenHash,
+      audience,
+      this.clock.now(),
+    );
+
+    if (!session) {
+      throw new AuthAccessDeniedError();
+    }
+
+    await this.repository.touchSession(tokenHash, this.clock.now());
+    return session;
+  }
+
   private async recordOtpFailure(
     emailNormalized: string,
     portal: AuthPortal,

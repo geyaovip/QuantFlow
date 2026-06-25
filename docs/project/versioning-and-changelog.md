@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.2.0-dev.5` - 2026-06-25
+
+- 类型：Added / Security / Ops / Docs
+- 摘要：新增 `/auth/session` 会话校验 API，Web `/app/*` 与 Admin `/admin/*` proxy 强制校验对应 audience session；生产 Cookie domain 改为 `.quantflow.chat`；新增管理员预授权 migration，仅 `geyaovip@163.com` 保持启用；生产部署改为单一 release 镜像并修复 GitHub runner 公网校验被 Cloudflare 403 误判失败的问题。
+- MVP 边界影响：无；未增加交易所连接、真实下单、半自动/自动交易或在线支付入口。
+- API / 数据 / 权限 / 风控影响：新增 `GET /api/v1/auth/session`；新增 migration `202606250002_seed_admin_user`；管理员验证码仅对启用的 `admin_users` 发送，其他管理员邮箱不发送验证码。
+- 迁移与兼容：生产必须配置 `AUTH_COOKIE_DOMAIN=.quantflow.chat`；旧 host-only Cookie 需要用户重新登录。
+- 验证：API/Web/Admin typecheck、API auth tests、`pnpm check`、`pnpm build`。
+- 监控与回滚：如 guard 导致误拦截，可回滚 proxy 或恢复上一镜像 tag；数据库 seed migration 可前滚调整管理员状态。
+
 ### `v0.2.0-dev.4` - 2026-06-25
 
 - 类型：Added / Frontend / Security / SEO / Docs

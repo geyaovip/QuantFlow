@@ -168,6 +168,40 @@ export class PrismaAuthRepository implements AuthRepository {
     });
   }
 
+  async findActiveSessionByTokenHash(
+    tokenHash: string,
+    audience: AuthPortal,
+    now: Date,
+  ) {
+    const session = await this.prisma.authSession.findFirst({
+      where: {
+        tokenHash,
+        audience,
+        revokedAt: null,
+        expiresAt: { gt: now },
+      },
+      select: {
+        subjectId: true,
+        audience: true,
+        expiresAt: true,
+      },
+    });
+    return session
+      ? {
+          subjectId: session.subjectId,
+          audience: session.audience,
+          expiresAt: session.expiresAt,
+        }
+      : null;
+  }
+
+  async touchSession(tokenHash: string, at: Date) {
+    await this.prisma.authSession.update({
+      where: { tokenHash },
+      data: { lastSeenAt: at },
+    });
+  }
+
   async recordSecurityEvent(input: SecurityEventInput) {
     await this.prisma.userSecurityEvent.create({
       data: {

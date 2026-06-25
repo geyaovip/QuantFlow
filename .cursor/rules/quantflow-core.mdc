@@ -9,7 +9,7 @@ Before editing, read `AGENTS.md`, `docs/dev/task-router.md`, and `docs/project/i
 
 - MVP is a strategy-signal, membership, and paper-trading product; it is not a live-trading product.
 - Product surfaces are separated: `/` is the marketing website, `/app` is the user application workspace, and `/admin` is the operations admin console.
-- The marketing website owns brand, trust, conversion, and risk education; its primary CTA is `进入应用`, routing to `/app/strategies`.
+- The marketing website owns brand, trust, conversion, and risk education; its primary CTA is `进入应用`, routing unauthenticated users to `/login?next=/app/strategies`.
 - The `/app` workspace owns strategies, signals, paper trading, membership, and profile; `/app` must redirect to `/app/strategies`, and desktop uses top navigation.
 - The `/admin` console owns dashboards, users, strategies, signals, paper accounts, memberships, risks, permissions, and audit logs; CMS is P1.
 - Mobile navigation: the marketing website may use a top nav plus hamburger menu; `/app` mobile must use a fixed four-item bottom tab nav and must not use a top-left hamburger as primary navigation; `/admin` is desktop-first but essential permitted operations remain available on mobile.

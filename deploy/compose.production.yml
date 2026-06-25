@@ -2,9 +2,11 @@ name: quantflow
 
 services:
   web:
-    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/web:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
+    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/app:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
     restart: unless-stopped
     env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    environment:
+      APP: web
     ports:
       - "127.0.0.1:3100:3000"
     depends_on:
@@ -12,9 +14,11 @@ services:
         condition: service_healthy
 
   admin:
-    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/admin:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
+    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/app:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
     restart: unless-stopped
     env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    environment:
+      APP: admin
     ports:
       - "127.0.0.1:3101:3000"
     depends_on:
@@ -22,9 +26,11 @@ services:
         condition: service_healthy
 
   api:
-    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/api:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
+    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/app:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
     restart: unless-stopped
     env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    environment:
+      APP: api
     ports:
       - "127.0.0.1:3102:3002"
     healthcheck:
@@ -37,9 +43,11 @@ services:
         condition: service_healthy
 
   worker:
-    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/worker:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
+    image: ${QUANTFLOW_IMAGE_REGISTRY:?QUANTFLOW_IMAGE_REGISTRY is required}/app:${QUANTFLOW_IMAGE_TAG:?QUANTFLOW_IMAGE_TAG is required}
     restart: unless-stopped
     env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    environment:
+      APP: worker
     depends_on:
       postgres:
         condition: service_healthy
