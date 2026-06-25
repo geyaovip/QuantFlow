@@ -4,12 +4,19 @@ WORKDIR /app
 RUN corepack enable
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY apps/admin/package.json ./apps/admin/package.json
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+COPY apps/worker/package.json ./apps/worker/package.json
+COPY packages/contracts/package.json ./packages/contracts/package.json
+COPY packages/ui/package.json ./packages/ui/package.json
+
+RUN pnpm install --frozen-lockfile
+
 COPY apps ./apps
 COPY packages ./packages
 COPY assets ./assets
 COPY scripts ./scripts
-
-RUN pnpm install --frozen-lockfile
 RUN pnpm sync:brand && pnpm -r build
 
 FROM node:24-alpine AS runtime
