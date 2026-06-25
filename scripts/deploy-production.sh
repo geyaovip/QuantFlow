@@ -22,6 +22,7 @@ if [ -f "$CURRENT_TAG_FILE" ]; then
 fi
 
 build_release_image() {
+  docker image prune --force >/dev/null
   docker build \
     --file "$ROOT/deploy/Dockerfile.release" \
     --tag "$IMAGE_REGISTRY/app:$IMAGE_TAG" \
@@ -49,6 +50,22 @@ wait_for_url() {
   return 1
 }
 
+prune_old_release_images() {
+  keep_previous=${PREVIOUS_TAG:-}
+  docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' \
+    | while IFS=' ' read -r image_ref image_id; do
+      case "$image_ref" in
+        "$IMAGE_REGISTRY"/app:*)
+          image_tag=${image_ref#"$IMAGE_REGISTRY/app:"}
+          if [ "$image_tag" != "$IMAGE_TAG" ] && [ "$image_tag" != "$keep_previous" ]; then
+            docker rmi "$image_id" >/dev/null 2>&1 || true
+          fi
+          ;;
+      esac
+    done
+  docker builder prune --force --filter "until=168h" >/dev/null
+}
+
 build_release_image
 
 compose "$IMAGE_TAG" up "-d --no-recreate postgres"
@@ -66,7 +83,7 @@ if wait_for_url http://127.0.0.1:3100 45 \
   && wait_for_url http://127.0.0.1:3101/admin 45 \
   && wait_for_url http://127.0.0.1:3102/api/v1/health 45; then
   printf '%s\n' "$IMAGE_TAG" > "$CURRENT_TAG_FILE"
-  docker image prune --force --filter "until=168h" >/dev/null
+  prune_old_release_images
   echo "deployment healthy: $IMAGE_TAG"
   exit 0
 fi

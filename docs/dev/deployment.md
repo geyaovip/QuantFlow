@@ -63,4 +63,6 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 
 当前仓库已初始化 Web、Admin、API 和 Worker。`deploy/Dockerfile.release` 构建统一镜像 `quantflow/app:<tag>`，`deploy/compose.production.yml` 通过服务级 `APP=web|admin|api|worker` 启动不同进程；该方式避免四个镜像重复安装依赖、重复构建和重复复制 runtime 层。部署失败时脚本恢复上一健康镜像 tag。
 
+部署脚本在构建前清理 dangling 镜像；发布成功后只保留当前 release 镜像和上一健康 release 镜像，并清理 7 天前的 build cache。共享 VPS 根分区可用空间低于 10GB 时不得继续发布，需先检查 `docker system df`，确认不删除 PostgreSQL volume 的前提下清理旧应用镜像。
+
 当前生产仓库为 [geyaovip/QuantFlow](https://github.com/geyaovip/QuantFlow)（private）。PostgreSQL 18 named volume 挂载到 `/var/lib/postgresql`，以符合 18+ 官方镜像的版本化数据目录布局。
