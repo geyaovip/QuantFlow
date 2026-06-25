@@ -15,7 +15,7 @@ export function MarketingHeader() {
           <a href="#risk">风险原则</a>
           <a href="#membership">会员权益</a>
         </nav>
-        <Link className="header-cta" href="/app/strategies">
+        <Link className="header-cta" href="/login?next=/app/strategies">
           进入应用
         </Link>
       </div>

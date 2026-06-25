@@ -19,6 +19,27 @@
   background: var(--qf-surface);
   cursor: pointer;
 }
+.app-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-login-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--qf-border);
+  border-radius: 8px;
+  color: var(--qf-text-secondary);
+  background: var(--qf-surface);
+  font-size: 13px;
+  font-weight: 650;
+}
+.app-login-link:hover,
+.icon-button:hover {
+  background: var(--qf-surface-muted);
+}
 .app-content {
   max-width: var(--qf-content);
   margin: 0 auto;

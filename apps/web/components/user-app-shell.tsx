@@ -31,9 +31,14 @@ export function UserAppShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <button className="icon-button" type="button" aria-label="通知">
-          <Bell aria-hidden="true" size={19} />
-        </button>
+        <div className="app-topbar__actions">
+          <Link className="app-login-link" href="/login?next=/app/strategies">
+            登录
+          </Link>
+          <button className="icon-button" type="button" aria-label="通知">
+            <Bell aria-hidden="true" size={19} />
+          </button>
+        </div>
       </header>
       <main className="app-content">{children}</main>
       <nav className="mobile-bottom-nav" aria-label="移动端应用导航">

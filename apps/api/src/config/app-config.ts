@@ -37,6 +37,10 @@ const environmentSchema = z.object({
     .min(3600)
     .max(60 * 60 * 24 * 90)
     .default(60 * 60 * 24 * 30),
+  AUTH_ALLOWED_ORIGINS: z
+    .string()
+    .optional()
+    .default("https://quantflow.chat,https://admin.quantflow.chat"),
   TURNSTILE_SITE_KEY: z.string().optional().default(""),
   TURNSTILE_SECRET_KEY: z.string().optional().default(""),
 });
@@ -68,6 +72,9 @@ export function loadAppConfig(environment: NodeJS.ProcessEnv = process.env) {
       otpResendCooldownSeconds: parsed.AUTH_OTP_RESEND_COOLDOWN_SECONDS,
       otpMaxAttempts: parsed.AUTH_OTP_MAX_ATTEMPTS,
       sessionTtlSeconds: parsed.AUTH_SESSION_TTL_SECONDS,
+      allowedOrigins: parsed.AUTH_ALLOWED_ORIGINS.split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean),
       turnstileSiteKey: parsed.TURNSTILE_SITE_KEY,
       turnstileSecretKey: parsed.TURNSTILE_SECRET_KEY,
     },

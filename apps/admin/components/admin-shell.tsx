@@ -57,7 +57,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <span>生产状态</span>
             <strong>开发环境</strong>
           </div>
-          <button type="button">运营管理员</button>
+          <Link href="/login">管理员登录</Link>
         </header>
         <main>{children}</main>
       </div>

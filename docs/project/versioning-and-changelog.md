@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.2.0-dev.4` - 2026-06-25
+
+- 类型：Added / Frontend / Security / SEO / Docs
+- 摘要：新增用户端 `/login` 与管理端 `/login` 邮箱验证码登录页，接入 Cloudflare Turnstile 前端组件和 Resend OTP API；官网 CTA 改为先进入登录页；补充 API CORS credentials 白名单；新增官网 metadata、robots 与 sitemap。
+- MVP 边界影响：无；未增加交易所连接、真实下单、半自动/自动交易或在线支付入口。
+- API / 数据 / 权限 / 风控影响：API 允许官网与管理端来源携带凭证调用认证接口；登录页仍只处理会话创建，业务页面 guard、RBAC 守卫和审计写入仍待后续切片。
+- 迁移与兼容：无数据库迁移；生产需保持 `TURNSTILE_SITE_KEY`、`TURNSTILE_SECRET_KEY`、`RESEND_API_KEY` 和 `AUTH_ALLOWED_ORIGINS` 配置。
+- 验证：`pnpm --filter @quantflow/web typecheck`、`pnpm --filter @quantflow/admin typecheck`、`pnpm --filter @quantflow/api typecheck`。
+- 监控与回滚：认证请求失败不会签发会话；可回滚登录页入口到静态应用入口，但不影响后端 OTP 基础能力。
+
 ### `docs-v0.5.0` - 2026-06-25
 
 - 类型：Docs / Ops

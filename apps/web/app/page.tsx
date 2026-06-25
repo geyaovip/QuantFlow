@@ -32,7 +32,7 @@ export default function MarketingPage() {
               汇总策略信号、风险指标与模拟盘表现，帮助你在不连接交易所、不触碰真实资产的前提下完成观察和验证。
             </p>
             <div className="hero__actions">
-              <Link className="primary-link" href="/app/strategies">
+              <Link className="primary-link" href="/login?next=/app/strategies">
                 进入应用 <ArrowRight aria-hidden="true" size={17} />
               </Link>
               <a className="secondary-link" href="#risk">

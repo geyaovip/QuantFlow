@@ -107,14 +107,21 @@ body {
 .admin-topbar span {
   color: var(--qf-text-muted);
 }
-.admin-topbar button,
+.admin-topbar > a,
 .admin-section-title button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 36px;
   padding: 0 12px;
   border: 1px solid var(--qf-border);
   border-radius: 8px;
   background: #fff;
   cursor: pointer;
+}
+.admin-topbar > a:hover,
+.admin-section-title button:hover {
+  background: var(--qf-surface-muted);
 }
 .admin-main > main {
   padding: 28px;
@@ -202,6 +209,147 @@ td {
   color: var(--qf-text-muted);
   background: var(--qf-background);
 }
+.admin-login-page {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.8fr) minmax(420px, 0.62fr);
+  min-height: 100vh;
+  background: var(--qf-background);
+}
+.admin-login-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 34px;
+  color: #fff;
+  background:
+    linear-gradient(150deg, rgb(17 24 39 / 0.96), rgb(31 41 55 / 0.96)), #111827;
+}
+.admin-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.admin-login-brand span {
+  display: flex;
+  flex-direction: column;
+}
+.admin-login-brand strong {
+  font-size: 17px;
+  letter-spacing: -0.03em;
+}
+.admin-login-brand small {
+  color: #9ca3af;
+  font-size: 11px;
+}
+.admin-login-copy {
+  max-width: 560px;
+}
+.admin-login-copy p,
+.admin-login-card__header p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 750;
+}
+.admin-login-copy p {
+  color: #9ca3af;
+}
+.admin-login-copy h1 {
+  margin: 0;
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+}
+.admin-login-copy ul {
+  display: grid;
+  gap: 12px;
+  margin: 30px 0 0;
+  padding: 0;
+  color: #d1d5db;
+  line-height: 1.7;
+  list-style: none;
+}
+.admin-login-copy li {
+  padding-left: 18px;
+  border-left: 2px solid #374151;
+}
+.admin-login-card {
+  align-self: center;
+  width: min(460px, calc(100% - 48px));
+  margin: 48px auto;
+  padding: 28px;
+}
+.admin-login-card__header p {
+  color: var(--qf-text-secondary);
+}
+.admin-login-card__header h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+.admin-login-card__header span {
+  display: block;
+  margin-top: 10px;
+  color: var(--qf-text-secondary);
+  line-height: 1.65;
+}
+.admin-login-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 26px;
+}
+.admin-login-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--qf-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+}
+.admin-login-form input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--qf-border);
+  border-radius: 8px;
+  color: var(--qf-text);
+  background: var(--qf-surface);
+}
+.admin-login-form input:read-only {
+  color: var(--qf-text-secondary);
+  background: var(--qf-surface-muted);
+}
+.turnstile-box {
+  min-height: 65px;
+}
+.admin-login-message,
+.admin-login-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.admin-login-message {
+  color: var(--qf-info);
+  background: #e0f2fe;
+}
+.admin-login-error {
+  color: var(--qf-loss);
+  background: #fee2e2;
+}
+.admin-login-link {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  color: var(--qf-info);
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+}
+.admin-login-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 
 @media (max-width: 1100px) {
   .admin-sidebar {
@@ -221,6 +369,12 @@ td {
   }
   .admin-metric-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .admin-login-page {
+    grid-template-columns: 1fr;
+  }
+  .admin-login-panel {
+    gap: 48px;
   }
 }
 @media (max-width: 767px) {
@@ -257,6 +411,17 @@ td {
   }
   .admin-main > main {
     padding: 20px 16px;
+  }
+  .admin-login-panel {
+    padding: 24px 20px;
+  }
+  .admin-login-copy h1 {
+    font-size: 36px;
+  }
+  .admin-login-card {
+    width: calc(100% - 32px);
+    margin: 28px auto;
+    padding: 22px;
   }
   .admin-metric-grid {
     grid-template-columns: 1fr;
