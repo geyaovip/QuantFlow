@@ -111,6 +111,32 @@ jobs:
           chmod 600 "$ENV_FILE"
           REMOTE
 
+      - name: Configure backup and R2 env
+        if: ${{ secrets.R2_ACCESS_KEY_ID != '' }}
+        env:
+          DEPLOY_HOST: ${{ vars.QUANTFLOW_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.QUANTFLOW_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.QUANTFLOW_DEPLOY_PATH }}
+          R2_BACKUP_ENDPOINT: ${{ secrets.R2_BACKUP_ENDPOINT }}
+          R2_BACKUP_BUCKET: ${{ secrets.R2_BACKUP_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          ssh -i ~/.ssh/quantflow_deploy -o IdentitiesOnly=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "R2_BACKUP_ENDPOINT=$(printf '%q' "$R2_BACKUP_ENDPOINT") \
+             R2_BACKUP_BUCKET=$(printf '%q' "$R2_BACKUP_BUCKET") \
+             R2_ACCESS_KEY_ID=$(printf '%q' "$R2_ACCESS_KEY_ID") \
+             R2_SECRET_ACCESS_KEY=$(printf '%q' "$R2_SECRET_ACCESS_KEY") \
+             QUANTFLOW_BACKUP_DIR=/home/ubuntu/apps/quantflow/backups \
+             QUANTFLOW_WAL_ARCHIVE_HOST_DIR=/home/ubuntu/apps/quantflow/wal-archive \
+             sh -s" <<'REMOTE'
+          set -eu
+          cd /home/ubuntu/apps/quantflow/current
+          chmod +x scripts/configure-production-backup-env.sh
+          ./scripts/configure-production-backup-env.sh
+          REMOTE
+
       - name: Build and deploy
         env:
           DEPLOY_HOST: ${{ vars.QUANTFLOW_DEPLOY_HOST }}

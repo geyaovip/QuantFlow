@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.6.0-dev.5` - 2026-06-26
+
+- 类型：Added / Ops / Docs
+- 摘要：生产备份运维：安全读取 `.env`、Compose 全量备份、R2 同步与 cron 安装脚本；部署 workflow 可选写入 R2 密钥。
+- MVP 边界影响：无。
+- API / 数据 / 权限 / 风控影响：无。
+- 迁移与兼容：无；VPS 需安装 `aws` CLI 并配置 R2 API token 后启用远端同步。
+- 验证：`pnpm check`；生产 VPS 手动执行 `backup-database.sh` 与 `archive-wal.sh`。
+- 监控与回滚：cron 每日 03:00 UTC 全量备份、每小时 WAL 归档；日志 `/home/ubuntu/apps/quantflow/logs/`。
+
 ### `v0.6.0-dev.4` - 2026-06-26
 
 - 类型：Added / Ops / Frontend / Docs
