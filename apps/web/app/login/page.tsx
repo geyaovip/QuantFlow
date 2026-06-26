@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Brand } from "../../components/brand";
 import { EmailOtpLogin } from "../../components/auth/email-otp-login";
+import { getUserSession, resolveApiBaseUrl } from "../../lib/auth-session";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +13,6 @@ export const metadata: Metadata = {
   description: "登录 QuantFlow 应用工作台。",
   robots: { index: false, follow: false },
 };
-
-function resolveApiBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.quantflow.chat";
-}
 
 export default function LoginPage({
   searchParams,
@@ -43,6 +41,10 @@ async function LoginPageContent({
   const nextPath = params?.next?.startsWith("/app")
     ? params.next
     : "/app/strategies";
+  const session = await getUserSession();
+  if (session) {
+    redirect(nextPath);
+  }
 
   return (
     <main className="auth-page">

@@ -28,6 +28,11 @@ export type AuthRequestContext = {
 const GENERIC_REQUEST_MESSAGE =
   "如果邮箱可以登录 QuantFlow，我们会发送验证码。";
 
+type EmailOtpRequestResult = {
+  message: string;
+  resendAvailableAt?: string;
+};
+
 @Injectable()
 export class AuthService {
   private readonly config = loadAppConfig().auth;
@@ -45,7 +50,7 @@ export class AuthService {
     email: string,
     portal: AuthPortal,
     context: AuthRequestContext = {},
-  ) {
+  ): Promise<EmailOtpRequestResult> {
     const now = this.clock.now();
     const emailNormalized = normalizeEmail(email);
 
@@ -86,7 +91,10 @@ export class AuthService {
         this.config.otpResendCooldownSeconds,
       );
       if (cooldownUntil > now) {
-        return { message: GENERIC_REQUEST_MESSAGE };
+        return {
+          message: GENERIC_REQUEST_MESSAGE,
+          resendAvailableAt: cooldownUntil.toISOString(),
+        };
       }
     }
 
@@ -141,7 +149,13 @@ export class AuthService {
       throw new AuthUnavailableError();
     }
 
-    return { message: GENERIC_REQUEST_MESSAGE };
+    return {
+      message: GENERIC_REQUEST_MESSAGE,
+      resendAvailableAt: addSeconds(
+        now,
+        this.config.otpResendCooldownSeconds,
+      ).toISOString(),
+    };
   }
 
   async verifyEmailOtp(

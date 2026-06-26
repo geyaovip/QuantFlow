@@ -4,6 +4,11 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { Button, Card } from "@quantflow/ui";
 
+import {
+  getOtpResendSecondsLeft,
+  useOtpResendCooldown,
+} from "../../lib/otp-resend-cooldown";
+
 declare global {
   interface Window {
     turnstile?: {
@@ -55,16 +60,89 @@ export function EmailOtpLogin({
 }: EmailOtpLoginProps) {
   const widgetElementId = useId().replaceAll(":", "");
   const widgetIdRef = useRef<string | null>(null);
+  const awaitingTurnstileRef = useRef(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<Step>("email");
+  const [showTurnstile, setShowTurnstile] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSentCode, setHasSentCode] = useState(false);
+  const [resendAvailableAt, setResendAvailableAt] = useState<string | null>(
+    null,
+  );
+  const resendSecondsLeft = useOtpResendCooldown(resendAvailableAt);
+
+  const resetTurnstile = () => {
+    if (widgetIdRef.current) {
+      window.turnstile?.reset(widgetIdRef.current);
+    }
+    setTurnstileToken("");
+    setShowTurnstile(false);
+    awaitingTurnstileRef.current = false;
+  };
+
+  const requestCode = async (tokenOverride?: string) => {
+    if (resendSecondsLeft > 0 && hasSentCode && step === "email") {
+      setError("");
+      setMessage(`验证码发送过于频繁，请 ${resendSecondsLeft} 秒后再试。`);
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const result = await postJson<{
+        data: { message: string; resendAvailableAt?: string };
+      }>(apiBaseUrl, "/api/v1/auth/email-otp/request", {
+        email,
+        portal: "user",
+        turnstileToken: (tokenOverride ?? turnstileToken) || undefined,
+      });
+      const nextResendAt = result.data.resendAvailableAt ?? null;
+      setResendAvailableAt(nextResendAt);
+      const secondsLeft = getOtpResendSecondsLeft(nextResendAt);
+
+      if (secondsLeft > 0 && hasSentCode && step === "email") {
+        setMessage(`验证码发送过于频繁，请 ${secondsLeft} 秒后再试。`);
+        resetTurnstile();
+        return;
+      }
+
+      setHasSentCode(true);
+      setStep("code");
+      setMessage(
+        nextResendAt
+          ? "验证码已发送，请查看邮箱。短时间内请勿重复请求。"
+          : "验证码已发送，请查看邮箱。",
+      );
+      resetTurnstile();
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "验证码发送失败，请稍后重试。",
+      );
+      resetTurnstile();
+    } finally {
+      setIsSubmitting(false);
+      awaitingTurnstileRef.current = false;
+    }
+  };
+
+  const handleTurnstileToken = (token: string) => {
+    setTurnstileToken(token);
+    if (awaitingTurnstileRef.current) {
+      void requestCode(token);
+    }
+  };
 
   useEffect(() => {
-    if (!siteKey || widgetIdRef.current) {
+    if (!siteKey || !showTurnstile || widgetIdRef.current) {
       return;
     }
 
@@ -76,7 +154,7 @@ export function EmailOtpLogin({
 
       widgetIdRef.current = window.turnstile.render(element, {
         sitekey: siteKey,
-        callback: setTurnstileToken,
+        callback: handleTurnstileToken,
         "expired-callback": () => setTurnstileToken(""),
         "error-callback": () => setTurnstileToken(""),
       });
@@ -94,42 +172,24 @@ export function EmailOtpLogin({
     script.defer = true;
     script.onload = renderWidget;
     document.head.appendChild(script);
-  }, [siteKey, widgetElementId]);
+  }, [siteKey, showTurnstile, widgetElementId]);
 
-  const resetTurnstile = () => {
-    if (widgetIdRef.current) {
-      window.turnstile?.reset(widgetIdRef.current);
+  const beginRequestCode = () => {
+    if (resendSecondsLeft > 0 && hasSentCode && step === "email") {
+      setError("");
+      setMessage(`验证码发送过于频繁，请 ${resendSecondsLeft} 秒后再试。`);
+      return;
     }
-    setTurnstileToken("");
-  };
 
-  const requestCode = async () => {
-    setError("");
-    setMessage("");
-    setIsSubmitting(true);
-
-    try {
-      await postJson<{ ok: true }>(
-        apiBaseUrl,
-        "/api/v1/auth/email-otp/request",
-        {
-          email,
-          portal: "user",
-          turnstileToken: turnstileToken || undefined,
-        },
-      );
-      setStep("code");
-      setMessage("验证码已发送，请查看邮箱。");
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "验证码发送失败，请稍后重试。",
-      );
-      resetTurnstile();
-    } finally {
-      setIsSubmitting(false);
+    if (siteKey && !turnstileToken) {
+      setError("");
+      setMessage("请先完成人机校验，再发送验证码。");
+      awaitingTurnstileRef.current = true;
+      setShowTurnstile(true);
+      return;
     }
+
+    void requestCode();
   };
 
   const verifyCode = async () => {
@@ -170,7 +230,7 @@ export function EmailOtpLogin({
         onSubmit={(event) => {
           event.preventDefault();
           if (step === "email") {
-            void requestCode();
+            beginRequestCode();
             return;
           }
           void verifyCode();
@@ -182,7 +242,10 @@ export function EmailOtpLogin({
             autoComplete="email"
             inputMode="email"
             name="email"
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setResendAvailableAt(null);
+            }}
             placeholder="name@example.com"
             readOnly={step !== "email"}
             required
@@ -191,7 +254,7 @@ export function EmailOtpLogin({
           />
         </label>
 
-        {step === "email" && siteKey ? (
+        {step === "email" && showTurnstile && siteKey ? (
           <div className="turnstile-box" id={widgetElementId} />
         ) : null}
 
@@ -218,8 +281,20 @@ export function EmailOtpLogin({
         {message ? <p className="auth-message">{message}</p> : null}
         {error ? <p className="auth-error">{error}</p> : null}
 
-        <Button disabled={isSubmitting || step === "success"} type="submit">
-          {step === "email" ? "发送验证码" : "验证并进入应用"}
+        <Button
+          disabled={
+            isSubmitting ||
+            step === "success" ||
+            (step === "email" &&
+              (resendSecondsLeft > 0 || (showTurnstile && !turnstileToken)))
+          }
+          type="submit"
+        >
+          {step === "email" && resendSecondsLeft > 0 && hasSentCode
+            ? `${resendSecondsLeft} 秒后可重发`
+            : step === "email"
+              ? "发送验证码"
+              : "验证并进入应用"}
         </Button>
         {step === "code" ? (
           <button

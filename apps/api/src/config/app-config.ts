@@ -35,8 +35,8 @@ const environmentSchema = z.object({
     .number()
     .int()
     .min(3600)
-    .max(60 * 60 * 24 * 90)
-    .default(60 * 60 * 24 * 30),
+    .max(60 * 60 * 24 * 365)
+    .default(60 * 60 * 24 * 365),
   AUTH_ALLOWED_ORIGINS: z
     .string()
     .optional()

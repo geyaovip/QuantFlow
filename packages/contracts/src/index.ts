@@ -14,6 +14,11 @@ export const emailOtpVerifySchema = z.object({
   code: z.string().regex(/^\d{6}$/),
 });
 
+export const emailOtpRequestResponseSchema = z.object({
+  message: z.string(),
+  resendAvailableAt: z.iso.datetime().optional(),
+});
+
 export const authSessionSchema = z.object({
   subjectId: z.uuid(),
   audience: portalSchema,
@@ -29,6 +34,9 @@ export const featureFlagsSchema = z.object({
 });
 
 export type EmailOtpRequest = z.infer<typeof emailOtpRequestSchema>;
+export type EmailOtpRequestResponse = z.infer<
+  typeof emailOtpRequestResponseSchema
+>;
 export type EmailOtpVerify = z.infer<typeof emailOtpVerifySchema>;
 export type AuthSession = z.infer<typeof authSessionSchema>;
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;

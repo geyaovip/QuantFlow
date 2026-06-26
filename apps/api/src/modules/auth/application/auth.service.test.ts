@@ -212,11 +212,16 @@ describe("AuthService", () => {
   });
 
   it("does not send another code during the resend cooldown", async () => {
-    await service.requestEmailOtp("user@example.com", "user");
+    const first = await service.requestEmailOtp("user@example.com", "user");
     clock.advanceSeconds(30);
-    await service.requestEmailOtp("user@example.com", "user");
+    const second = await service.requestEmailOtp("user@example.com", "user");
 
     expect(mailer.sent).toHaveLength(1);
+    expect(first.resendAvailableAt).toBeDefined();
+    expect(second.resendAvailableAt).toBeDefined();
+    expect(new Date(second.resendAvailableAt!).getTime()).toBeGreaterThan(
+      clock.now().getTime(),
+    );
   });
 
   it("validates an active session token for the expected audience", async () => {

@@ -6,6 +6,14 @@
   .hero-panel {
     max-width: 680px;
   }
+  .positioning-grid,
+  .capabilities-grid,
+  .paper-grid,
+  .pricing-grid,
+  .workflow-steps,
+  .risk-panel {
+    grid-template-columns: 1fr;
+  }
   .strategy-detail-layout,
   .strategy-detail-grid {
     grid-template-columns: 1fr;
@@ -25,7 +33,31 @@
   .app-topbar {
     padding: 0 16px;
   }
-  .marketing-header nav,
+  .marketing-header nav {
+    display: none;
+  }
+  .marketing-header__menu-toggle {
+    display: inline-flex;
+  }
+  .marketing-mobile-nav {
+    display: grid;
+    gap: 4px;
+    padding: 8px 16px 16px;
+    border-top: 1px solid var(--qf-border);
+    background: rgb(255 255 255 / 0.98);
+  }
+  .marketing-mobile-nav a {
+    min-height: 44px;
+    padding: 12px 10px;
+    border-radius: 8px;
+    color: var(--qf-text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .marketing-mobile-nav .primary-link {
+    justify-content: center;
+    margin-top: 8px;
+  }
   .app-topbar nav {
     display: none;
   }
@@ -51,10 +83,12 @@
   .strategy-grid {
     grid-template-columns: 1fr;
   }
-  .preview-row {
+  .preview-row,
+  .preview-row--5 {
     grid-template-columns: 1.5fr 1fr 1fr;
   }
-  .preview-row > :last-child {
+  .preview-row > :nth-child(n + 4),
+  .preview-row--5 > :nth-child(n + 4) {
     display: none;
   }
   .strategy-detail-metrics {
@@ -66,6 +100,18 @@
     margin-right: 16px;
     margin-left: 16px;
     padding: 24px;
+  }
+  .marketing-footer__grid {
+    grid-template-columns: 1fr 1fr;
+    padding: 32px 16px 20px;
+  }
+  .marketing-footer__meta {
+    flex-direction: column;
+    padding: 0 16px 32px;
+  }
+  .marketing-footer__meta span:last-child {
+    max-width: none;
+    text-align: left;
   }
   footer {
     align-items: flex-start;

@@ -4,6 +4,11 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { Button, Card } from "@quantflow/ui";
 
+import {
+  getOtpResendSecondsLeft,
+  useOtpResendCooldown,
+} from "../../lib/otp-resend-cooldown";
+
 declare global {
   interface Window {
     turnstile?: {
@@ -30,7 +35,7 @@ async function postJson(
   apiBaseUrl: string,
   path: string,
   body: unknown,
-): Promise<void> {
+): Promise<{ data: { message: string; resendAvailableAt?: string } }> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -41,6 +46,10 @@ async function postJson(
   if (!response.ok) {
     throw new Error("请求失败，请稍后重试。");
   }
+
+  return (await response.json()) as {
+    data: { message: string; resendAvailableAt?: string };
+  };
 }
 
 export function AdminEmailOtpLogin({
@@ -49,16 +58,87 @@ export function AdminEmailOtpLogin({
 }: AdminEmailOtpLoginProps) {
   const widgetElementId = useId().replaceAll(":", "");
   const widgetIdRef = useRef<string | null>(null);
+  const awaitingTurnstileRef = useRef(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [hasRequestedCode, setHasRequestedCode] = useState(false);
+  const [hasEverSent, setHasEverSent] = useState(false);
+  const [showTurnstile, setShowTurnstile] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resendAvailableAt, setResendAvailableAt] = useState<string | null>(
+    null,
+  );
+  const resendSecondsLeft = useOtpResendCooldown(resendAvailableAt);
+
+  const resetTurnstile = () => {
+    if (widgetIdRef.current) {
+      window.turnstile?.reset(widgetIdRef.current);
+    }
+    setTurnstileToken("");
+    setShowTurnstile(false);
+    awaitingTurnstileRef.current = false;
+  };
+
+  const requestCode = async (tokenOverride?: string) => {
+    if (resendSecondsLeft > 0 && hasEverSent && !hasRequestedCode) {
+      setError("");
+      setMessage(`验证码发送过于频繁，请 ${resendSecondsLeft} 秒后再试。`);
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const result = await postJson(
+        apiBaseUrl,
+        "/api/v1/auth/email-otp/request",
+        {
+          email,
+          portal: "admin",
+          turnstileToken: (tokenOverride ?? turnstileToken) || undefined,
+        },
+      );
+      const nextResendAt = result.data.resendAvailableAt ?? null;
+      setResendAvailableAt(nextResendAt);
+      const secondsLeft = getOtpResendSecondsLeft(nextResendAt);
+
+      if (secondsLeft > 0 && hasEverSent && !hasRequestedCode) {
+        setMessage(`验证码发送过于频繁，请 ${secondsLeft} 秒后再试。`);
+        resetTurnstile();
+        return;
+      }
+
+      setHasEverSent(true);
+      setHasRequestedCode(true);
+      setMessage("验证码已发送，请查看邮箱。短时间内请勿重复请求。");
+      resetTurnstile();
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "验证码发送失败，请稍后重试。",
+      );
+      resetTurnstile();
+    } finally {
+      setIsSubmitting(false);
+      awaitingTurnstileRef.current = false;
+    }
+  };
+
+  const handleTurnstileToken = (token: string) => {
+    setTurnstileToken(token);
+    if (awaitingTurnstileRef.current) {
+      void requestCode(token);
+    }
+  };
 
   useEffect(() => {
-    if (!siteKey || widgetIdRef.current) {
+    if (!siteKey || !showTurnstile || widgetIdRef.current) {
       return;
     }
 
@@ -70,7 +150,7 @@ export function AdminEmailOtpLogin({
 
       widgetIdRef.current = window.turnstile.render(element, {
         sitekey: siteKey,
-        callback: setTurnstileToken,
+        callback: handleTurnstileToken,
         "expired-callback": () => setTurnstileToken(""),
         "error-callback": () => setTurnstileToken(""),
       });
@@ -88,38 +168,23 @@ export function AdminEmailOtpLogin({
     script.defer = true;
     script.onload = renderWidget;
     document.head.appendChild(script);
-  }, [siteKey, widgetElementId]);
+  }, [siteKey, showTurnstile, widgetElementId]);
 
-  const resetTurnstile = () => {
-    if (widgetIdRef.current) {
-      window.turnstile?.reset(widgetIdRef.current);
+  const beginRequestCode = () => {
+    if (resendSecondsLeft > 0 && hasEverSent && !hasRequestedCode) {
+      setError("");
+      setMessage(`验证码发送过于频繁，请 ${resendSecondsLeft} 秒后再试。`);
+      return;
     }
-    setTurnstileToken("");
-  };
 
-  const requestCode = async () => {
-    setError("");
-    setMessage("");
-    setIsSubmitting(true);
-
-    try {
-      await postJson(apiBaseUrl, "/api/v1/auth/email-otp/request", {
-        email,
-        portal: "admin",
-        turnstileToken: turnstileToken || undefined,
-      });
-      setHasRequestedCode(true);
-      setMessage("验证码已发送，请查看邮箱。");
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "验证码发送失败，请稍后重试。",
-      );
-      resetTurnstile();
-    } finally {
-      setIsSubmitting(false);
+    if (siteKey && !turnstileToken) {
+      setError("");
+      awaitingTurnstileRef.current = true;
+      setShowTurnstile(true);
+      return;
     }
+
+    void requestCode();
   };
 
   const verifyCode = async () => {
@@ -159,7 +224,7 @@ export function AdminEmailOtpLogin({
         onSubmit={(event) => {
           event.preventDefault();
           if (!hasRequestedCode) {
-            void requestCode();
+            beginRequestCode();
             return;
           }
           void verifyCode();
@@ -171,7 +236,10 @@ export function AdminEmailOtpLogin({
             autoComplete="email"
             inputMode="email"
             name="email"
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setResendAvailableAt(null);
+            }}
             placeholder="admin@example.com"
             readOnly={hasRequestedCode}
             required
@@ -180,7 +248,7 @@ export function AdminEmailOtpLogin({
           />
         </label>
 
-        {!hasRequestedCode && siteKey ? (
+        {!hasRequestedCode && showTurnstile && siteKey ? (
           <div className="turnstile-box" id={widgetElementId} />
         ) : null}
 
@@ -207,8 +275,19 @@ export function AdminEmailOtpLogin({
         {message ? <p className="admin-login-message">{message}</p> : null}
         {error ? <p className="admin-login-error">{error}</p> : null}
 
-        <Button disabled={isSubmitting} type="submit">
-          {hasRequestedCode ? "验证并进入后台" : "发送验证码"}
+        <Button
+          disabled={
+            isSubmitting ||
+            (!hasRequestedCode &&
+              (resendSecondsLeft > 0 || (showTurnstile && !turnstileToken)))
+          }
+          type="submit"
+        >
+          {!hasRequestedCode && resendSecondsLeft > 0 && hasEverSent
+            ? `${resendSecondsLeft} 秒后可重发`
+            : hasRequestedCode
+              ? "验证并进入后台"
+              : "发送验证码"}
         </Button>
         {hasRequestedCode ? (
           <button

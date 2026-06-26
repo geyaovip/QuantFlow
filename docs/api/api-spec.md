@@ -63,17 +63,17 @@ K 线、权益曲线等时间序列不是“列表页”，使用 `from/to/inter
 
 ## 2. 认证与当前用户
 
-| 方法  | 路径                         | 鉴权            | 用途                                                                            |
-| ----- | ---------------------------- | --------------- | ------------------------------------------------------------------------------- |
-| POST  | `/auth/email-otp/request`    | 否              | 请求邮箱验证码；`portal=user/admin`，生产必传 `turnstile_token`，统一响应防枚举 |
-| POST  | `/auth/email-otp/verify`     | 否              | 验证邮箱验证码并签发对应 audience 会话                                          |
-| GET   | `/auth/session`              | Session Cookie  | 校验当前 audience 会话；`audience=user/admin`，供 Web/Admin guard 使用          |
-| POST  | `/auth/refresh`              | Refresh session | 轮换会话                                                                        |
-| POST  | `/auth/logout`               | 是              | 撤销当前会话                                                                    |
-| GET   | `/me`                        | 是              | 资料、会员、权益、风险确认状态                                                  |
-| PATCH | `/me/profile`                | 是              | 更新资料                                                                        |
-| GET   | `/me/security-events`        | 是              | 当前用户安全事件；用户端分页                                                    |
-| GET   | `/me/strategy-subscriptions` | 是              | “我的策略”列表；用户端分页，支持状态和策略筛选                                  |
+| 方法  | 路径                         | 鉴权            | 用途                                                                                                     |
+| ----- | ---------------------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
+| POST  | `/auth/email-otp/request`    | 否              | 请求邮箱验证码；`portal=user/admin`，生产必传 `turnstile_token`；响应含 `resendAvailableAt` 供前端倒计时 |
+| POST  | `/auth/email-otp/verify`     | 否              | 验证邮箱验证码并签发对应 audience 会话                                                                   |
+| GET   | `/auth/session`              | Session Cookie  | 校验当前 audience 会话；`audience=user/admin`，供 Web/Admin guard 使用                                   |
+| POST  | `/auth/refresh`              | Refresh session | 轮换会话                                                                                                 |
+| POST  | `/auth/logout`               | 是              | 撤销当前会话                                                                                             |
+| GET   | `/me`                        | 是              | 资料、会员、权益、风险确认状态                                                                           |
+| PATCH | `/me/profile`                | 是              | 更新资料                                                                                                 |
+| GET   | `/me/security-events`        | 是              | 当前用户安全事件；用户端分页                                                                             |
+| GET   | `/me/strategy-subscriptions` | 是              | “我的策略”列表；用户端分页，支持状态和策略筛选                                                           |
 
 MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件投递，Cloudflare Turnstile 只负责请求挑战；验证码、后端限流与会话契约见 `../security/authentication.md`。
 

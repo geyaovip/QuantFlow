@@ -12,7 +12,7 @@ MVP 不实现密码注册、密码登录或密码重置。不得把 Resend API K
 
 ## 2. 登录流程
 
-1. 客户端获取 Cloudflare Turnstile token，并与邮箱和门户类型 `user` / `admin` 一起请求验证码。
+1. 客户端在点击“发送验证码”后加载 Cloudflare Turnstile，并将 token 与邮箱和门户类型 `user` / `admin` 一起请求验证码。
 2. 生产服务端先调用 Turnstile Siteverify 校验 token，再规范化邮箱并执行 IP + 邮箱维度限流；无论账号是否存在都返回相同结果。
 3. 服务端生成加密安全的 6 位数字验证码，只保存带服务端 pepper 的 hash。
 4. 通过服务端 Resend adapter 发送简体中文验证码邮件。
@@ -50,7 +50,7 @@ AUTH_OTP_PEPPER=
 AUTH_OTP_TTL_SECONDS=600
 AUTH_OTP_RESEND_COOLDOWN_SECONDS=60
 AUTH_OTP_MAX_ATTEMPTS=5
-AUTH_SESSION_TTL_SECONDS=2592000
+AUTH_SESSION_TTL_SECONDS=31536000
 AUTH_ALLOWED_ORIGINS=https://quantflow.chat,https://admin.quantflow.chat
 AUTH_COOKIE_DOMAIN=.quantflow.chat
 ```
