@@ -1,0 +1,158 @@
+import type { AuditContext } from "../../strategy/domain/strategy-repository.js";
+
+export type Paginated<T> = {
+  data: T[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type AdminUserListItem = {
+  id: string;
+  email: string;
+  status: string;
+  membershipTier: string;
+  membershipPlanName: string;
+  paperAccountCount: number;
+  strategySubscriptionCount: number;
+  lastLoginAt: string | null;
+  createdAt: string;
+};
+
+export type AdminSubscriptionListItem = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  tier: string;
+  planName: string;
+  status: string;
+  source: string;
+  startsAt: string;
+  endsAt: string;
+  cancelledAt: string | null;
+};
+
+export type RiskEventListItem = {
+  id: string;
+  type: string;
+  level: string;
+  status: string;
+  message: string;
+  userId: string | null;
+  strategyId: string | null;
+  signalId: string | null;
+  paperAccountId: string | null;
+  assigneeAdminId: string | null;
+  resolution: string | null;
+  handledAt: string | null;
+  createdAt: string;
+};
+
+export type AdminDashboardSummary = {
+  userCount: number;
+  activeStrategyCount: number;
+  signalCountToday: number;
+  paperAccountCount: number;
+  openRiskEventCount: number;
+};
+
+export type AdminRoleListItem = {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+};
+
+export type AdminAccountListItem = {
+  id: string;
+  email: string;
+  status: string;
+  roles: string[];
+  lastLoginAt: string | null;
+};
+
+export type SystemAnnouncementItem = {
+  id: string;
+  title: string;
+  content: string;
+  status: string;
+  publishedAt: string | null;
+  endsAt: string | null;
+  createdAt: string;
+};
+
+export type ManualGrantInput = {
+  userId: string;
+  tier: "pro" | "premium";
+  billingCycle: "monthly" | "yearly";
+  reason: string;
+};
+
+export const GOVERNANCE_REPOSITORY = Symbol("GOVERNANCE_REPOSITORY");
+
+export interface GovernanceRepository {
+  listUsers(
+    page: number,
+    pageSize: number,
+  ): Promise<Paginated<AdminUserListItem>>;
+  updateUserStatus(
+    userId: string,
+    status: "active" | "disabled" | "risk_watch",
+    context: AuditContext,
+  ): Promise<AdminUserListItem>;
+  listSubscriptions(
+    page: number,
+    pageSize: number,
+  ): Promise<Paginated<AdminSubscriptionListItem>>;
+  manualGrantMembership(
+    input: ManualGrantInput,
+    context: AuditContext,
+  ): Promise<AdminSubscriptionListItem>;
+  cancelMembership(
+    subscriptionId: string,
+    context: AuditContext,
+  ): Promise<AdminSubscriptionListItem>;
+  listRiskEvents(
+    page: number,
+    pageSize: number,
+  ): Promise<Paginated<RiskEventListItem>>;
+  updateRiskEvent(
+    riskEventId: string,
+    action: "assign" | "resolve" | "ignore" | "escalate",
+    input: { reason: string; resolution?: string; assigneeAdminId?: string },
+    context: AuditContext,
+  ): Promise<RiskEventListItem>;
+  createRiskEvent(input: {
+    type: string;
+    level: "low" | "medium" | "high" | "critical";
+    message: string;
+    userId?: string | null;
+    strategyId?: string | null;
+    signalId?: string | null;
+    paperAccountId?: string | null;
+  }): Promise<RiskEventListItem>;
+  getDashboardSummary(): Promise<AdminDashboardSummary>;
+  listRoles(): Promise<AdminRoleListItem[]>;
+  listAdminAccounts(): Promise<AdminAccountListItem[]>;
+  assignAdminRole(
+    adminUserId: string,
+    roleId: string,
+    context: AuditContext,
+  ): Promise<AdminAccountListItem>;
+  listAnnouncements(
+    page: number,
+    pageSize: number,
+  ): Promise<Paginated<SystemAnnouncementItem>>;
+  publishAnnouncement(
+    announcementId: string,
+    context: AuditContext,
+  ): Promise<SystemAnnouncementItem>;
+  createAnnouncement(
+    input: { title: string; content: string; reason: string },
+    context: AuditContext,
+  ): Promise<SystemAnnouncementItem>;
+  listActiveUserIds(): Promise<string[]>;
+}

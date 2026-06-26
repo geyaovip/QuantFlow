@@ -29,6 +29,10 @@ const defaultEntitlements: UserEntitlements = {
   historyDays: 30,
 };
 
+class MemoryNotificationService {
+  async notifyStrategyPausedPaperAccounts() {}
+}
+
 class MemoryMembershipService {
   async getEntitlements(): Promise<UserEntitlements> {
     return defaultEntitlements;
@@ -146,6 +150,22 @@ class MemoryStrategyRepository implements StrategyRepository {
   async delistStrategy() {
     return { data: detail };
   }
+
+  async listAdminSignals() {
+    return { total: 1, items: [signal] };
+  }
+
+  async cancelAdminSignal() {
+    return { ...signal, isSubscribed: false, riskDisclosure: "" };
+  }
+
+  async markAdminSignalAbnormal() {
+    return { ...signal, isSubscribed: false, riskDisclosure: "" };
+  }
+
+  async repushAdminSignal() {
+    return { ...signal, isSubscribed: false, riskDisclosure: "" };
+  }
 }
 
 const strategy: StrategyListItem = {
@@ -221,7 +241,11 @@ describe("StrategyService", () => {
     new MemoryMembershipService() as unknown as MembershipService;
 
   function createService(repository: MemoryStrategyRepository) {
-    return new StrategyService(repository, membershipService);
+    return new StrategyService(
+      repository,
+      membershipService,
+      new MemoryNotificationService() as never,
+    );
   }
 
   it("lists active strategies with normalized pagination", async () => {

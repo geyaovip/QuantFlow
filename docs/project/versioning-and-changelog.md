@@ -31,6 +31,24 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.5.0-dev.2` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Docs
+- 摘要：收束 v0.5 管理治理：看板/用户/订阅/风险/角色/信号/公告 API 与管理端 UI，通知偏好页，模拟盘风险双写平台事件。
+- MVP 边界影响：无；仍为模拟盘与会员容量产品，无实盘链路。
+- API / 数据 / 权限 / 风控影响：新增 `risk_events`、`system_announcements`；`GET /admin/dashboard`、`/admin/users*`、`/admin/subscriptions*`、`/admin/risk-events*`、`/admin/roles`、`/admin/admin-users*`、`/admin/announcements*`、`/admin/signals*` mutation；用户端 `/app/notifications/preferences`。
+- 迁移与兼容：新增 migration `202606260008_v05_governance`（dev.2）；与 `202606260007_v05_rbac_notifications`（dev.1）一并部署。
+- 验证：`pnpm check`。
+
+### `v0.5.0-dev.1` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Docs
+- 摘要：启动 v0.5：管理端 RBAC 种子与权限校验、审计日志 API、站内通知与偏好 API。
+- MVP 边界影响：无；仍为模拟盘与会员容量产品，无实盘链路。
+- API / 数据 / 权限 / 风控影响：新增 `admin_roles`/`admin_permissions`/`user_notifications` 等表；`GET /admin/audit-logs`、`GET/PATCH /notifications*`；策略/模拟盘管理端 mutation 校验 RBAC。
+- 迁移与兼容：新增 migration `202606260007_v05_rbac_notifications`；默认管理员分配 `super_admin`。
+- 验证：`pnpm check`。
+
 ### `v0.4.0-dev.4` - 2026-06-26
 
 - 类型：Added / Backend / Frontend / Docs / Ops

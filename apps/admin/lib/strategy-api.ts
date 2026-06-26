@@ -17,7 +17,7 @@ export async function getAdminStrategies(): Promise<AdminStrategyListResponse> {
 }
 
 export async function getAdminSignals(): Promise<SignalListResponse> {
-  const payload = await getJson("/api/v1/signals?page=1&pageSize=50");
+  const payload = await getJson("/api/v1/admin/signals?page=1&pageSize=50");
   return signalListResponseSchema.parse(payload);
 }
 

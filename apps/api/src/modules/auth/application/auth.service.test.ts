@@ -194,6 +194,10 @@ class MemoryAuthRepository implements AuthRepository {
   }
 }
 
+class MemoryAdminAccessService {
+  async writeAuditLog() {}
+}
+
 describe("AuthService", () => {
   let repository: MemoryAuthRepository;
   let mailer: FakeAuthMailer;
@@ -212,6 +216,7 @@ describe("AuthService", () => {
       clock,
       new NoopTurnstileVerifier(),
       new MemoryMembershipService() as unknown as MembershipService,
+      new MemoryAdminAccessService() as never,
     );
   });
 

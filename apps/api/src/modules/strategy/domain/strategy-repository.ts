@@ -110,4 +110,22 @@ export interface StrategyRepository {
     input: AdminStrategyAction,
     context: AuditContext,
   ): Promise<AdminStrategyDetailResponse>;
+  listAdminSignals(
+    input: ListSignalsInput,
+  ): Promise<PaginatedResult<SignalListItem>>;
+  cancelAdminSignal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ): Promise<SignalDetail>;
+  markAdminSignalAbnormal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ): Promise<SignalDetail>;
+  repushAdminSignal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ): Promise<SignalDetail>;
 }

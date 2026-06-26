@@ -22,6 +22,9 @@ import {
 } from "@quantflow/contracts";
 
 import { AuthService } from "../../auth/application/auth.service.js";
+import { AdminAccessService } from "../../admin-access/application/admin-access.service.js";
+import { AdminPermissionDeniedError } from "../../admin-access/domain/admin-access-errors.js";
+import { ADMIN_PERMISSIONS } from "../../admin-access/domain/admin-permissions.js";
 import { PaperService } from "../application/paper.service.js";
 import {
   PaperAccountInvalidStateError,
@@ -47,6 +50,7 @@ export class PaperController {
   constructor(
     private readonly paperService: PaperService,
     private readonly authService: AuthService,
+    private readonly adminAccessService: AdminAccessService,
   ) {}
 
   @Get("paper-accounts")
@@ -296,7 +300,10 @@ export class PaperController {
     @Query() query: unknown,
     @Req() request: RequestLike,
   ) {
-    await this.requireAdminSession(request);
+    await this.requireAdminPermission(
+      request,
+      ADMIN_PERMISSIONS.paperAccountsRead,
+    );
     const parsed = listQuerySchema.safeParse(query);
     if (!parsed.success) {
       throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -309,7 +316,10 @@ export class PaperController {
     @Param("accountId") accountId: string,
     @Req() request: RequestLike,
   ) {
-    await this.requireAdminSession(request);
+    await this.requireAdminPermission(
+      request,
+      ADMIN_PERMISSIONS.paperAccountsRead,
+    );
     try {
       return await this.paperService.getAdminAccount(accountId);
     } catch (error) {
@@ -380,7 +390,10 @@ export class PaperController {
       context: ReturnType<typeof auditContext>,
     ) => Promise<T>,
   ) {
-    const session = await this.requireAdminSession(request);
+    const session = await this.requireAdminPermission(
+      request,
+      ADMIN_PERMISSIONS.paperAccountsWrite,
+    );
     const parsed = adminPaperAccountActionSchema.safeParse(body);
     if (!parsed.success) {
       throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -405,6 +418,18 @@ export class PaperController {
     const token = readCookie(request, "qf_admin_session");
     return this.authService.validateSession(token, "admin");
   }
+
+  private async requireAdminPermission(
+    request: RequestLike,
+    permission: (typeof ADMIN_PERMISSIONS)[keyof typeof ADMIN_PERMISSIONS],
+  ) {
+    const session = await this.requireAdminSession(request);
+    await this.adminAccessService.assertPermission(
+      session.subjectId,
+      permission,
+    );
+    return session;
+  }
 }
 
 function toHttpError(error: unknown) {
@@ -428,6 +453,12 @@ function toHttpError(error: unknown) {
   }
   if (error instanceof PaperMarketDataStaleError) {
     return new HttpException(error.message, HttpStatus.SERVICE_UNAVAILABLE);
+  }
+  if (error instanceof AdminPermissionDeniedError) {
+    return new HttpException(
+      { code: "FORBIDDEN", message: error.message },
+      HttpStatus.FORBIDDEN,
+    );
   }
 
   return new HttpException("服务暂时不可用", HttpStatus.INTERNAL_SERVER_ERROR);

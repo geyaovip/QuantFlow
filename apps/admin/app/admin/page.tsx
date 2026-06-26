@@ -1,12 +1,33 @@
+import { MetricCard, PageHeader } from "@quantflow/ui";
 import Link from "next/link";
 
-import { MetricCard, PageHeader } from "@quantflow/ui";
-
 import { RecentRiskTable } from "../../components/recent-risk-table";
+import {
+  getAdminDashboard,
+  getAdminRiskEvents,
+} from "../../lib/governance-api";
 
 export const metadata = { title: "数据看板" };
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const [summary, risks] = await Promise.all([
+    getAdminDashboard().catch(() => ({
+      data: {
+        userCount: 0,
+        activeStrategyCount: 0,
+        signalCountToday: 0,
+        paperAccountCount: 0,
+        openRiskEventCount: 0,
+      },
+    })),
+    getAdminRiskEvents(1, 5).catch(() => ({
+      data: [],
+      pagination: { page: 1, pageSize: 5, total: 0, totalPages: 1 },
+    })),
+  ]);
+
+  const metrics = summary.data;
+
   return (
     <>
       <PageHeader
@@ -22,31 +43,31 @@ export default function AdminDashboardPage() {
       <section className="admin-metric-grid" aria-label="核心指标">
         <MetricCard
           label="活跃策略"
-          value="12"
-          supportingLabel="高风险策略"
-          supportingValue="2"
+          value={String(metrics.activeStrategyCount)}
+          supportingLabel="注册用户"
+          supportingValue={String(metrics.userCount)}
         />
         <MetricCard
           label="今日信号"
-          value="28"
-          supportingLabel="异常 / 取消"
-          supportingValue="1 / 2"
+          value={String(metrics.signalCountToday)}
+          supportingLabel="待处理风险"
+          supportingValue={String(metrics.openRiskEventCount)}
         />
         <MetricCard
           label="模拟盘"
-          value="186"
-          supportingLabel="风险事件"
-          supportingValue="7"
+          value={String(metrics.paperAccountCount)}
+          supportingLabel="数据来源"
+          supportingValue="实时 API"
         />
         <MetricCard
           label="注册用户"
-          value="1,248"
-          supportingLabel="今日新增"
-          supportingValue="+32"
+          value={String(metrics.userCount)}
+          supportingLabel="管理入口"
+          supportingValue="用户 / 会员"
           valueTone="profit"
         />
       </section>
-      <RecentRiskTable />
+      <RecentRiskTable events={risks.data} />
     </>
   );
 }

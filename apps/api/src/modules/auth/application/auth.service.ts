@@ -1,6 +1,7 @@
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
 
 import { loadAppConfig } from "../../../config/app-config.js";
+import { AdminAccessService } from "../../admin-access/application/admin-access.service.js";
 import { MembershipService } from "../../membership/application/membership.service.js";
 import { AUTH_CRYPTO, type AuthCrypto } from "../domain/auth-crypto.js";
 import {
@@ -51,6 +52,8 @@ export class AuthService {
     private readonly turnstileVerifier: TurnstileVerifier,
     @Inject(forwardRef(() => MembershipService))
     private readonly membershipService: MembershipService,
+    @Inject(forwardRef(() => AdminAccessService))
+    private readonly adminAccessService: AdminAccessService,
   ) {}
 
   async requestEmailOtp(
@@ -234,6 +237,18 @@ export class AuthService {
       ip: context.ip,
       userAgent: context.userAgent,
     });
+
+    if (portal === "admin") {
+      await this.adminAccessService.writeAuditLog({
+        actorAdminId: subject.id,
+        action: "admin_login",
+        resourceType: "admin_user",
+        resourceId: subject.id,
+        reason: "管理员邮箱 OTP 登录",
+        ip: context.ip ?? null,
+        userAgent: context.userAgent ?? null,
+      });
+    }
 
     return {
       subjectId: subject.id,

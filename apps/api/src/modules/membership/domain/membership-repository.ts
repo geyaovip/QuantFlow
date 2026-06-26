@@ -39,5 +39,5 @@ export interface MembershipRepository {
     providerInvoiceId?: string;
     rawPayload: unknown;
     status: string;
-  }): Promise<void>;
+  }): Promise<{ activated: boolean; userId?: string; planName?: string }>;
 }

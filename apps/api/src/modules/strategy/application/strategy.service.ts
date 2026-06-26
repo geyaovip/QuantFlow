@@ -20,6 +20,7 @@ import {
   tierMeetsRequired,
 } from "../../membership/domain/tier-access.js";
 import { MembershipService } from "../../membership/application/membership.service.js";
+import { NotificationService } from "../../notification/application/notification.service.js";
 import {
   SignalNotFoundError,
   StrategyNotFoundError,
@@ -52,6 +53,7 @@ export class StrategyService {
     private readonly repository: StrategyRepository,
     @Inject(forwardRef(() => MembershipService))
     private readonly membershipService: MembershipService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async listStrategies(
@@ -243,20 +245,89 @@ export class StrategyService {
     return this.repository.rejectStrategy(strategyId, input, context);
   }
 
-  pauseStrategy(
+  async pauseStrategy(
     strategyId: string,
     input: AdminStrategyAction,
     context: AuditContext,
   ) {
-    return this.repository.pauseStrategy(strategyId, input, context);
+    const result = await this.repository.pauseStrategy(
+      strategyId,
+      input,
+      context,
+    );
+    await this.notificationService.notifyStrategyPausedPaperAccounts(
+      strategyId,
+      result.data.name,
+    );
+    return result;
   }
 
-  delistStrategy(
+  async delistStrategy(
     strategyId: string,
     input: AdminStrategyAction,
     context: AuditContext,
   ) {
-    return this.repository.delistStrategy(strategyId, input, context);
+    const result = await this.repository.delistStrategy(
+      strategyId,
+      input,
+      context,
+    );
+    await this.notificationService.notifyStrategyPausedPaperAccounts(
+      strategyId,
+      result.data.name,
+    );
+    return result;
+  }
+
+  listAdminSignals(input: ListSignalsInput) {
+    const page = normalizePage(input.page);
+    const pageSize = normalizePageSize(input.pageSize);
+    return this.repository
+      .listAdminSignals({ ...input, page, pageSize })
+      .then((result) => ({
+        data: result.items,
+        pagination: buildPagination(page, pageSize, result.total),
+      }));
+  }
+
+  async cancelAdminSignal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ) {
+    const data = await this.repository.cancelAdminSignal(
+      signalId,
+      input,
+      context,
+    );
+    return { data };
+  }
+
+  async markAdminSignalAbnormal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ) {
+    const data = await this.repository.markAdminSignalAbnormal(
+      signalId,
+      input,
+      context,
+    );
+    return { data };
+  }
+
+  async repushAdminSignal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ) {
+    const data = await this.repository.repushAdminSignal(
+      signalId,
+      input,
+      context,
+    );
+    await this.notificationService.notifySignalSubscribers(signalId);
+    return { data };
   }
 
   private async resolveEntitlements(userId?: string) {

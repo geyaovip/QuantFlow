@@ -111,7 +111,18 @@ export default async function ProfilePage() {
           <section className="profile-panel__section">
             <h2>通知与边界</h2>
             <p>
-              通知偏好将在后续版本接入。会员支付仅开通功能容量，不提供自动续费或真实下单入口。
+              可在{" "}
+              <Link className="secondary-link" href="/app/notifications">
+                通知中心
+              </Link>{" "}
+              查看站内提醒，或在{" "}
+              <Link
+                className="secondary-link"
+                href="/app/notifications/preferences"
+              >
+                通知偏好
+              </Link>{" "}
+              中管理提醒类型。会员支付仅开通功能容量，不提供自动续费或真实下单入口。
             </p>
           </section>
         </div>

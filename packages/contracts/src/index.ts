@@ -491,6 +491,206 @@ export const adminPaperAccountActionSchema = z.object({
   reason: z.string().min(3),
 });
 
+export const notificationTypeSchema = z.enum([
+  "system",
+  "signal",
+  "risk",
+  "membership",
+]);
+
+export const notificationChannelSchema = z.enum(["in_app"]);
+
+export const notificationListItemSchema = z.object({
+  id: z.uuid(),
+  type: notificationTypeSchema,
+  title: z.string(),
+  content: z.string(),
+  readAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+});
+
+export const notificationListResponseSchema = z.object({
+  data: z.array(notificationListItemSchema),
+  pagination: paginationSchema,
+});
+
+export const notificationDetailResponseSchema = z.object({
+  data: notificationListItemSchema,
+});
+
+export const notificationPreferenceSchema = z.object({
+  channel: notificationChannelSchema,
+  type: notificationTypeSchema,
+  enabled: z.boolean(),
+});
+
+export const notificationPreferenceListResponseSchema = z.object({
+  data: z.array(notificationPreferenceSchema),
+});
+
+export const notificationPreferenceUpdateSchema = z.object({
+  preferences: z.array(notificationPreferenceSchema).min(1),
+});
+
+export const adminAuditLogSchema = z.object({
+  id: z.uuid(),
+  actorAdminId: z.uuid().nullable(),
+  actorEmail: z.string().nullable(),
+  action: z.string(),
+  resourceType: z.string(),
+  resourceId: z.uuid().nullable(),
+  reason: z.string(),
+  before: z.unknown().nullable(),
+  after: z.unknown().nullable(),
+  ip: z.string().nullable(),
+  userAgent: z.string().nullable(),
+  createdAt: z.iso.datetime(),
+});
+
+export const adminAuditLogListResponseSchema = z.object({
+  data: z.array(adminAuditLogSchema),
+  pagination: paginationSchema,
+});
+
+export const adminDashboardSummarySchema = z.object({
+  userCount: z.number().int().min(0),
+  activeStrategyCount: z.number().int().min(0),
+  signalCountToday: z.number().int().min(0),
+  paperAccountCount: z.number().int().min(0),
+  openRiskEventCount: z.number().int().min(0),
+});
+
+export const adminDashboardSummaryResponseSchema = z.object({
+  data: adminDashboardSummarySchema,
+});
+
+export const adminUserListItemSchema = z.object({
+  id: z.uuid(),
+  email: z.string(),
+  status: z.string(),
+  membershipTier: membershipTierSchema,
+  membershipPlanName: z.string(),
+  paperAccountCount: z.number().int().min(0),
+  strategySubscriptionCount: z.number().int().min(0),
+  lastLoginAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+});
+
+export const adminUserListResponseSchema = z.object({
+  data: z.array(adminUserListItemSchema),
+  pagination: paginationSchema,
+});
+
+export const adminUserStatusSchema = z.object({
+  status: z.enum(["active", "disabled", "risk_watch"]),
+  reason: z.string().min(3),
+});
+
+export const adminSubscriptionListItemSchema = z.object({
+  id: z.uuid(),
+  userId: z.uuid(),
+  userEmail: z.string(),
+  tier: membershipTierSchema,
+  planName: z.string(),
+  status: z.enum(["active", "expired", "cancelled"]),
+  source: z.enum(["manual", "invite", "test", "plisio"]),
+  startsAt: z.iso.datetime(),
+  endsAt: z.iso.datetime(),
+  cancelledAt: z.iso.datetime().nullable(),
+});
+
+export const adminSubscriptionListResponseSchema = z.object({
+  data: z.array(adminSubscriptionListItemSchema),
+  pagination: paginationSchema,
+});
+
+export const adminMembershipManualGrantSchema = z.object({
+  userId: z.uuid(),
+  tier: z.enum(["pro", "premium"]),
+  billingCycle: z.enum(["monthly", "yearly"]),
+  reason: z.string().min(3),
+});
+
+export const adminMembershipActionSchema = z.object({
+  reason: z.string().min(3),
+});
+
+export const adminRiskEventSchema = z.object({
+  id: z.uuid(),
+  type: z.string(),
+  level: riskLevelSchema,
+  status: z.string(),
+  message: z.string(),
+  userId: z.uuid().nullable(),
+  strategyId: z.uuid().nullable(),
+  signalId: z.uuid().nullable(),
+  paperAccountId: z.uuid().nullable(),
+  assigneeAdminId: z.uuid().nullable(),
+  resolution: z.string().nullable(),
+  handledAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+});
+
+export const adminRiskEventListResponseSchema = z.object({
+  data: z.array(adminRiskEventSchema),
+  pagination: paginationSchema,
+});
+
+export const adminRiskActionSchema = z.object({
+  reason: z.string().min(3),
+  resolution: z.string().optional(),
+  assigneeAdminId: z.uuid().optional(),
+});
+
+export const adminRoleListItemSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  description: z.string(),
+  permissions: z.array(z.string()),
+});
+
+export const adminRoleListResponseSchema = z.object({
+  data: z.array(adminRoleListItemSchema),
+});
+
+export const adminAccountListItemSchema = z.object({
+  id: z.uuid(),
+  email: z.string(),
+  status: z.string(),
+  roles: z.array(z.string()),
+  lastLoginAt: z.iso.datetime().nullable(),
+});
+
+export const adminAccountListResponseSchema = z.object({
+  data: z.array(adminAccountListItemSchema),
+});
+
+export const adminRoleAssignSchema = z.object({
+  roleId: z.uuid(),
+  reason: z.string().min(3),
+});
+
+export const adminAnnouncementSchema = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  content: z.string(),
+  status: z.enum(["draft", "published", "ended"]),
+  publishedAt: z.iso.datetime().nullable(),
+  endsAt: z.iso.datetime().nullable(),
+  createdAt: z.iso.datetime(),
+});
+
+export const adminAnnouncementListResponseSchema = z.object({
+  data: z.array(adminAnnouncementSchema),
+  pagination: paginationSchema,
+});
+
+export const adminAnnouncementCreateSchema = z.object({
+  title: z.string().min(1),
+  content: z.string().min(1),
+  reason: z.string().min(3),
+});
+
 export type EmailOtpRequest = z.infer<typeof emailOtpRequestSchema>;
 export type EmailOtpRequestResponse = z.infer<
   typeof emailOtpRequestResponseSchema
@@ -618,6 +818,62 @@ export type AdminPaperAccountDetailResponse = z.infer<
 >;
 export type AdminPaperAccountAction = z.infer<
   typeof adminPaperAccountActionSchema
+>;
+export type NotificationListItem = z.infer<typeof notificationListItemSchema>;
+export type NotificationListResponse = z.infer<
+  typeof notificationListResponseSchema
+>;
+export type NotificationDetailResponse = z.infer<
+  typeof notificationDetailResponseSchema
+>;
+export type NotificationPreference = z.infer<
+  typeof notificationPreferenceSchema
+>;
+export type NotificationPreferenceListResponse = z.infer<
+  typeof notificationPreferenceListResponseSchema
+>;
+export type NotificationPreferenceUpdate = z.infer<
+  typeof notificationPreferenceUpdateSchema
+>;
+export type AdminAuditLog = z.infer<typeof adminAuditLogSchema>;
+export type AdminAuditLogListResponse = z.infer<
+  typeof adminAuditLogListResponseSchema
+>;
+export type AdminDashboardSummary = z.infer<typeof adminDashboardSummarySchema>;
+export type AdminDashboardSummaryResponse = z.infer<
+  typeof adminDashboardSummaryResponseSchema
+>;
+export type AdminUserListItem = z.infer<typeof adminUserListItemSchema>;
+export type AdminUserListResponse = z.infer<typeof adminUserListResponseSchema>;
+export type AdminUserStatusUpdate = z.infer<typeof adminUserStatusSchema>;
+export type AdminSubscriptionListItem = z.infer<
+  typeof adminSubscriptionListItemSchema
+>;
+export type AdminSubscriptionListResponse = z.infer<
+  typeof adminSubscriptionListResponseSchema
+>;
+export type AdminMembershipManualGrant = z.infer<
+  typeof adminMembershipManualGrantSchema
+>;
+export type AdminMembershipAction = z.infer<typeof adminMembershipActionSchema>;
+export type AdminRiskEvent = z.infer<typeof adminRiskEventSchema>;
+export type AdminRiskEventListResponse = z.infer<
+  typeof adminRiskEventListResponseSchema
+>;
+export type AdminRiskAction = z.infer<typeof adminRiskActionSchema>;
+export type AdminRoleListItem = z.infer<typeof adminRoleListItemSchema>;
+export type AdminRoleListResponse = z.infer<typeof adminRoleListResponseSchema>;
+export type AdminAccountListItem = z.infer<typeof adminAccountListItemSchema>;
+export type AdminAccountListResponse = z.infer<
+  typeof adminAccountListResponseSchema
+>;
+export type AdminRoleAssign = z.infer<typeof adminRoleAssignSchema>;
+export type AdminAnnouncement = z.infer<typeof adminAnnouncementSchema>;
+export type AdminAnnouncementListResponse = z.infer<
+  typeof adminAnnouncementListResponseSchema
+>;
+export type AdminAnnouncementCreate = z.infer<
+  typeof adminAnnouncementCreateSchema
 >;
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {

@@ -1,5 +1,6 @@
 import { Module, forwardRef } from "@nestjs/common";
 
+import { AdminAccessModule } from "../admin-access/admin-access.module.js";
 import { AuthModule } from "../auth/auth.module.js";
 import { MembershipModule } from "../membership/membership.module.js";
 import { PrismaModule } from "../prisma/prisma.module.js";
@@ -9,7 +10,12 @@ import { PrismaPaperRepository } from "./infrastructure/prisma-paper-repository.
 import { PaperController } from "./interfaces/paper.controller.js";
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => AuthModule), MembershipModule],
+  imports: [
+    PrismaModule,
+    forwardRef(() => AuthModule),
+    AdminAccessModule,
+    MembershipModule,
+  ],
   controllers: [PaperController],
   providers: [
     PaperService,

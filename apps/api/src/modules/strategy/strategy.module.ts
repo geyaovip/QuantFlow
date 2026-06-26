@@ -1,7 +1,9 @@
 import { Module, forwardRef } from "@nestjs/common";
 
+import { AdminAccessModule } from "../admin-access/admin-access.module.js";
 import { AuthModule } from "../auth/auth.module.js";
 import { MembershipModule } from "../membership/membership.module.js";
+import { NotificationModule } from "../notification/notification.module.js";
 import { PrismaModule } from "../prisma/prisma.module.js";
 import { StrategyService } from "./application/strategy.service.js";
 import { STRATEGY_REPOSITORY } from "./domain/strategy-repository.js";
@@ -9,7 +11,13 @@ import { PrismaStrategyRepository } from "./infrastructure/prisma-strategy-repos
 import { StrategyController } from "./interfaces/strategy.controller.js";
 
 @Module({
-  imports: [PrismaModule, AuthModule, forwardRef(() => MembershipModule)],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    AdminAccessModule,
+    NotificationModule,
+    forwardRef(() => MembershipModule),
+  ],
   controllers: [StrategyController],
   providers: [
     StrategyService,

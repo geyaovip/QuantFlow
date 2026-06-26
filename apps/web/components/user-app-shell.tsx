@@ -35,9 +35,13 @@ export function UserAppShell({
                 登录
               </Link>
             ) : null}
-            <button className="icon-button" type="button" aria-label="通知">
+            <Link
+              aria-label="通知"
+              className="icon-button"
+              href="/app/notifications"
+            >
               <Bell aria-hidden="true" size={19} />
-            </button>
+            </Link>
           </div>
         </header>
         <main className="app-content">{children}</main>

@@ -9,6 +9,8 @@ import type {
   UserEntitlements,
 } from "@quantflow/contracts";
 
+import { NotificationService } from "../../notification/application/notification.service.js";
+
 import {
   MEMBERSHIP_REPOSITORY,
   type MembershipRepository,
@@ -25,6 +27,7 @@ export class MembershipService {
     @Inject(MEMBERSHIP_REPOSITORY)
     private readonly repository: MembershipRepository,
     private readonly plisioClient: PlisioClient,
+    private readonly notificationService: NotificationService,
   ) {}
 
   listPlans(): Promise<MembershipPlanListResponse> {
@@ -41,11 +44,16 @@ export class MembershipService {
     return this.repository.getUserEntitlements(userId);
   }
 
-  mockCheckout(
+  async mockCheckout(
     userId: string,
     input: MembershipMockCheckout,
   ): Promise<MembershipSubscriptionResponse> {
-    return this.repository.mockCheckout(userId, input);
+    const result = await this.repository.mockCheckout(userId, input);
+    await this.notificationService.notifyMembershipActivated(
+      userId,
+      result.data.planName,
+    );
+    return result;
   }
 
   async createPayment(
@@ -85,11 +93,18 @@ export class MembershipService {
       throw new Error("invalid plisio callback payload");
     }
 
-    await this.repository.completePaymentFromCallback({
+    const result = await this.repository.completePaymentFromCallback({
       orderNumber: normalized.orderNumber,
       providerInvoiceId: normalized.providerInvoiceId,
       rawPayload: payload,
       status: normalized.status,
     });
+
+    if (result.activated && result.userId && result.planName) {
+      await this.notificationService.notifyMembershipActivated(
+        result.userId,
+        result.planName,
+      );
+    }
   }
 }

@@ -199,7 +199,7 @@ export class PrismaMembershipRepository implements MembershipRepository {
     providerInvoiceId?: string;
     rawPayload: unknown;
     status: string;
-  }): Promise<void> {
+  }): Promise<{ activated: boolean; userId?: string; planName?: string }> {
     const normalizedStatus = input.status.toLowerCase();
     const invoiceSelectors = [
       ...(input.providerInvoiceId
@@ -216,11 +216,11 @@ export class PrismaMembershipRepository implements MembershipRepository {
     });
 
     if (!payment) {
-      return;
+      return { activated: false };
     }
 
     if (payment.status === "completed") {
-      return;
+      return { activated: false };
     }
 
     const now = new Date();
@@ -234,7 +234,7 @@ export class PrismaMembershipRepository implements MembershipRepository {
         where: { id: payment.id },
         data: updateData,
       });
-      return;
+      return { activated: false };
     }
 
     const endsAt = new Date(now);
@@ -271,6 +271,12 @@ export class PrismaMembershipRepository implements MembershipRepository {
         },
       });
     });
+
+    return {
+      activated: true,
+      userId: payment.userId,
+      planName: payment.plan.name,
+    };
   }
 
   private async findActiveSubscription(userId: string) {

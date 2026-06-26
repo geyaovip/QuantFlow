@@ -196,6 +196,9 @@ model User {
   membershipSubs     UserSubscription[]
   membershipPayments MembershipPayment[]
   paperAccounts      PaperAccount[]
+  notifications      UserNotification[]
+  notificationPrefs  NotificationPreference[]
+  riskEvents         RiskEvent[]
 
   @@map("users")
 }
@@ -209,6 +212,8 @@ model AdminUser {
   createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
   auditLogs       AdminAuditLog[] @relation("AdminAuditActor")
+  roles           AdminUserRole[]
+  assignedRisks   RiskEvent[]     @relation("RiskAssignee")
 
   @@map("admin_users")
 }
@@ -288,6 +293,7 @@ model Strategy {
   subscriptions        UserStrategySubscription[]
   auditLogs            AdminAuditLog[]
   paperAccounts        PaperAccount[]
+  riskEvents           RiskEvent[]
 
   @@index([status, riskLevel, publishedAt(sort: Desc), id], map: "idx_strategies_list")
   @@map("strategies")
@@ -639,4 +645,149 @@ model PaperRiskEvent {
 
   @@index([accountId, occurredAt(sort: Desc), id(sort: Desc)], map: "idx_paper_risk_events_account")
   @@map("paper_risk_events")
+}
+
+enum NotificationType {
+  system
+  signal
+  risk
+  membership
+
+  @@map("notification_type")
+}
+
+enum NotificationChannel {
+  in_app
+
+  @@map("notification_channel")
+}
+
+model UserNotification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  title     String
+  content   String
+  readAt    DateTime?        @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)], map: "idx_user_notifications_user")
+  @@map("user_notifications")
+}
+
+model NotificationPreference {
+  id        String              @id @default(uuid()) @db.Uuid
+  userId    String              @map("user_id") @db.Uuid
+  user      User                @relation(fields: [userId], references: [id])
+  channel   NotificationChannel
+  type      NotificationType
+  enabled   Boolean             @default(true)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, channel, type], map: "uniq_notification_preferences_user_channel_type")
+  @@map("notification_preferences")
+}
+
+model AdminRole {
+  id          String                @id @default(uuid()) @db.Uuid
+  name        String                @unique
+  description String
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  permissions AdminRolePermission[]
+  users       AdminUserRole[]
+
+  @@map("admin_roles")
+}
+
+model AdminPermission {
+  id          String                @id @default(uuid()) @db.Uuid
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  roles       AdminRolePermission[]
+
+  @@unique([resource, action], map: "uniq_admin_permissions_resource_action")
+  @@map("admin_permissions")
+}
+
+model AdminUserRole {
+  adminUserId String    @map("admin_user_id") @db.Uuid
+  roleId      String    @map("role_id") @db.Uuid
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id])
+  role        AdminRole @relation(fields: [roleId], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([adminUserId, roleId])
+  @@map("admin_user_roles")
+}
+
+model AdminRolePermission {
+  roleId       String          @map("role_id") @db.Uuid
+  permissionId String          @map("permission_id") @db.Uuid
+  role         AdminRole       @relation(fields: [roleId], references: [id])
+  permission   AdminPermission @relation(fields: [permissionId], references: [id])
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([roleId, permissionId])
+  @@map("admin_role_permissions")
+}
+
+enum RiskEventStatus {
+  open
+  assigned
+  resolved
+  ignored
+  escalated
+
+  @@map("risk_event_status")
+}
+
+enum SystemAnnouncementStatus {
+  draft
+  published
+  ended
+
+  @@map("system_announcement_status")
+}
+
+model RiskEvent {
+  id              String          @id @default(uuid()) @db.Uuid
+  type            String
+  level           RiskLevel
+  status          RiskEventStatus @default(open)
+  message         String
+  userId          String?         @map("user_id") @db.Uuid
+  user            User?           @relation(fields: [userId], references: [id])
+  strategyId      String?         @map("strategy_id") @db.Uuid
+  strategy        Strategy?       @relation(fields: [strategyId], references: [id])
+  signalId        String?         @map("signal_id") @db.Uuid
+  paperAccountId  String?         @map("paper_account_id") @db.Uuid
+  assigneeAdminId String?         @map("assignee_admin_id") @db.Uuid
+  assigneeAdmin   AdminUser?      @relation("RiskAssignee", fields: [assigneeAdminId], references: [id])
+  resolution      String?
+  handledAt       DateTime?       @map("handled_at") @db.Timestamptz(6)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, level, createdAt(sort: Desc), id(sort: Desc)], map: "idx_risk_events_status")
+  @@map("risk_events")
+}
+
+model SystemAnnouncement {
+  id          String                   @id @default(uuid()) @db.Uuid
+  title       String
+  content     String
+  status      SystemAnnouncementStatus @default(draft)
+  publishedAt DateTime?                @map("published_at") @db.Timestamptz(6)
+  endsAt      DateTime?                @map("ends_at") @db.Timestamptz(6)
+  createdAt   DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, publishedAt(sort: Desc), id(sort: Desc)], map: "idx_system_announcements_status")
+  @@map("system_announcements")
 }

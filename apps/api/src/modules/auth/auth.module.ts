@@ -1,5 +1,6 @@
 import { Module, forwardRef } from "@nestjs/common";
 
+import { AdminAccessModule } from "../admin-access/admin-access.module.js";
 import { loadAppConfig } from "../../config/app-config.js";
 import { MembershipModule } from "../membership/membership.module.js";
 import { PrismaModule } from "../prisma/prisma.module.js";
@@ -19,7 +20,11 @@ import { AuthController } from "./interfaces/auth.controller.js";
 import { MeController } from "./interfaces/me.controller.js";
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => MembershipModule)],
+  imports: [
+    PrismaModule,
+    forwardRef(() => MembershipModule),
+    forwardRef(() => AdminAccessModule),
+  ],
   controllers: [AuthController, MeController],
   providers: [
     AuthService,

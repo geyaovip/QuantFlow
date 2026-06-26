@@ -203,13 +203,13 @@ export class PrismaPaperRepository implements PaperRepository {
         },
       });
 
-      await tx.paperRiskEvent.create({
-        data: {
-          accountId,
-          type: "account_reset",
-          riskLevel: "low",
-          message: "模拟盘已重置为初始资金，历史订单与成交记录保留。",
-        },
+      await this.createPaperRiskEvent(tx, {
+        accountId,
+        userId: account.userId,
+        strategyId: account.strategyId,
+        type: "account_reset",
+        riskLevel: "low",
+        message: "模拟盘已重置为初始资金，历史订单与成交记录保留。",
       });
     });
 
@@ -772,8 +772,13 @@ export class PrismaPaperRepository implements PaperRepository {
     side: "buy" | "sell",
     reason: string,
   ) {
-    await this.prisma.$transaction([
-      this.prisma.paperOrder.create({
+    await this.prisma.$transaction(async (tx) => {
+      const account = await tx.paperAccount.findUniqueOrThrow({
+        where: { id: accountId },
+        select: { userId: true, strategyId: true },
+      });
+
+      await tx.paperOrder.create({
         data: {
           accountId,
           signalId,
@@ -783,16 +788,18 @@ export class PrismaPaperRepository implements PaperRepository {
           status: "rejected",
           rejectReason: reason,
         },
-      }),
-      this.prisma.paperRiskEvent.create({
-        data: {
-          accountId,
-          type: "execution_rejected",
-          riskLevel: "medium",
-          message: reason,
-        },
-      }),
-    ]);
+      });
+
+      await this.createPaperRiskEvent(tx, {
+        accountId,
+        userId: account.userId,
+        strategyId: account.strategyId,
+        signalId,
+        type: "execution_rejected",
+        riskLevel: "medium",
+        message: reason,
+      });
+    });
   }
 
   private async refreshAccountState(
@@ -1048,6 +1055,40 @@ export class PrismaPaperRepository implements PaperRepository {
     return this.prisma.paperAccount.findFirst({
       where: { id: accountId, userId, deletedAt: null },
       include: accountIncludes,
+    });
+  }
+
+  private async createPaperRiskEvent(
+    tx: Prisma.TransactionClient,
+    input: {
+      accountId: string;
+      userId: string;
+      strategyId: string;
+      type: string;
+      riskLevel: "low" | "medium" | "high" | "critical";
+      message: string;
+      signalId?: string;
+    },
+  ) {
+    await tx.paperRiskEvent.create({
+      data: {
+        accountId: input.accountId,
+        type: input.type,
+        riskLevel: input.riskLevel,
+        message: input.message,
+      },
+    });
+
+    await tx.riskEvent.create({
+      data: {
+        type: input.type,
+        level: input.riskLevel,
+        message: input.message,
+        userId: input.userId,
+        strategyId: input.strategyId,
+        signalId: input.signalId ?? null,
+        paperAccountId: input.accountId,
+      },
     });
   }
 

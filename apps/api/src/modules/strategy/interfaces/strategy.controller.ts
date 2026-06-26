@@ -18,6 +18,9 @@ import {
 } from "@quantflow/contracts";
 
 import { AuthService } from "../../auth/application/auth.service.js";
+import { AdminAccessService } from "../../admin-access/application/admin-access.service.js";
+import { AdminPermissionDeniedError } from "../../admin-access/domain/admin-access-errors.js";
+import { ADMIN_PERMISSIONS } from "../../admin-access/domain/admin-permissions.js";
 import { StrategyService } from "../application/strategy.service.js";
 import {
   SignalNotFoundError,
@@ -63,6 +66,7 @@ export class StrategyController {
   constructor(
     private readonly strategyService: StrategyService,
     private readonly authService: AuthService,
+    private readonly adminAccessService: AdminAccessService,
   ) {}
 
   @Get("strategies")
@@ -169,7 +173,10 @@ export class StrategyController {
     @Query() query: unknown,
     @Req() request: RequestLike,
   ) {
-    await this.requireSession(request, "admin");
+    await this.requireAdminPermission(
+      request,
+      ADMIN_PERMISSIONS.strategiesRead,
+    );
     const parsed = listStrategiesQuerySchema.safeParse(query);
     if (!parsed.success) {
       throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -182,7 +189,10 @@ export class StrategyController {
     @Body() body: unknown,
     @Req() request: RequestLike,
   ) {
-    const session = await this.requireSession(request, "admin");
+    const session = await this.requireAdminPermission(
+      request,
+      ADMIN_PERMISSIONS.strategiesWrite,
+    );
     const parsed = adminStrategyCreateSchema.safeParse(body);
     if (!parsed.success) {
       throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -248,6 +258,70 @@ export class StrategyController {
     );
   }
 
+  @Get("admin/signals")
+  async listAdminSignals(@Query() query: unknown, @Req() request: RequestLike) {
+    const parsed = listSignalsQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+    try {
+      await this.requireAdminPermission(request, ADMIN_PERMISSIONS.signalsRead);
+      return this.strategyService.listAdminSignals({
+        page: parsed.data.page ?? 1,
+        pageSize: parsed.data.pageSize ?? 50,
+        direction: parsed.data.direction,
+        status: parsed.data.status,
+      });
+    } catch (error) {
+      throw toHttpError(error);
+    }
+  }
+
+  @Post("admin/signals/:signalId/cancel")
+  cancelAdminSignal(
+    @Param("signalId") signalId: string,
+    @Body() body: unknown,
+    @Req() request: RequestLike,
+  ) {
+    return this.runAdminAction(
+      request,
+      body,
+      (input, context) =>
+        this.strategyService.cancelAdminSignal(signalId, input, context),
+      ADMIN_PERMISSIONS.signalsWrite,
+    );
+  }
+
+  @Post("admin/signals/:signalId/mark-abnormal")
+  markAdminSignalAbnormal(
+    @Param("signalId") signalId: string,
+    @Body() body: unknown,
+    @Req() request: RequestLike,
+  ) {
+    return this.runAdminAction(
+      request,
+      body,
+      (input, context) =>
+        this.strategyService.markAdminSignalAbnormal(signalId, input, context),
+      ADMIN_PERMISSIONS.signalsWrite,
+    );
+  }
+
+  @Post("admin/signals/:signalId/repush")
+  repushAdminSignal(
+    @Param("signalId") signalId: string,
+    @Body() body: unknown,
+    @Req() request: RequestLike,
+  ) {
+    return this.runAdminAction(
+      request,
+      body,
+      (input, context) =>
+        this.strategyService.repushAdminSignal(signalId, input, context),
+      ADMIN_PERMISSIONS.signalsWrite,
+    );
+  }
+
   private async runAdminAction(
     request: RequestLike,
     body: unknown,
@@ -255,9 +329,10 @@ export class StrategyController {
       input: z.infer<typeof adminStrategyActionSchema>,
       context: ReturnType<typeof auditContext>,
     ) => Promise<unknown>,
+    permission: (typeof ADMIN_PERMISSIONS)[keyof typeof ADMIN_PERMISSIONS] = ADMIN_PERMISSIONS.strategiesWrite,
   ) {
     try {
-      const session = await this.requireSession(request, "admin");
+      const session = await this.requireAdminPermission(request, permission);
       const parsed = adminStrategyActionSchema.safeParse(body);
       if (!parsed.success) {
         throw new HttpException(
@@ -292,6 +367,18 @@ export class StrategyController {
       audience,
     );
   }
+
+  private async requireAdminPermission(
+    request: RequestLike,
+    permission: (typeof ADMIN_PERMISSIONS)[keyof typeof ADMIN_PERMISSIONS],
+  ) {
+    const session = await this.requireSession(request, "admin");
+    await this.adminAccessService.assertPermission(
+      session.subjectId,
+      permission,
+    );
+    return session;
+  }
 }
 
 function toHttpError(error: unknown) {
@@ -312,6 +399,12 @@ function toHttpError(error: unknown) {
   }
   if (error instanceof StrategyInvalidStateError) {
     return new HttpException(error.message, HttpStatus.CONFLICT);
+  }
+  if (error instanceof AdminPermissionDeniedError) {
+    return new HttpException(
+      { code: "FORBIDDEN", message: error.message },
+      HttpStatus.FORBIDDEN,
+    );
   }
 
   return new HttpException("服务暂时不可用", HttpStatus.INTERNAL_SERVER_ERROR);

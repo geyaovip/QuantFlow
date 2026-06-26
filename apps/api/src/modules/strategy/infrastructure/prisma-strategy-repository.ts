@@ -22,6 +22,7 @@ import type {
 import { PrismaService } from "../../prisma/prisma.service.js";
 import { accessibleTiers } from "../../membership/domain/tier-access.js";
 import {
+  SignalNotFoundError,
   StrategyInvalidStateError,
   StrategyNotFoundError,
 } from "../domain/strategy-errors.js";
@@ -517,6 +518,159 @@ export class PrismaStrategyRepository implements StrategyRepository {
       input,
       context,
     );
+  }
+
+  async listAdminSignals(input: ListSignalsInput) {
+    const where = {
+      ...(input.status
+        ? {
+            status: input.status as
+              | "active"
+              | "expired"
+              | "cancelled"
+              | "strategy_paused"
+              | "risk_blocked",
+          }
+        : {}),
+      ...(input.direction
+        ? { direction: input.direction as "buy" | "sell" | "watch" }
+        : {}),
+    };
+
+    const [total, signals] = await this.prisma.$transaction([
+      this.prisma.strategySignal.count({ where }),
+      this.prisma.strategySignal.findMany({
+        where,
+        orderBy: [{ generatedAt: "desc" }, { id: "desc" }],
+        skip: (input.page - 1) * input.pageSize,
+        take: input.pageSize,
+        include: { strategy: { select: { slug: true, name: true } } },
+      }),
+    ]);
+
+    return {
+      total,
+      items: signals.map((signal) =>
+        mapSignalItem(signal as unknown as SignalRecord),
+      ),
+    };
+  }
+
+  cancelAdminSignal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ) {
+    return this.updateAdminSignalStatus(
+      signalId,
+      ["active", "strategy_paused"],
+      "cancelled",
+      "signal.cancel",
+      input,
+      context,
+    );
+  }
+
+  markAdminSignalAbnormal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ) {
+    return this.updateAdminSignalStatus(
+      signalId,
+      ["active", "strategy_paused"],
+      "risk_blocked",
+      "signal.mark_abnormal",
+      input,
+      context,
+      true,
+    );
+  }
+
+  repushAdminSignal(
+    signalId: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+  ) {
+    return this.updateAdminSignalStatus(
+      signalId,
+      ["active", "strategy_paused", "risk_blocked"],
+      "active",
+      "signal.repush",
+      input,
+      context,
+    );
+  }
+
+  private async updateAdminSignalStatus(
+    signalId: string,
+    allowed: Array<
+      "active" | "expired" | "cancelled" | "strategy_paused" | "risk_blocked"
+    >,
+    status:
+      | "active"
+      | "expired"
+      | "cancelled"
+      | "strategy_paused"
+      | "risk_blocked",
+    action: string,
+    input: AdminStrategyAction,
+    context: AuditContext,
+    createRiskEvent = false,
+  ): Promise<SignalDetail> {
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const signal = await tx.strategySignal.findUnique({
+        where: { id: signalId },
+        include: { strategy: { select: { slug: true, name: true } } },
+      });
+      if (!signal) {
+        throw new SignalNotFoundError();
+      }
+      if (!allowed.includes(signal.status)) {
+        throw new StrategyInvalidStateError();
+      }
+
+      const row = await tx.strategySignal.update({
+        where: { id: signalId },
+        data: { status },
+        include: { strategy: { select: { slug: true, name: true } } },
+      });
+
+      await tx.adminAuditLog.create({
+        data: {
+          actorAdminId: context.actorAdminId,
+          action,
+          resourceType: "signal",
+          resourceId: signalId,
+          strategyId: signal.strategyId,
+          reason: input.reason,
+          before: { status: signal.status },
+          after: { status },
+          ip: context.ip ?? null,
+          userAgent: context.userAgent ?? null,
+        },
+      });
+
+      if (createRiskEvent) {
+        await tx.riskEvent.create({
+          data: {
+            type: "signal_abnormal",
+            level: signal.riskLevel,
+            message: `信号 ${signal.symbol} 被标记为异常：${input.reason}`,
+            strategyId: signal.strategyId,
+            signalId: signal.id,
+          },
+        });
+      }
+
+      return row;
+    });
+
+    return {
+      ...mapSignalItem(updated as unknown as SignalRecord),
+      isSubscribed: false,
+      riskDisclosure: RISK_DISCLOSURE,
+    };
   }
 
   private async transitionStrategy(

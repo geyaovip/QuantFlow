@@ -3,6 +3,7 @@ import {
   ChartNoAxesCombined,
   FileClock,
   Radio,
+  Shield,
   ShieldAlert,
   Users,
   WalletCards,
@@ -18,6 +19,7 @@ const links = [
   { href: "/admin/signals", label: "信号管理", Icon: Radio },
   { href: "/admin/paper-accounts", label: "模拟盘管理", Icon: WalletCards },
   { href: "/admin/risk", label: "风险管理", Icon: ShieldAlert },
+  { href: "/admin/access", label: "角色权限", Icon: Shield },
   { href: "/admin/audit", label: "审计日志", Icon: FileClock },
 ];
 
@@ -47,8 +49,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="admin-sidebar__footer">
-          <span>只读预览</span>
-          <small>认证与 RBAC 待接入</small>
+          <span>RBAC 已接入</span>
+          <small>敏感操作写入审计日志</small>
         </div>
       </aside>
       <div className="admin-main">

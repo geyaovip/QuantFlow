@@ -1,6 +1,15 @@
 import { PageHeader } from "@quantflow/ui";
 
-export default function RiskPage() {
+import { AdminRiskConsole } from "../../../components/admin-risk-console";
+import { getAdminRiskEvents } from "../../../lib/governance-api";
+import { resolveApiBaseUrl } from "../../../lib/strategy-api";
+
+export default async function RiskPage() {
+  const events = await getAdminRiskEvents().catch(() => ({
+    data: [],
+    pagination: { page: 1, pageSize: 50, total: 0, totalPages: 1 },
+  }));
+
   return (
     <>
       <PageHeader
@@ -8,12 +17,7 @@ export default function RiskPage() {
         title="风险管理"
         description="集中处理回撤、连亏、样本不足和行情延迟事件。"
       />
-      <div className="admin-empty">
-        <strong>暂无待处理风险事件</strong>
-        <span>
-          当策略或模拟盘触发风险阈值时，会在这里展示等级、对象和处理状态。
-        </span>
-      </div>
+      <AdminRiskConsole apiBaseUrl={resolveApiBaseUrl()} events={events.data} />
     </>
   );
 }

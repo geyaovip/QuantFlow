@@ -700,6 +700,33 @@
   color: var(--qf-text-secondary);
   font-size: 14px;
 }
+.notification-list {
+  display: grid;
+  gap: 12px;
+}
+.notification-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--qf-border);
+}
+.notification-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.notification-item p,
+.notification-item small {
+  margin: 6px 0 0;
+  color: var(--qf-text-secondary);
+}
+.notification-item--read strong {
+  color: var(--qf-text-secondary);
+}
+.notification-item button {
+  align-self: flex-start;
+  white-space: nowrap;
+}
 .paper-account-actions {
   display: grid;
   gap: 8px;
