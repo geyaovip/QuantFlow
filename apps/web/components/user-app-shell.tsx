@@ -24,7 +24,7 @@ export function UserAppShell({
       <div className="app-main">
         <header className="app-mobile-topbar">
           <Link href="/" aria-label="返回 QuantFlow 首页">
-            <Brand compact />
+            <Brand />
           </Link>
           <div className="app-mobile-topbar__actions">
             {!session ? (

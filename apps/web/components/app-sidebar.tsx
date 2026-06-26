@@ -27,7 +27,7 @@ export function AppSidebar({ apiBaseUrl, session }: AppSidebarProps) {
     <aside className="app-sidebar" aria-label="应用侧边导航">
       <div className="app-sidebar__brand">
         <Link href="/" aria-label="返回 QuantFlow 首页">
-          <Brand compact />
+          <Brand />
         </Link>
       </div>
       <nav aria-label="应用主导航" className="app-sidebar__nav">
