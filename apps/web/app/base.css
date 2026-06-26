@@ -278,6 +278,7 @@ body {
 .pricing-card {
   display: grid;
   align-content: start;
+  gap: 18px;
   padding: 22px;
 }
 .positioning-card,
@@ -286,11 +287,21 @@ body {
 }
 .positioning-card h3,
 .capability-card h3,
-.paper-card strong,
-.pricing-card__header strong {
+.paper-card strong {
   margin: 14px 0 8px;
   font-size: 18px;
   letter-spacing: -0.03em;
+}
+.pricing-card__header {
+  display: grid;
+  gap: 6px;
+}
+.pricing-card__header strong {
+  display: block;
+  color: var(--qf-text);
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
 }
 .positioning-card p,
 .capability-card p,
@@ -438,7 +449,7 @@ body {
 .pricing-card ul {
   display: grid;
   gap: 8px;
-  margin: 16px 0 0;
+  margin: 0;
   padding-left: 18px;
   color: var(--qf-text-secondary);
   font-size: 14px;
