@@ -72,9 +72,8 @@ packages/
 
 - Web、Admin、API、Worker 和 PostgreSQL 18 使用独立 Docker Compose project 部署；应用端口只绑定 `127.0.0.1`，数据库和 Worker 仅在 Compose network 内可见。
 - 复用服务器已有 `cloudflared` 服务；Cloudflare Tunnel 提供公网入口，Cloudflare 负责 DNS、边缘 TLS、DDoS/WAF、有限静态缓存和 Turnstile。
-- Cloudflare R2 保存加密数据库备份和导出文件；生产密钥保存在服务器权限为 `0600` 的独立环境文件和 CI secrets，不与其他项目共用。
 - Docker 日志启用轮转，Sentry 收集前后端异常，Cloudflare Analytics 观察边缘流量与安全事件；审计日志按业务保留策略存数据库。
-- 生产目标 RPO 15 分钟、RTO 4 小时；每日完整备份并持续归档 WAL 到 R2，每季度执行隔离恢复演练。
+- 生产数据库仅在 VPS 本地执行每日 `pg_dump` 全量备份与 WAL 归档；每季度执行隔离恢复演练。MVP 不做 R2 或其他异地对象存储备份。
 - 发布使用固定 commit/image tag、健康检查和可回滚 Compose 更新；数据库 migration 必须向后兼容并提供回滚/前滚说明。完整规范见 `deployment.md`。
 
 ## 7. CI 门禁

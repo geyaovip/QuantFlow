@@ -20,13 +20,7 @@ upsert_env() {
   fi
 }
 
-for key in \
-  QUANTFLOW_BACKUP_DIR \
-  QUANTFLOW_WAL_ARCHIVE_HOST_DIR \
-  R2_BACKUP_ENDPOINT \
-  R2_BACKUP_BUCKET \
-  R2_ACCESS_KEY_ID \
-  R2_SECRET_ACCESS_KEY; do
+for key in QUANTFLOW_BACKUP_DIR QUANTFLOW_WAL_ARCHIVE_HOST_DIR; do
   eval "value=\${$key:-}"
   if [ -n "$value" ]; then
     upsert_env "$key" "$value"

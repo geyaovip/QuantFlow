@@ -23,10 +23,4 @@ db_name=${POSTGRES_DB:-quantflow}
 production_compose exec -T postgres psql -U "$db_user" -d "$db_name" \
   -c "SELECT pg_switch_wal();"
 
-echo "WAL segment rotation triggered."
-
-if [ -n "${R2_BACKUP_ENDPOINT:-}" ] && [ -n "${R2_BACKUP_BUCKET:-}" ] && [ -n "${R2_ACCESS_KEY_ID:-}" ] && [ -n "${R2_SECRET_ACCESS_KEY:-}" ]; then
-  production_sync_wal_to_r2 "$WAL_DIR"
-else
-  echo "R2 not configured; WAL files retained locally in $WAL_DIR"
-fi
+echo "WAL segment rotation triggered; files retained locally in $WAL_DIR"

@@ -41,11 +41,7 @@ production_load_backup_env() {
     POSTGRES_USER \
     POSTGRES_PASSWORD \
     QUANTFLOW_BACKUP_DIR \
-    QUANTFLOW_WAL_ARCHIVE_HOST_DIR \
-    R2_BACKUP_ENDPOINT \
-    R2_BACKUP_BUCKET \
-    R2_ACCESS_KEY_ID \
-    R2_SECRET_ACCESS_KEY; do
+    QUANTFLOW_WAL_ARCHIVE_HOST_DIR; do
     if value=$(production_env_get "$key" 2>/dev/null) && [ -n "$value" ]; then
       export "$key=$value"
     fi
@@ -87,44 +83,6 @@ production_uses_compose_backup() {
     return 0
   fi
   if [ -f "$(production_compose_file)" ] && [ -f "$(production_env_file)" ]; then
-    return 0
-  fi
-  return 1
-}
-
-production_run_aws_s3() {
-  if [ -n "${R2_BACKUP_ENDPOINT:-}" ] && [ -n "${R2_BACKUP_BUCKET:-}" ]; then
-    :
-  else
-    echo "R2 backup is not configured" >&2
-    return 1
-  fi
-  if ! command -v aws >/dev/null 2>&1; then
-    echo "aws CLI is required for R2 upload" >&2
-    return 1
-  fi
-  AWS_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID:?R2_ACCESS_KEY_ID is required} \
-  AWS_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY:?R2_SECRET_ACCESS_KEY is required} \
-    aws "$@" --endpoint-url "$R2_BACKUP_ENDPOINT"
-}
-
-production_sync_wal_to_r2() {
-  wal_dir=$1
-  if production_run_aws_s3 s3 sync "$wal_dir" "s3://${R2_BACKUP_BUCKET}/quantflow/wal/"; then
-    echo "WAL archive synced to R2: quantflow/wal/"
-    return 0
-  fi
-  if command -v sudo >/dev/null 2>&1; then
-    sudo -E env \
-      R2_BACKUP_ENDPOINT="$R2_BACKUP_ENDPOINT" \
-      R2_BACKUP_BUCKET="$R2_BACKUP_BUCKET" \
-      R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
-      R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
-      AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
-      AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
-        aws s3 sync "$wal_dir" "s3://${R2_BACKUP_BUCKET}/quantflow/wal/" \
-          --endpoint-url "$R2_BACKUP_ENDPOINT"
-    echo "WAL archive synced to R2 via sudo: quantflow/wal/"
     return 0
   fi
   return 1

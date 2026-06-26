@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.6.0-dev.6` - 2026-06-26
+
+- 类型：Removed / Ops / Docs
+- 摘要：按 D-029 移除 R2 异地备份范围；保留 VPS 本地 `pg_dump`、WAL 归档与 cron。
+- MVP 边界影响：无。
+- API / 数据 / 权限 / 风控影响：无。
+- 迁移与兼容：删除 `verify-r2-backup.sh` 与 R2 env/workflow；生产 `.env` 移除 R2 变量。
+- 验证：`pnpm check`。
+- 监控与回滚：本地备份策略见 `deployment.md`。
+
 ### `v0.6.0-dev.5` - 2026-06-26
 
 - 类型：Added / Ops / Docs

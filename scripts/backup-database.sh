@@ -26,8 +26,3 @@ fi
 echo "backup written: $OUTPUT_FILE"
 
 find "$BACKUP_DIR" -name 'quantflow-*.sql.gz' -mtime +"$RETENTION_DAYS" -delete
-
-if [ -n "${R2_BACKUP_ENDPOINT:-}" ] && [ -n "${R2_BACKUP_BUCKET:-}" ] && [ -n "${R2_ACCESS_KEY_ID:-}" ] && [ -n "${R2_SECRET_ACCESS_KEY:-}" ]; then
-  production_run_aws_s3 s3 cp "$OUTPUT_FILE" "s3://${R2_BACKUP_BUCKET}/quantflow/${TIMESTAMP}.sql.gz"
-  echo "backup uploaded to R2: quantflow/${TIMESTAMP}.sql.gz"
-fi
