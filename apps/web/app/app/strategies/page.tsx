@@ -1,4 +1,4 @@
-import { Button, PageHeader } from "@quantflow/ui";
+import { PageHeader } from "@quantflow/ui";
 
 import { StrategyExplorer } from "./strategy-explorer";
 
@@ -9,9 +9,8 @@ export default function StrategiesPage() {
     <>
       <PageHeader
         eyebrow="策略广场"
-        title="寻找适合观察的策略"
-        description="所有策略同时展示收益与风险。当前数据为产品骨架中的模拟示例，不代表真实或未来表现。"
-        action={<Button variant="secondary">了解指标口径</Button>}
+        title="浏览已入库策略"
+        description="按风险等级查看可观察策略。收益、最大回撤、样本量和盈亏比以同一周期并列展示，避免只看单一收益排序。"
       />
       <StrategyExplorer />
       <aside className="disclaimer">

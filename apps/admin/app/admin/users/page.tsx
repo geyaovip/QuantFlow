@@ -6,9 +6,12 @@ export default function UsersPage() {
       <PageHeader
         eyebrow="用户与会员"
         title="用户管理"
-        description="用户列表默认每页 50 条；认证、筛选、RBAC 与审计将在后续切片接入。"
+        description="查看用户登录邮箱、访问权益、模拟盘容量和安全状态。列表默认每页 50 条。"
       />
-      <div className="admin-empty">用户数据尚未接入</div>
+      <div className="admin-empty">
+        <strong>暂无用户记录</strong>
+        <span>用户完成邮箱验证后会出现在这里，敏感变更会写入审计日志。</span>
+      </div>
     </>
   );
 }

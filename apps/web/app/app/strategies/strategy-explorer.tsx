@@ -7,9 +7,8 @@ import { Button, StrategyCard, type StrategyCardProps } from "@quantflow/ui";
 const strategies: Array<StrategyCardProps & { id: string }> = [
   {
     id: "btc-trend",
-    href: "/app/strategies/btc-trend",
     name: "BTC 趋势过滤",
-    summary: "结合中期趋势与波动过滤，降低震荡阶段的无效信号。",
+    summary: "结合中期趋势与波动过滤，重点观察震荡阶段的信号失效率。",
     market: "BTCUSDT · 现货模拟",
     periodReturn: "+12.8%",
     maxDrawdown: "-6.4%",
@@ -20,7 +19,6 @@ const strategies: Array<StrategyCardProps & { id: string }> = [
   },
   {
     id: "eth-breakout",
-    href: "/app/strategies/eth-breakout",
     name: "ETH 波动突破",
     summary: "观察波动扩张后的价格延续，使用固定失效条件控制风险。",
     market: "ETHUSDT · 现货模拟",
@@ -33,7 +31,6 @@ const strategies: Array<StrategyCardProps & { id: string }> = [
   },
   {
     id: "sol-mean",
-    href: "/app/strategies/sol-mean",
     name: "SOL 均值观察",
     summary: "在流动性与行情有效的前提下观察短周期偏离与回归。",
     market: "SOLUSDT · 现货模拟",
@@ -70,7 +67,7 @@ export function StrategyExplorer() {
             </Button>
           ))}
         </div>
-        <span>共 {filtered.length} 个策略 · 第 1 / 1 页</span>
+        <span>每页 20 条 · 共 {filtered.length} 个策略 · 第 1 / 1 页</span>
       </div>
       {filtered.length ? (
         <div className="strategy-grid">
@@ -81,7 +78,7 @@ export function StrategyExplorer() {
       ) : (
         <div className="empty-state">
           <strong>暂无符合条件的策略</strong>
-          <p>调整风险等级后重新查看。</p>
+          <p>调整风险等级后重新查看。筛选变化会自动回到第 1 页。</p>
         </div>
       )}
       <nav className="pagination" aria-label="策略分页">

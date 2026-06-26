@@ -47,9 +47,15 @@ export function StrategyCard(props: StrategyCardProps) {
           <dd>{props.profitLossRatio}</dd>
         </div>
       </dl>
-      <a className="qf-card-link" href={props.href ?? "/app/strategies"}>
-        查看策略与风险 <ArrowRight aria-hidden="true" size={16} />
-      </a>
+      {props.href ? (
+        <a className="qf-card-link" href={props.href}>
+          查看策略与风险 <ArrowRight aria-hidden="true" size={16} />
+        </a>
+      ) : (
+        <span className="qf-card-link qf-card-link--muted">
+          详情访问需开通 <ArrowRight aria-hidden="true" size={16} />
+        </span>
+      )}
     </Card>
   );
 }

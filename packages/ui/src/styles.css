@@ -224,6 +224,9 @@ a {
   font-size: 14px;
   font-weight: 650;
 }
+.qf-card-link--muted {
+  color: var(--qf-text-secondary);
+}
 
 @media (max-width: 767px) {
   .qf-page-header {

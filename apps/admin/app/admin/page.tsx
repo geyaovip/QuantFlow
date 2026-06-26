@@ -1,4 +1,6 @@
-import { Button, MetricCard, PageHeader } from "@quantflow/ui";
+import Link from "next/link";
+
+import { MetricCard, PageHeader } from "@quantflow/ui";
 
 import { RecentRiskTable } from "../../components/recent-risk-table";
 
@@ -10,8 +12,12 @@ export default function AdminDashboardPage() {
       <PageHeader
         eyebrow="运营总览"
         title="数据看板"
-        description="聚合用户、策略、模拟盘与风险状态。所有敏感操作将在接入 RBAC 后开放。"
-        action={<Button>创建策略</Button>}
+        description="聚合用户、策略、模拟盘与风险状态。敏感操作需要管理员权限并写入审计日志。"
+        action={
+          <Link className="admin-header-link" href="/admin/strategies">
+            查看策略
+          </Link>
+        }
       />
       <section className="admin-metric-grid" aria-label="核心指标">
         <MetricCard

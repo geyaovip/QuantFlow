@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "QuantFlow",
     short_name: "QuantFlow",
-    description: "策略信号与模拟盘平台",
+    description: "策略研究与模拟验证平台",
     lang: "zh-CN",
     start_url: "/app/strategies",
     display: "standalone",

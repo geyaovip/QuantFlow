@@ -8,7 +8,12 @@ export default function PaperAccountsPage() {
         title="模拟盘管理"
         description="这里只管理模拟余额、模拟订单与风险事件，不存在真实资产或订单。"
       />
-      <div className="admin-empty">模拟盘管理将在后续业务切片实现</div>
+      <div className="admin-empty">
+        <strong>暂无模拟盘记录</strong>
+        <span>
+          用户创建模拟盘后会在这里展示权益、回撤、订单状态和风险事件。
+        </span>
+      </div>
     </>
   );
 }

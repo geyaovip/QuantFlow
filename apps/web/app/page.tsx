@@ -2,6 +2,7 @@ import {
   ArrowRight,
   BellRing,
   ChartSpline,
+  ListChecks,
   ShieldCheck,
   WalletCards,
 } from "lucide-react";
@@ -21,50 +22,73 @@ export default function MarketingPage() {
       <main>
         <section className="hero">
           <div className="hero__copy">
-            <Badge tone="info">策略信号 · 风险并列 · 模拟验证</Badge>
+            <Badge tone="info">策略研究 · 风险监控 · 模拟验证</Badge>
             <h1>
-              用清晰的数据，
+              把策略信号放进
               <br />
-              验证每一个策略判断。
+              可验证的数据流程。
             </h1>
             <p>
               QuantFlow
-              汇总策略信号、风险指标与模拟盘表现，帮助你在不连接交易所、不触碰真实资产的前提下完成观察和验证。
+              面向加密资产策略研究与模拟验证。每个策略同时呈现收益、回撤、样本、风险事件和数据更新时间，帮助你在不连接交易所、不触碰真实资产的前提下建立观察流程。
             </p>
             <div className="hero__actions">
               <Link className="primary-link" href="/login?next=/app/strategies">
                 进入应用 <ArrowRight aria-hidden="true" size={17} />
               </Link>
-              <a className="secondary-link" href="#risk">
-                先了解风险原则
+              <a className="secondary-link" href="#workflow">
+                查看使用流程
               </a>
             </div>
+            <div className="hero__trust" aria-label="平台边界">
+              <span>不连接交易所</span>
+              <span>不托管资产</span>
+              <span>不承诺收益</span>
+            </div>
           </div>
-          <Card className="hero-panel" aria-label="策略概览示例">
+          <Card className="hero-panel" aria-label="策略监控概览">
             <div className="hero-panel__header">
               <div>
-                <span>策略观察</span>
-                <strong>BTC 趋势过滤</strong>
+                <span>策略监控</span>
+                <strong>BTC 趋势过滤 · 观察中</strong>
               </div>
               <RiskBadge level="中" />
             </div>
-            <div className="hero-chart" aria-label="图表空状态">
-              <span>行情与模拟权益图表将在数据接入后显示</span>
+            <div className="hero-snapshot" aria-label="策略关键指标">
+              <div>
+                <span>近 90 天收益</span>
+                <strong className="positive">+12.8%</strong>
+              </div>
+              <div>
+                <span>最大回撤</span>
+                <strong>-6.4%</strong>
+              </div>
+              <div>
+                <span>胜率 / 样本</span>
+                <strong>58.2% / 67</strong>
+              </div>
+              <div>
+                <span>数据更新时间</span>
+                <strong>10:40 UTC+8</strong>
+              </div>
             </div>
-            <dl className="hero-stats">
-              <div>
-                <dt>近 90 天收益</dt>
-                <dd className="positive">+12.8%</dd>
-              </div>
-              <div>
-                <dt>最大回撤</dt>
-                <dd>-6.4%</dd>
-              </div>
-              <div>
-                <dt>胜率 / 样本</dt>
-                <dd>58.2% / 67</dd>
-              </div>
-            </dl>
+            <div className="hero-events" aria-label="最近事件">
+              <p>最近事件</p>
+              <ul>
+                <li>
+                  <span>10:42</span>
+                  <strong>行情快照延迟已恢复</strong>
+                </li>
+                <li>
+                  <span>09:18</span>
+                  <strong>ETH 波动突破触发回撤观察</strong>
+                </li>
+                <li>
+                  <span>昨天</span>
+                  <strong>SOL 均值观察样本量低于阈值</strong>
+                </li>
+              </ul>
+            </div>
           </Card>
         </section>
 
@@ -77,23 +101,23 @@ export default function MarketingPage() {
             {[
               [
                 ChartSpline,
-                "策略与信号",
-                "用统一口径查看策略逻辑、信号状态、收益与风险，不只看单一排名。",
+                "策略库",
+                "统一查看策略适用市场、样本数量、收益表现、最大回撤和风险等级。",
               ],
               [
                 WalletCards,
                 "模拟盘",
-                "使用模拟余额验证策略过程，所有订单、持仓和权益都明确标记为模拟。",
+                "用模拟余额跟踪策略执行过程，订单、持仓和权益始终明确标记为模拟。",
               ],
               [
                 ShieldCheck,
                 "风险控制",
-                "最大回撤、连续亏损、行情延迟和样本不足都有明确提示与事件记录。",
+                "回撤、连续亏损、行情延迟和样本不足都会进入风险事件，不以收益遮盖风险。",
               ],
               [
                 BellRing,
                 "提醒与跟踪",
-                "收藏策略、查看信号和风险事件；第一版以站内通知和轮询为主。",
+                "围绕策略、信号和模拟盘建立站内提醒，关键变化保留可追溯记录。",
               ],
             ].map(([Icon, title, copy]) => {
               const FeatureIcon = Icon as typeof ChartSpline;
@@ -108,10 +132,42 @@ export default function MarketingPage() {
           </div>
         </section>
 
+        <section id="workflow" className="section-block workflow-block">
+          <div className="section-heading">
+            <p>使用流程</p>
+            <h2>先筛选，再观察，最后只在模拟盘里验证。</h2>
+          </div>
+          <div className="workflow-grid">
+            {[
+              [
+                "01",
+                "筛选策略",
+                "按市场、风险等级、样本量和访问权益筛选可观察策略。",
+              ],
+              [
+                "02",
+                "查看信号",
+                "查看触发价格、失效条件、建议仓位和风险状态。",
+              ],
+              [
+                "03",
+                "模拟验证",
+                "将策略加入模拟盘，跟踪权益、回撤、持仓和风险事件。",
+              ],
+            ].map(([step, title, copy]) => (
+              <Card className="workflow-card" key={step}>
+                <span>{step}</span>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </Card>
+            ))}
+          </div>
+        </section>
+
         <section id="strategies" className="section-block strategy-preview">
           <div className="section-heading">
-            <p>策略示例</p>
-            <h2>收益数据旁边，永远放着对应风险。</h2>
+            <p>策略库</p>
+            <h2>收益指标旁边，永远放着同周期风险指标。</h2>
           </div>
           <div className="preview-table" role="table" aria-label="策略预览">
             <div className="preview-row preview-row--header" role="row">
@@ -133,6 +189,12 @@ export default function MarketingPage() {
               </div>
             ))}
           </div>
+          <div className="preview-note">
+            <ListChecks aria-hidden="true" size={18} />
+            <span>
+              策略详情页会展示数据来源、更新时间、样本量、适用/不适用行情和风险事件。收益表现不能单独作为使用依据。
+            </span>
+          </div>
         </section>
 
         <section id="risk" className="risk-section">
@@ -145,11 +207,20 @@ export default function MarketingPage() {
 
         <section id="membership" className="section-block membership-block">
           <div className="section-heading">
-            <p>会员权益</p>
-            <h2>为数据范围、提醒和模拟容量付费，而不是为收益预期付费。</h2>
+            <p>访问权益</p>
+            <h2>访问范围、提醒和模拟容量可分级；收益预期不作为权益。</h2>
           </div>
-          <div className="membership-note">
-            MVP 暂未开放在线购买。会员由管理员、邀请码或测试流程开通。
+          <div className="membership-grid">
+            {[
+              ["基础访问", "查看公开策略、风险披露和基础模拟结果。"],
+              ["研究访问", "解锁更多策略、信号提醒和模拟盘容量。"],
+              ["运营开通", "第一版由管理员审核开通，不在官网承诺在线购买。"],
+            ].map(([title, copy]) => (
+              <Card className="membership-card" key={title}>
+                <h3>{title}</h3>
+                <p>{copy}</p>
+              </Card>
+            ))}
           </div>
         </section>
       </main>

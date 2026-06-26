@@ -108,6 +108,8 @@ body {
   color: var(--qf-text-muted);
 }
 .admin-topbar > a,
+.admin-header-link,
+.admin-section-title a,
 .admin-section-title button {
   display: inline-flex;
   align-items: center;
@@ -120,6 +122,8 @@ body {
   cursor: pointer;
 }
 .admin-topbar > a:hover,
+.admin-header-link:hover,
+.admin-section-title a:hover,
 .admin-section-title button:hover {
   background: var(--qf-surface-muted);
 }
@@ -203,11 +207,23 @@ td {
 .admin-empty {
   display: grid;
   place-items: center;
+  gap: 8px;
   min-height: 320px;
+  padding: 28px;
   border: 1px dashed var(--qf-border);
   border-radius: 12px;
-  color: var(--qf-text-muted);
   background: var(--qf-background);
+  text-align: center;
+}
+.admin-empty strong {
+  color: var(--qf-text);
+  font-size: 15px;
+}
+.admin-empty span {
+  max-width: 520px;
+  color: var(--qf-text-secondary);
+  font-size: 13px;
+  line-height: 1.65;
 }
 .admin-login-page {
   display: grid;

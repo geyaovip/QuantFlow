@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Badge } from "@quantflow/ui";
 
 const rows = [
@@ -30,9 +32,9 @@ export function RecentRiskTable() {
       <div className="admin-section-title">
         <div>
           <h2>最近风险事件</h2>
-          <p>当前为结构验证数据，正式环境来自审计事件。</p>
+          <p>按事件时间倒序展示，默认每页 50 条，处理动作会写入审计日志。</p>
         </div>
-        <button type="button">查看全部</button>
+        <Link href="/admin/risk">查看全部</Link>
       </div>
       <div className="table-scroll">
         <table>

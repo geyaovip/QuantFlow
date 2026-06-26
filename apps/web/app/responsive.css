@@ -9,6 +9,10 @@
   .feature-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .workflow-grid,
+  .membership-grid {
+    grid-template-columns: 1fr;
+  }
   .strategy-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -46,6 +50,8 @@
     gap: 20px;
   }
   .feature-grid,
+  .workflow-grid,
+  .membership-grid,
   .strategy-grid {
     grid-template-columns: 1fr;
   }
