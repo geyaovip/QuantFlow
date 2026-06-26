@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 
 import type {
   MembershipMockCheckout,
+  MembershipCheckoutCreate,
+  MembershipPaymentResponse,
   MembershipPlanListResponse,
   MembershipSubscriptionResponse,
   UserEntitlements,
@@ -121,6 +123,156 @@ export class PrismaMembershipRepository implements MembershipRepository {
     return { data: subscription };
   }
 
+  async createPayment(
+    userId: string,
+    input: MembershipCheckoutCreate,
+    createInvoice: Parameters<MembershipRepository["createPayment"]>[2],
+  ): Promise<MembershipPaymentResponse> {
+    if (!input.riskAccepted) {
+      throw new MembershipRiskNotAcceptedError();
+    }
+
+    const plan = await this.prisma.membershipPlan.findFirst({
+      where: { tier: input.tier, status: "active" },
+    });
+    if (!plan) {
+      throw new MembershipPlanNotFoundError();
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    const amountCny =
+      input.billingCycle === "monthly"
+        ? plan.monthlyPriceCny.toString()
+        : plan.yearlyPriceCny.toString();
+
+    const payment = await this.prisma.membershipPayment.create({
+      data: {
+        userId,
+        planId: plan.id,
+        tier: plan.tier,
+        billingCycle: input.billingCycle,
+        provider: "plisio",
+        status: "created",
+        amountCny,
+        allowedPsysCids: ["USDT_BSC", "USDT"],
+      },
+    });
+
+    const invoice = await createInvoice({
+      amountCny,
+      email: user?.email,
+      orderName: `QuantFlow ${plan.name} ${input.billingCycle === "monthly" ? "月付" : "年付"}`,
+      orderNumber: payment.id,
+    });
+
+    const updated = await this.prisma.membershipPayment.update({
+      where: { id: payment.id },
+      data: {
+        providerInvoiceId: invoice.txnId,
+        invoiceUrl: invoice.invoiceUrl,
+        rawPayload: toPrismaJson(invoice.rawPayload),
+        status: "pending",
+        expiresAt: invoice.expiresAt,
+      },
+    });
+
+    return {
+      data: {
+        id: updated.id,
+        tier: input.tier,
+        billingCycle: input.billingCycle,
+        status: updated.status,
+        provider: "plisio",
+        invoiceUrl: updated.invoiceUrl ?? invoice.invoiceUrl,
+        amountCny: updated.amountCny.toString(),
+        allowedCurrencies: ["USDT_BSC", "USDT"],
+        expiresAt: updated.expiresAt?.toISOString() ?? null,
+      },
+    };
+  }
+
+  async completePaymentFromCallback(input: {
+    orderNumber?: string;
+    providerInvoiceId?: string;
+    rawPayload: unknown;
+    status: string;
+  }): Promise<void> {
+    const normalizedStatus = input.status.toLowerCase();
+    const invoiceSelectors = [
+      ...(input.providerInvoiceId
+        ? [{ providerInvoiceId: input.providerInvoiceId }]
+        : []),
+      ...(input.orderNumber ? [{ id: input.orderNumber }] : []),
+    ];
+    const payment = await this.prisma.membershipPayment.findFirst({
+      where: {
+        provider: "plisio",
+        OR: invoiceSelectors,
+      },
+      include: { plan: true },
+    });
+
+    if (!payment) {
+      return;
+    }
+
+    if (payment.status === "completed") {
+      return;
+    }
+
+    const now = new Date();
+    const updateData = {
+      rawPayload: toPrismaJson(input.rawPayload),
+      status: normalizedStatus,
+    };
+
+    if (normalizedStatus !== "completed") {
+      await this.prisma.membershipPayment.update({
+        where: { id: payment.id },
+        data: updateData,
+      });
+      return;
+    }
+
+    const endsAt = new Date(now);
+    if (payment.billingCycle === "yearly") {
+      endsAt.setFullYear(endsAt.getFullYear() + 1);
+    } else {
+      endsAt.setMonth(endsAt.getMonth() + 1);
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.membershipPayment.update({
+        where: { id: payment.id },
+        data: { ...updateData, paidAt: now },
+      });
+
+      await tx.userSubscription.updateMany({
+        where: {
+          userId: payment.userId,
+          status: "active",
+          endsAt: { gt: now },
+        },
+        data: { status: "cancelled", cancelledAt: now },
+      });
+
+      await tx.userSubscription.create({
+        data: {
+          userId: payment.userId,
+          planId: payment.planId,
+          status: "active",
+          source: "plisio",
+          startsAt: now,
+          endsAt,
+          reason: `Plisio invoice ${payment.providerInvoiceId ?? payment.id}`,
+        },
+      });
+    });
+  }
+
   private async findActiveSubscription(userId: string) {
     const now = new Date();
     const row = await this.prisma.userSubscription.findFirst({
@@ -184,4 +336,8 @@ export class PrismaMembershipRepository implements MembershipRepository {
       historyDays: Number(lookup.get("history_days") ?? 30),
     };
   }
+}
+
+function toPrismaJson(value: unknown) {
+  return JSON.parse(JSON.stringify(value ?? null));
 }

@@ -139,6 +139,7 @@ enum UserSubscriptionSource {
   manual
   invite
   test
+  plisio
 
   @@map("user_subscription_source")
 }
@@ -183,17 +184,18 @@ enum PaperPositionStatus {
 }
 
 model User {
-  id              String                     @id @default(uuid()) @db.Uuid
-  emailNormalized String                     @unique @map("email_normalized")
-  email           String
-  status          UserStatus                 @default(active)
-  lastLoginAt     DateTime?                  @map("last_login_at") @db.Timestamptz(6)
-  createdAt       DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
-  securityEvents  UserSecurityEvent[]
-  subscriptions   UserStrategySubscription[]
-  membershipSubs  UserSubscription[]
-  paperAccounts   PaperAccount[]
+  id                 String                     @id @default(uuid()) @db.Uuid
+  emailNormalized    String                     @unique @map("email_normalized")
+  email              String
+  status             UserStatus                 @default(active)
+  lastLoginAt        DateTime?                  @map("last_login_at") @db.Timestamptz(6)
+  createdAt          DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  securityEvents     UserSecurityEvent[]
+  subscriptions      UserStrategySubscription[]
+  membershipSubs     UserSubscription[]
+  membershipPayments MembershipPayment[]
+  paperAccounts      PaperAccount[]
 
   @@map("users")
 }
@@ -403,19 +405,47 @@ model AdminAuditLog {
 }
 
 model MembershipPlan {
-  id              String                 @id @default(uuid()) @db.Uuid
-  tier            MembershipTier         @unique
+  id              String                  @id @default(uuid()) @db.Uuid
+  tier            MembershipTier          @unique
   name            String
-  monthlyPriceCny Decimal                @map("monthly_price_cny") @db.Decimal(10, 2)
-  yearlyPriceCny  Decimal                @map("yearly_price_cny") @db.Decimal(10, 2)
-  displayOrder    Int                    @map("display_order")
-  status          MembershipPlanStatus     @default(active)
-  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  monthlyPriceCny Decimal                 @map("monthly_price_cny") @db.Decimal(10, 2)
+  yearlyPriceCny  Decimal                 @map("yearly_price_cny") @db.Decimal(10, 2)
+  displayOrder    Int                     @map("display_order")
+  status          MembershipPlanStatus    @default(active)
+  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
   entitlements    MembershipEntitlement[]
   subscriptions   UserSubscription[]
+  payments        MembershipPayment[]
 
   @@map("membership_plans")
+}
+
+model MembershipPayment {
+  id                String         @id @default(uuid()) @db.Uuid
+  userId            String         @map("user_id") @db.Uuid
+  user              User           @relation(fields: [userId], references: [id])
+  planId            String         @map("plan_id") @db.Uuid
+  plan              MembershipPlan @relation(fields: [planId], references: [id])
+  tier              MembershipTier
+  billingCycle      String         @map("billing_cycle")
+  provider          String         @default("plisio")
+  providerInvoiceId String?        @unique @map("provider_invoice_id")
+  status            String
+  amountCny         Decimal        @map("amount_cny") @db.Decimal(10, 2)
+  sourceCurrency    String         @default("CNY") @map("source_currency")
+  allowedPsysCids   String[]       @map("allowed_psys_cids")
+  invoiceUrl        String?        @map("invoice_url")
+  rawPayload        Json?          @map("raw_payload")
+  expiresAt         DateTime?      @map("expires_at") @db.Timestamptz(6)
+  paidAt            DateTime?      @map("paid_at") @db.Timestamptz(6)
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)], map: "idx_membership_payments_user")
+  @@index([provider, providerInvoiceId], map: "idx_membership_payments_provider_invoice")
+  @@index([status, createdAt(sort: Desc)], map: "idx_membership_payments_status")
+  @@map("membership_payments")
 }
 
 model MembershipEntitlement {
@@ -433,19 +463,19 @@ model MembershipEntitlement {
 }
 
 model UserSubscription {
-  id        String                 @id @default(uuid()) @db.Uuid
-  userId    String                 @map("user_id") @db.Uuid
-  user      User                   @relation(fields: [userId], references: [id])
-  planId    String                 @map("plan_id") @db.Uuid
-  plan      MembershipPlan         @relation(fields: [planId], references: [id])
-  status    UserSubscriptionStatus @default(active)
-  source    UserSubscriptionSource
-  startsAt  DateTime               @map("starts_at") @db.Timestamptz(6)
-  endsAt    DateTime               @map("ends_at") @db.Timestamptz(6)
-  cancelledAt DateTime?            @map("cancelled_at") @db.Timestamptz(6)
-  reason    String?
-  createdAt DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id          String                 @id @default(uuid()) @db.Uuid
+  userId      String                 @map("user_id") @db.Uuid
+  user        User                   @relation(fields: [userId], references: [id])
+  planId      String                 @map("plan_id") @db.Uuid
+  plan        MembershipPlan         @relation(fields: [planId], references: [id])
+  status      UserSubscriptionStatus @default(active)
+  source      UserSubscriptionSource
+  startsAt    DateTime               @map("starts_at") @db.Timestamptz(6)
+  endsAt      DateTime               @map("ends_at") @db.Timestamptz(6)
+  cancelledAt DateTime?              @map("cancelled_at") @db.Timestamptz(6)
+  reason      String?
+  createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([userId, status, endsAt(sort: Desc), id(sort: Desc)], map: "idx_user_subscriptions_user")
   @@map("user_subscriptions")
@@ -459,15 +489,15 @@ enum MarketSymbolStatus {
 }
 
 model MarketSymbol {
-  id                String               @id @default(uuid()) @db.Uuid
-  symbol            String               @unique
-  baseAsset         String               @map("base_asset")
-  quoteAsset        String               @map("quote_asset")
-  status            MarketSymbolStatus   @default(active)
-  pricePrecision    Int                  @default(2) @map("price_precision")
-  quantityPrecision Int                  @default(8) @map("quantity_precision")
-  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                String                @id @default(uuid()) @db.Uuid
+  symbol            String                @unique
+  baseAsset         String                @map("base_asset")
+  quoteAsset        String                @map("quote_asset")
+  status            MarketSymbolStatus    @default(active)
+  pricePrecision    Int                   @default(2) @map("price_precision")
+  quantityPrecision Int                   @default(8) @map("quantity_precision")
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
   priceSnapshots    MarketPriceSnapshot[]
 
   @@map("market_symbols")
@@ -489,31 +519,31 @@ model MarketPriceSnapshot {
 }
 
 model PaperAccount {
-  id                String             @id @default(uuid()) @db.Uuid
-  userId            String             @map("user_id") @db.Uuid
-  user              User               @relation(fields: [userId], references: [id])
-  strategyId        String             @map("strategy_id") @db.Uuid
-  strategy          Strategy           @relation(fields: [strategyId], references: [id])
-  strategyVersionId String             @map("strategy_version_id") @db.Uuid
-  strategyVersion   StrategyVersion    @relation(fields: [strategyVersionId], references: [id])
+  id                String                  @id @default(uuid()) @db.Uuid
+  userId            String                  @map("user_id") @db.Uuid
+  user              User                    @relation(fields: [userId], references: [id])
+  strategyId        String                  @map("strategy_id") @db.Uuid
+  strategy          Strategy                @relation(fields: [strategyId], references: [id])
+  strategyVersionId String                  @map("strategy_version_id") @db.Uuid
+  strategyVersion   StrategyVersion         @relation(fields: [strategyVersionId], references: [id])
   symbol            String
   name              String
-  initialBalance    Decimal            @map("initial_balance") @db.Decimal(28, 8)
-  cashBalance       Decimal            @map("cash_balance") @db.Decimal(28, 8)
-  currentEquity     Decimal            @map("current_equity") @db.Decimal(28, 8)
-  peakEquity        Decimal            @map("peak_equity") @db.Decimal(28, 8)
-  maxDrawdown       Decimal            @default(0) @map("max_drawdown") @db.Decimal(18, 8)
-  maxPositionPct    Decimal            @map("max_position_pct") @db.Decimal(18, 8)
-  maxPositions      Int                @map("max_positions")
-  leverage          Int                @default(1)
-  engineVersion     String             @default("paper-engine-v1") @map("engine_version")
-  status            PaperAccountStatus @default(running)
-  startedAt         DateTime           @default(now()) @map("started_at") @db.Timestamptz(6)
-  pausedAt          DateTime?          @map("paused_at") @db.Timestamptz(6)
-  endedAt           DateTime?          @map("ended_at") @db.Timestamptz(6)
-  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  initialBalance    Decimal                 @map("initial_balance") @db.Decimal(28, 8)
+  cashBalance       Decimal                 @map("cash_balance") @db.Decimal(28, 8)
+  currentEquity     Decimal                 @map("current_equity") @db.Decimal(28, 8)
+  peakEquity        Decimal                 @map("peak_equity") @db.Decimal(28, 8)
+  maxDrawdown       Decimal                 @default(0) @map("max_drawdown") @db.Decimal(18, 8)
+  maxPositionPct    Decimal                 @map("max_position_pct") @db.Decimal(18, 8)
+  maxPositions      Int                     @map("max_positions")
+  leverage          Int                     @default(1)
+  engineVersion     String                  @default("paper-engine-v1") @map("engine_version")
+  status            PaperAccountStatus      @default(running)
+  startedAt         DateTime                @default(now()) @map("started_at") @db.Timestamptz(6)
+  pausedAt          DateTime?               @map("paused_at") @db.Timestamptz(6)
+  endedAt           DateTime?               @map("ended_at") @db.Timestamptz(6)
+  deletedAt         DateTime?               @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                @updatedAt @map("updated_at") @db.Timestamptz(6)
   positions         PaperPosition[]
   orders            PaperOrder[]
   trades            PaperTrade[]
@@ -525,20 +555,20 @@ model PaperAccount {
 }
 
 model PaperPosition {
-  id               String              @id @default(uuid()) @db.Uuid
-  accountId        String              @map("account_id") @db.Uuid
-  account          PaperAccount        @relation(fields: [accountId], references: [id])
-  symbol           String
-  side             PaperOrderSide      @default(buy)
-  quantity         Decimal             @db.Decimal(28, 8)
-  averagePrice     Decimal             @map("average_price") @db.Decimal(28, 8)
-  markPrice        Decimal             @map("mark_price") @db.Decimal(28, 8)
-  unrealizedPnl    Decimal             @map("unrealized_pnl") @db.Decimal(28, 8)
-  status           PaperPositionStatus @default(open)
-  openedAt         DateTime            @default(now()) @map("opened_at") @db.Timestamptz(6)
-  closedAt         DateTime?           @map("closed_at") @db.Timestamptz(6)
-  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id            String              @id @default(uuid()) @db.Uuid
+  accountId     String              @map("account_id") @db.Uuid
+  account       PaperAccount        @relation(fields: [accountId], references: [id])
+  symbol        String
+  side          PaperOrderSide      @default(buy)
+  quantity      Decimal             @db.Decimal(28, 8)
+  averagePrice  Decimal             @map("average_price") @db.Decimal(28, 8)
+  markPrice     Decimal             @map("mark_price") @db.Decimal(28, 8)
+  unrealizedPnl Decimal             @map("unrealized_pnl") @db.Decimal(28, 8)
+  status        PaperPositionStatus @default(open)
+  openedAt      DateTime            @default(now()) @map("opened_at") @db.Timestamptz(6)
+  closedAt      DateTime?           @map("closed_at") @db.Timestamptz(6)
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([accountId, status], map: "idx_paper_positions_account")
   @@map("paper_positions")
@@ -566,31 +596,31 @@ model PaperOrder {
 }
 
 model PaperTrade {
-  id               String       @id @default(uuid()) @db.Uuid
-  accountId        String       @map("account_id") @db.Uuid
-  account          PaperAccount @relation(fields: [accountId], references: [id])
-  orderId          String       @unique @map("order_id") @db.Uuid
-  order            PaperOrder   @relation(fields: [orderId], references: [id])
-  price            Decimal      @db.Decimal(28, 8)
-  quantity         Decimal      @db.Decimal(28, 8)
-  fee              Decimal      @db.Decimal(28, 8)
-  realizedPnl      Decimal      @default(0) @map("realized_pnl") @db.Decimal(28, 8)
-  executedAt       DateTime     @default(now()) @map("executed_at") @db.Timestamptz(6)
-  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  id          String       @id @default(uuid()) @db.Uuid
+  accountId   String       @map("account_id") @db.Uuid
+  account     PaperAccount @relation(fields: [accountId], references: [id])
+  orderId     String       @unique @map("order_id") @db.Uuid
+  order       PaperOrder   @relation(fields: [orderId], references: [id])
+  price       Decimal      @db.Decimal(28, 8)
+  quantity    Decimal      @db.Decimal(28, 8)
+  fee         Decimal      @db.Decimal(28, 8)
+  realizedPnl Decimal      @default(0) @map("realized_pnl") @db.Decimal(28, 8)
+  executedAt  DateTime     @default(now()) @map("executed_at") @db.Timestamptz(6)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([accountId, executedAt(sort: Desc), id(sort: Desc)], map: "idx_paper_trades_account")
   @@map("paper_trades")
 }
 
 model PaperPerformancePoint {
-  id             String       @id @default(uuid()) @db.Uuid
-  accountId      String       @map("account_id") @db.Uuid
-  account        PaperAccount @relation(fields: [accountId], references: [id])
-  equity         Decimal      @db.Decimal(28, 8)
-  returnRate     Decimal      @map("return_rate") @db.Decimal(18, 8)
-  drawdown       Decimal      @db.Decimal(18, 8)
-  positionCount  Int          @map("position_count")
-  recordedAt     DateTime     @default(now()) @map("recorded_at") @db.Timestamptz(6)
+  id            String       @id @default(uuid()) @db.Uuid
+  accountId     String       @map("account_id") @db.Uuid
+  account       PaperAccount @relation(fields: [accountId], references: [id])
+  equity        Decimal      @db.Decimal(28, 8)
+  returnRate    Decimal      @map("return_rate") @db.Decimal(18, 8)
+  drawdown      Decimal      @db.Decimal(18, 8)
+  positionCount Int          @map("position_count")
+  recordedAt    DateTime     @default(now()) @map("recorded_at") @db.Timestamptz(6)
 
   @@unique([accountId, recordedAt], map: "uniq_paper_performance_points_account_time")
   @@index([accountId, recordedAt(sort: Desc)], map: "idx_paper_performance_points_account")

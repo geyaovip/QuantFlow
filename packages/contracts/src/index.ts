@@ -33,7 +33,7 @@ export const featureFlagsSchema = z.object({
   enableSemiAutoTrading: z.literal(false),
   enableAutoTrading: z.literal(false),
   enableAuthorPortal: z.literal(false),
-  enableProductionPayments: z.literal(false),
+  enableProductionPayments: z.boolean(),
 });
 
 export const riskLevelSchema = z.enum(["low", "medium", "high", "critical"]);
@@ -137,6 +137,7 @@ export const signalListItemSchema = z.object({
   generatedAt: z.iso.datetime(),
   validUntil: z.iso.datetime(),
   isSubscribed: z.boolean().optional(),
+  usedInPaperTrading: z.boolean().optional(),
 });
 
 export const strategyDetailSchema = strategyListItemSchema.extend({
@@ -235,7 +236,7 @@ export const membershipSubscriptionSchema = z.object({
   tier: membershipTierSchema,
   planName: z.string(),
   status: z.enum(["active", "expired", "cancelled"]),
-  source: z.enum(["manual", "invite", "test"]),
+  source: z.enum(["manual", "invite", "test", "plisio"]),
   startsAt: z.iso.datetime(),
   endsAt: z.iso.datetime(),
   cancelledAt: z.iso.datetime().nullable(),
@@ -257,6 +258,28 @@ export const membershipMockCheckoutSchema = z.object({
   tier: z.enum(["pro", "premium"]),
   billingCycle: z.enum(["monthly", "yearly"]),
   riskAccepted: z.literal(true),
+});
+
+export const membershipCheckoutCreateSchema = z.object({
+  tier: z.enum(["pro", "premium"]),
+  billingCycle: z.enum(["monthly", "yearly"]),
+  riskAccepted: z.literal(true),
+});
+
+export const membershipPaymentSchema = z.object({
+  id: z.uuid(),
+  tier: z.enum(["pro", "premium"]),
+  billingCycle: z.enum(["monthly", "yearly"]),
+  status: z.string(),
+  provider: z.literal("plisio"),
+  invoiceUrl: z.url(),
+  amountCny: z.string(),
+  allowedCurrencies: z.array(z.enum(["USDT_BSC", "USDT"])),
+  expiresAt: z.iso.datetime().nullable(),
+});
+
+export const membershipPaymentResponseSchema = z.object({
+  data: membershipPaymentSchema,
 });
 
 export const securityEventSchema = z.object({
@@ -381,6 +404,28 @@ export const paperAccountCopySchema = z.object({
   riskAccepted: z.literal(true),
 });
 
+export const paperAccountResetSchema = z.object({
+  riskDisclosureVersion: z.literal("risk-v1"),
+  riskAccepted: z.literal(true),
+});
+
+export const marketSymbolSnapshotSchema = z.object({
+  symbol: z.string(),
+  price: z.string().nullable(),
+  changeRate: z.string().nullable(),
+  source: z.string().nullable(),
+  capturedAt: z.iso.datetime().nullable(),
+  isStale: z.boolean(),
+});
+
+export const marketSymbolListResponseSchema = z.object({
+  data: z.array(marketSymbolSnapshotSchema),
+});
+
+export const marketSymbolDetailResponseSchema = z.object({
+  data: marketSymbolSnapshotSchema,
+});
+
 export const paperOrderSchema = z.object({
   id: z.uuid(),
   signalId: z.uuid().nullable(),
@@ -431,6 +476,15 @@ export const adminPaperAccountListResponseSchema = z.object({
 
 export const adminPaperAccountActionResponseSchema = z.object({
   data: adminPaperAccountListItemSchema,
+});
+
+export const adminPaperAccountDetailSchema = paperAccountDetailSchema.extend({
+  userId: z.uuid(),
+  userEmail: z.string(),
+});
+
+export const adminPaperAccountDetailResponseSchema = z.object({
+  data: adminPaperAccountDetailSchema,
 });
 
 export const adminPaperAccountActionSchema = z.object({
@@ -496,6 +550,13 @@ export type UserEntitlements = z.infer<typeof userEntitlementsSchema>;
 export type MembershipMockCheckout = z.infer<
   typeof membershipMockCheckoutSchema
 >;
+export type MembershipCheckoutCreate = z.infer<
+  typeof membershipCheckoutCreateSchema
+>;
+export type MembershipPayment = z.infer<typeof membershipPaymentSchema>;
+export type MembershipPaymentResponse = z.infer<
+  typeof membershipPaymentResponseSchema
+>;
 export type SecurityEvent = z.infer<typeof securityEventSchema>;
 export type SecurityEventListResponse = z.infer<
   typeof securityEventListResponseSchema
@@ -516,6 +577,14 @@ export type PaperAccountDetailResponse = z.infer<
 export type PaperAccountCreate = z.infer<typeof paperAccountCreateSchema>;
 export type PaperExecuteSignal = z.infer<typeof paperExecuteSignalSchema>;
 export type PaperAccountCopy = z.infer<typeof paperAccountCopySchema>;
+export type PaperAccountReset = z.infer<typeof paperAccountResetSchema>;
+export type MarketSymbolSnapshot = z.infer<typeof marketSymbolSnapshotSchema>;
+export type MarketSymbolListResponse = z.infer<
+  typeof marketSymbolListResponseSchema
+>;
+export type MarketSymbolDetailResponse = z.infer<
+  typeof marketSymbolDetailResponseSchema
+>;
 export type PaperOrder = z.infer<typeof paperOrderSchema>;
 export type PaperPositionListResponse = z.infer<
   typeof paperPositionListResponseSchema
@@ -540,6 +609,12 @@ export type AdminPaperAccountListResponse = z.infer<
 >;
 export type AdminPaperAccountActionResponse = z.infer<
   typeof adminPaperAccountActionResponseSchema
+>;
+export type AdminPaperAccountDetail = z.infer<
+  typeof adminPaperAccountDetailSchema
+>;
+export type AdminPaperAccountDetailResponse = z.infer<
+  typeof adminPaperAccountDetailResponseSchema
 >;
 export type AdminPaperAccountAction = z.infer<
   typeof adminPaperAccountActionSchema

@@ -27,7 +27,6 @@ export function MembershipCheckout({
   );
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleCheckout() {
@@ -38,34 +37,27 @@ export function MembershipCheckout({
 
     setLoading(true);
     setError(null);
-    setMessage(null);
 
     try {
-      const response = await fetch(
-        `${apiBaseUrl}/api/v1/membership/mock-checkout`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            tier: selectedTier,
-            billingCycle,
-            riskAccepted: true,
-          }),
-        },
-      );
+      const response = await fetch(`${apiBaseUrl}/api/v1/membership/checkout`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          tier: selectedTier,
+          billingCycle,
+          riskAccepted: true,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error("mock checkout failed");
+        throw new Error("checkout failed");
       }
 
       const result = await response.json();
-      setMessage(
-        `已模拟开通 ${result.data.planName}，有效期至 ${new Date(result.data.endsAt).toLocaleString("zh-CN")}。未产生真实扣款。`,
-      );
-      window.location.reload();
+      window.location.href = result.data.invoiceUrl;
     } catch {
-      setError("模拟开通失败，请稍后重试。");
+      setError("支付订单创建失败，请稍后重试。");
     } finally {
       setLoading(false);
     }
@@ -119,15 +111,21 @@ export function MembershipCheckout({
               key={plan.tier}
             >
               <div className="membership-card__header">
-                <strong>{plan.name}</strong>
-                <span>
-                  ¥{price}
-                  {plan.tier === "free"
-                    ? ""
-                    : billingCycle === "monthly"
-                      ? "/月"
-                      : "/年"}
-                </span>
+                <div className="membership-card__title-row">
+                  <strong>{plan.name}</strong>
+                  {isCurrent ? (
+                    <span className="membership-card__badge">当前计划</span>
+                  ) : null}
+                </div>
+                <div className="membership-card__price">
+                  <span className="membership-card__currency">¥</span>
+                  <span>{price}</span>
+                  {plan.tier === "free" ? null : (
+                    <span className="membership-card__period">
+                      /{billingCycle === "monthly" ? "月" : "年"}
+                    </span>
+                  )}
+                </div>
               </div>
               <ul>
                 {plan.entitlements.map((item) => (
@@ -157,9 +155,10 @@ export function MembershipCheckout({
         })}
       </div>
       <Card className="membership-checkout-panel">
-        <h2>模拟开通确认</h2>
+        <h2>支付确认</h2>
         <p>
-          当前为内测模拟开通流程，不会连接真实支付渠道，也不会产生扣款或自动续费。后续接入真实付费时将替换本流程。
+          选择计划并确认风险提示后，将跳转到 Plisio 完成 USDT
+          支付。支付成功后由系统回调自动开通会员，不提供收益承诺。
         </p>
         <label className="membership-risk-check">
           <input
@@ -170,9 +169,8 @@ export function MembershipCheckout({
           <span>{RISK_DISCLOSURE}</span>
         </label>
         {error ? <p className="auth-error">{error}</p> : null}
-        {message ? <p className="auth-message">{message}</p> : null}
         <Button disabled={loading} onClick={handleCheckout}>
-          {loading ? "处理中..." : "确认模拟开通"}
+          {loading ? "正在创建支付订单..." : "去支付"}
         </Button>
       </Card>
     </div>

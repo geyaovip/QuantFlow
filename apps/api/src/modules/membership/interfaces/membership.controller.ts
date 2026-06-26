@@ -5,15 +5,22 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Query,
   Req,
 } from "@nestjs/common";
 
-import { membershipMockCheckoutSchema } from "@quantflow/contracts";
+import {
+  membershipCheckoutCreateSchema,
+  membershipMockCheckoutSchema,
+} from "@quantflow/contracts";
 
 import { AuthService } from "../../auth/application/auth.service.js";
 import { MembershipService } from "../application/membership.service.js";
 import {
   MembershipCheckoutNotAllowedError,
+  MembershipPaymentCallbackInvalidError,
+  MembershipPaymentCreateError,
+  MembershipPaymentDisabledError,
   MembershipPlanNotFoundError,
   MembershipRiskNotAcceptedError,
 } from "../domain/membership-errors.js";
@@ -88,6 +95,48 @@ export class MembershipController {
     }
   }
 
+  @Post("membership/checkout")
+  async createCheckout(@Req() request: RequestLike, @Body() body: unknown) {
+    const parsed = membershipCheckoutCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    try {
+      const session = await this.requireUserSession(request);
+      return await this.membershipService.createPayment(
+        session.subjectId,
+        parsed.data,
+      );
+    } catch (error) {
+      throw toHttpError(error);
+    }
+  }
+
+  @Post("membership/plisio/callback")
+  async handlePlisioCallback(@Body() body: unknown) {
+    return this.processPlisioCallback(body);
+  }
+
+  @Get("membership/plisio/callback")
+  async handlePlisioCallbackGet(@Query() query: Record<string, unknown>) {
+    return this.processPlisioCallback(query);
+  }
+
+  private async processPlisioCallback(payload: unknown) {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      throw new HttpException("invalid callback", HttpStatus.BAD_REQUEST);
+    }
+    try {
+      await this.membershipService.handlePlisioCallback(
+        payload as Record<string, unknown>,
+      );
+      return { status: "ok" };
+    } catch {
+      throw toHttpError(new MembershipPaymentCallbackInvalidError());
+    }
+  }
+
   private async requireUserSession(request: RequestLike) {
     const token = this.readCookie(request, "qf_user_session");
     return this.authService.validateSession(token, "user");
@@ -120,6 +169,15 @@ function toHttpError(error: unknown) {
   }
   if (error instanceof MembershipCheckoutNotAllowedError) {
     return new HttpException("当前无法完成开通", HttpStatus.CONFLICT);
+  }
+  if (error instanceof MembershipPaymentDisabledError) {
+    return new HttpException("生产支付尚未开启", HttpStatus.CONFLICT);
+  }
+  if (error instanceof MembershipPaymentCreateError) {
+    return new HttpException("支付订单创建失败", HttpStatus.BAD_GATEWAY);
+  }
+  if (error instanceof MembershipPaymentCallbackInvalidError) {
+    return new HttpException("支付回调无效", HttpStatus.BAD_REQUEST);
   }
 
   throw error;

@@ -383,7 +383,7 @@ export default async function MarketingPage() {
           <div className="section-heading">
             <h2>会员权益按容量开放，不售卖预期收益</h2>
             <p>
-              会员只决定你能订阅多少策略、创建多少模拟盘，以及信号和历史数据的访问容量。当前暂未开放在线购买。
+              会员只决定你能订阅多少策略、创建多少模拟盘，以及信号和历史数据的访问容量。支付只开通功能容量，不售卖预期收益。
             </p>
           </div>
           <div className="pricing-grid">
@@ -416,8 +416,8 @@ export default async function MarketingPage() {
             )}
           </div>
           <p className="section-note">
-            价格为内测参考价，不构成收费承诺。Pro / Premium
-            目前通过邀请或人工开通。
+            支付通过 Plisio 完成，当前支持 Tether BEP-20 与 Tether
+            ERC-20。会员不承诺策略收益或交易结果。
           </p>
         </section>
 

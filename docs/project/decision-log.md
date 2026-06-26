@@ -26,7 +26,7 @@
 | D-013 | closed     | follow       | 技术栈（Q-001）      | Node 24、pnpm 11、Next 16/React 19、Nest 11、Prisma 7、PostgreSQL 18                                                                | 详见 `dev/technical-baseline.md`                                                                        |
 | D-014 | closed     | follow       | 行情数据（Q-002）    | CoinGecko；60 秒采集、120 秒 stale、5 分钟暂停；BTC/ETH/SOL USDT                                                                    | 供应商隔离在 adapter                                                                                    |
 | D-015 | closed     | follow       | 会员计划（Q-003）    | Free/Pro/Premium 价格和配额按会员计划文档                                                                                           | 服务端 entitlement 强制执行                                                                             |
-| D-016 | closed     | follow       | 支付（Q-004）        | MVP 不启用在线支付，CNY 仅为参考价格；人工/邀请码/测试开通                                                                          | `enableProductionPayments=false`；未来另立 ADR                                                          |
+| D-016 | superseded | follow       | 支付（Q-004）        | MVP 不启用在线支付，CNY 仅为参考价格；人工/邀请码/测试开通                                                                          | 已被 D-028 替代                                                                                         |
 | D-017 | closed     | follow       | 风控阈值（Q-005）    | 采用风控文档的样本、回撤、连亏和行情延迟阈值                                                                                        | 自动动作可审计、可回滚                                                                                  |
 | D-018 | closed     | follow       | 模拟撮合（Q-006）    | 下一有效快照、10bps 手续费、5/10bps 滑点、decimal half-up、现货 1x                                                                  | 参数版本化，详见策略规则                                                                                |
 | D-019 | superseded | propose-only | 部署（Q-008）        | AWS Singapore：ECS Fargate、RDS PostgreSQL 18、S3/CloudFront、CloudWatch/Sentry                                                     | 已被 D-027 替代                                                                                         |
@@ -38,6 +38,7 @@
 | D-025 | closed     | follow       | P0 范围校正          | 行情中心和后台内容管理移至 P1                                                                                                       | MVP 继续保留 Market Data 支撑服务，官网内容由代码/配置维护                                              |
 | D-026 | closed     | follow       | 品牌资源体系         | 只保留平滑且光学居中的正式母版，由其派生 favicon、PWA、浅/深色图形及用户端/管理端组合标识                                           | 删除旧锯齿母版和重复中间资源；界面优先用图形 SVG + HTML 品牌文字；深色版本不代表启用深色主题            |
 | D-027 | closed     | follow       | 生产部署替代 D-019   | 复用现有 Ubuntu VPS，QuantFlow 使用独立 Docker Compose project；Cloudflare Tunnel/DNS/TLS/WAF/Turnstile/R2 提供边缘、安全和备份能力 | 不再使用 AWS ECS/RDS/S3/CloudFront；应用只绑定 loopback，数据库无公网端口；目标 RPO 15 分钟、RTO 4 小时 |
+| D-028 | closed     | follow       | 生产会员支付         | 会员 Pro/Premium 使用 Plisio 加密支付；仅允许 Tether BEP-20 (`USDT_BSC`) 与 Tether ERC-20 (`USDT`)；商户承担佣金                    | `enableProductionPayments` 可由生产 env 开启；支付只开通会员容量，不引入交易所连接、真实下单或收益承诺  |
 
 ## 待决策
 

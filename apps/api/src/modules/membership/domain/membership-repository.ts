@@ -1,5 +1,7 @@
 import type {
   MembershipMockCheckout,
+  MembershipCheckoutCreate,
+  MembershipPaymentResponse,
   MembershipPlanListResponse,
   MembershipSubscriptionResponse,
   UserEntitlements,
@@ -17,4 +19,25 @@ export interface MembershipRepository {
     userId: string,
     input: MembershipMockCheckout,
   ): Promise<MembershipSubscriptionResponse>;
+  createPayment(
+    userId: string,
+    input: MembershipCheckoutCreate,
+    createInvoice: (input: {
+      amountCny: string;
+      email?: string;
+      orderName: string;
+      orderNumber: string;
+    }) => Promise<{
+      expiresAt: Date | null;
+      invoiceUrl: string;
+      rawPayload: unknown;
+      txnId: string;
+    }>,
+  ): Promise<MembershipPaymentResponse>;
+  completePaymentFromCallback(input: {
+    orderNumber?: string;
+    providerInvoiceId?: string;
+    rawPayload: unknown;
+    status: string;
+  }): Promise<void>;
 }

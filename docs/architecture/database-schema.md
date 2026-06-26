@@ -80,16 +80,17 @@
 
 ## 7. 会员与通知
 
-| 表                         | 关键字段与约束                                                                                                          |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `membership_plans`         | tier unique、名称、参考月/年价、CNY、状态、展示顺序；MVP 不创建线上支付价格 ID                                          |
-| `membership_entitlements`  | plan FK、`key`、typed value；unique(plan, key)                                                                          |
-| `user_subscriptions`       | user/plan FK、status、source(`manual/invite/test`)、周期起止、取消时间、`granted_by_admin_id` nullable、reason nullable |
-| `user_notifications`       | user FK、type、title、content、read_at、created_at                                                                      |
-| `notification_preferences` | user/channel/type、enabled；unique(user, channel, type)                                                                 |
-| `system_announcements`     | title、content、status、发布/结束时间                                                                                   |
+| 表                         | 关键字段与约束                                                                                                    |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `membership_plans`         | tier unique、名称、月/年价、CNY、状态、展示顺序                                                                   |
+| `membership_entitlements`  | plan FK、`key`、typed value；unique(plan, key)                                                                    |
+| `user_subscriptions`       | user/plan FK、status、source(`manual/invite/test/plisio`)、周期起止、取消时间、reason nullable                    |
+| `membership_payments`      | user/plan FK、provider、provider_invoice_id unique、status、CNY 金额、allowed_psys_cids、invoice_url、raw_payload |
+| `user_notifications`       | user FK、type、title、content、read_at、created_at                                                                |
+| `notification_preferences` | user/channel/type、enabled；unique(user, channel, type)                                                           |
+| `system_announcements`     | title、content、status、发布/结束时间                                                                             |
 
-有效权益由有效订阅 + 计划权益计算，Free 作为默认计划或代码策略统一实现，不从 `users.membership_tier` 推断付费状态。MVP migration 不创建 payments 或 payment webhook 表；未来在线支付另立 ADR 和迁移。
+有效权益由有效订阅 + 计划权益计算，Free 作为默认计划或代码策略统一实现，不从 `users.membership_tier` 推断付费状态。生产支付通过 `membership_payments` 记录 Plisio invoice 与回调 payload；只有验签成功且状态为 `completed` 的支付才创建 `source=plisio` 订阅。
 
 ## 8. 管理端、风险与可靠事件
 

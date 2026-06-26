@@ -139,12 +139,20 @@ MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件
 | GET  | `/membership/plans`                  | 计划与功能权益；用户端分页，不包含收益承诺                     |
 | GET  | `/membership/subscription`           | 当前订阅与有效权益                                             |
 | GET  | `/membership/entitlements`           | 当前用户有效权益（含 Free 默认）                               |
+| POST | `/membership/checkout`               | 创建 Plisio 生产支付 invoice；要求登录与 `riskAccepted: true`  |
+| POST | `/membership/plisio/callback`        | Plisio 服务端回调；验签成功后按支付状态更新会员                |
 | POST | `/membership/mock-checkout`          | 开发/测试用模拟开通；要求 `riskAccepted: true`；不产生真实扣款 |
 | POST | `/integrations/email/resend/webhook` | 可选投递事件回调；验签、幂等，只更新投递监控，不改变认证结果   |
 
-`mock-checkout` 请求体：`{ tier: "pro"|"premium", billingCycle: "monthly"|"yearly", riskAccepted: true }`。订阅来源记为 `test`；UI 必须标注「模拟开通，非真实扣款」。
+`checkout` 请求体：`{ tier: "pro"|"premium", billingCycle: "monthly"|"yearly", riskAccepted: true }`。
 
-MVP 不注册用户购买、支付状态或支付 webhook 路由。生产在线支付由 `enableProductionPayments=false` 关闭；会员亦可由管理端人工/邀请码开通；未来支付必须新增 ADR 和独立契约。
+响应体：`{ data: { id, tier, billingCycle, status, provider: "plisio", invoiceUrl, amountCny, allowedCurrencies, expiresAt } }`。`allowedCurrencies` 固定为 `["USDT_BSC","USDT"]`。前端必须跳转 `invoiceUrl`，不得提供“我已支付”手动开通按钮。
+
+`plisio/callback` 接收 Plisio 带 `verify_hash` 的回调 payload；服务端去除 `verify_hash` 后使用 Plisio API key 做 HMAC-SHA1 校验。只有验签成功且状态为 `completed` 时，才创建 `source=plisio` 的有效订阅；其它状态只更新支付记录。
+
+`mock-checkout` 请求体：`{ tier: "pro"|"premium", billingCycle: "monthly"|"yearly", riskAccepted: true }`。订阅来源记为 `test`；仅开发/测试环境使用。
+
+生产支付由 `enableProductionPayments` 环境变量控制。会员亦可由管理端人工/邀请码开通；支付只开通会员容量，不承诺策略收益。
 
 ## 6. 通知与行情
 

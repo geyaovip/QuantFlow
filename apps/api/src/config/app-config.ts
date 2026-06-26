@@ -7,6 +7,11 @@ const disabledFlag = z
   .default("false")
   .transform(() => false as const);
 
+const booleanFlag = z
+  .enum(["true", "false"])
+  .default("false")
+  .transform((value) => value === "true");
+
 const environmentSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -16,7 +21,7 @@ const environmentSchema = z.object({
   ENABLE_SEMI_AUTO_TRADING: disabledFlag,
   ENABLE_AUTO_TRADING: disabledFlag,
   ENABLE_AUTHOR_PORTAL: disabledFlag,
-  ENABLE_PRODUCTION_PAYMENTS: disabledFlag,
+  ENABLE_PRODUCTION_PAYMENTS: booleanFlag,
   RESEND_API_KEY: z.string().optional().default(""),
   AUTH_EMAIL_FROM: z
     .string()
@@ -44,6 +49,13 @@ const environmentSchema = z.object({
   AUTH_COOKIE_DOMAIN: z.string().optional().default(""),
   TURNSTILE_SITE_KEY: z.string().optional().default(""),
   TURNSTILE_SECRET_KEY: z.string().optional().default(""),
+  PLISIO_API_KEY: z.string().optional().default(""),
+  PUBLIC_WEB_URL: z.string().url().optional().default("https://quantflow.chat"),
+  PUBLIC_API_URL: z
+    .string()
+    .url()
+    .optional()
+    .default("https://api.quantflow.chat"),
 });
 
 export type AppConfig = ReturnType<typeof loadAppConfig>;
@@ -58,6 +70,13 @@ export function loadAppConfig(environment: NodeJS.ProcessEnv = process.env) {
       ["AUTH_COOKIE_DOMAIN", parsed.AUTH_COOKIE_DOMAIN],
       ["TURNSTILE_SITE_KEY", parsed.TURNSTILE_SITE_KEY],
       ["TURNSTILE_SECRET_KEY", parsed.TURNSTILE_SECRET_KEY],
+      ...(parsed.ENABLE_PRODUCTION_PAYMENTS
+        ? [
+            ["PLISIO_API_KEY", parsed.PLISIO_API_KEY],
+            ["PUBLIC_WEB_URL", parsed.PUBLIC_WEB_URL],
+            ["PUBLIC_API_URL", parsed.PUBLIC_API_URL],
+          ]
+        : []),
     ].flatMap(([key, value]) => (value ? [] : [key]));
     if (missing.length > 0) {
       throw new Error(`Missing production auth config: ${missing.join(", ")}`);
@@ -81,6 +100,17 @@ export function loadAppConfig(environment: NodeJS.ProcessEnv = process.env) {
       turnstileSiteKey: parsed.TURNSTILE_SITE_KEY,
       turnstileSecretKey: parsed.TURNSTILE_SECRET_KEY,
     },
-    featureFlags: DEFAULT_FEATURE_FLAGS,
+    featureFlags: {
+      ...DEFAULT_FEATURE_FLAGS,
+      enableProductionPayments: parsed.ENABLE_PRODUCTION_PAYMENTS,
+    },
+    payments: {
+      productionEnabled: parsed.ENABLE_PRODUCTION_PAYMENTS,
+      plisioApiKey: parsed.PLISIO_API_KEY,
+      publicWebUrl: parsed.PUBLIC_WEB_URL.replace(/\/$/, ""),
+      publicApiUrl: parsed.PUBLIC_API_URL.replace(/\/$/, ""),
+      allowedPsysCids: ["USDT_BSC", "USDT"] as const,
+      sourceCurrency: "CNY" as const,
+    },
   } as const;
 }

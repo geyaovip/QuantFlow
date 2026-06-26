@@ -247,7 +247,7 @@ src/
 4. feature flag 必须默认关闭后续交易能力。
 5. 配置读取必须集中封装并做启动时校验。
 
-MVP 配置层必须默认关闭并在服务端启动时校验：
+MVP 配置层必须默认关闭并在服务端启动时校验。生产会员支付是例外：`enableProductionPayments` 默认关闭，但生产环境可显式开启 Plisio 会员支付；不得因此开放任何实盘交易能力。
 
 1. `enableExchangeConnection`。
 2. `enableSemiAutoTrading`。

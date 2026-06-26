@@ -111,7 +111,7 @@ export default async function ProfilePage() {
           <section className="profile-panel__section">
             <h2>通知与边界</h2>
             <p>
-              通知偏好将在后续版本接入。当前模拟开通不产生真实扣款或自动续费；平台不提供真实下单入口。
+              通知偏好将在后续版本接入。会员支付仅开通功能容量，不提供自动续费或真实下单入口。
             </p>
           </section>
         </div>

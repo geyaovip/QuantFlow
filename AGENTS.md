@@ -39,7 +39,8 @@
 - 产品结构：`/` 官网、`/app` 应用工作台、`/admin` 管理后台。
 - MVP 是策略信号、会员权益与模拟盘产品，**不是**实盘交易产品。
 - 禁止：交易所连接、真实资产/订单、半自动或全自动交易、任何实盘入口。
-- 以下开关必须保持 `false`：`enableExchangeConnection`、`enableSemiAutoTrading`、`enableAutoTrading`、`enableAuthorPortal`、`enableProductionPayments`。
+- 以下交易相关开关必须保持 `false`：`enableExchangeConnection`、`enableSemiAutoTrading`、`enableAutoTrading`、`enableAuthorPortal`。
+- `enableProductionPayments` 可由生产环境变量开启，仅用于 Plisio 会员支付，不得引入实盘交易、交易所连接或收益承诺。
 - 前端隐藏不是安全边界；后端、权限、配置和测试必须同时阻断。
 
 ## 3. 产品与合规（摘要）

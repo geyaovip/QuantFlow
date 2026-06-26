@@ -10,6 +10,15 @@ describe("loadAppConfig", () => {
     );
   });
 
+  it("allows production payments without enabling trading", () => {
+    const config = loadAppConfig({
+      ENABLE_PRODUCTION_PAYMENTS: "true",
+      NODE_ENV: "test",
+    });
+    expect(config.featureFlags.enableProductionPayments).toBe(true);
+    expect(config.featureFlags.enableAutoTrading).toBe(false);
+  });
+
   it("rejects attempts to enable real trading", () => {
     expect(() => loadAppConfig({ ENABLE_AUTO_TRADING: "true" })).toThrow();
   });

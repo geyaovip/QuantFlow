@@ -31,6 +31,25 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.4.0-dev.4` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Docs / Ops
+- 摘要：接入 Plisio 生产会员支付：Pro/Premium 创建 USDT invoice、跳转支付页、服务端验签回调后开通会员，并保留测试 mock-checkout。
+- MVP 边界影响：无；支付只开通会员容量，不引入交易所连接、真实资产、真实下单或收益承诺。
+- API / 数据 / 权限 / 风控影响：新增 `POST /api/v1/membership/checkout` 与 `GET/POST /api/v1/membership/plisio/callback`；新增 `membership_payments` 表；`user_subscriptions.source` 增加 `plisio`。
+- 迁移与兼容：新增 migration `202606260006_plisio_membership_payments`；生产需配置 `ENABLE_PRODUCTION_PAYMENTS=true`、`PLISIO_API_KEY`、`PUBLIC_WEB_URL`、`PUBLIC_API_URL`。
+- 验证：`pnpm check`。
+- 监控与回滚：如 Plisio 下单或回调异常，可关闭 `ENABLE_PRODUCTION_PAYMENTS` 并回滚 release 镜像；已创建的支付记录保留供人工核对。
+
+### `v0.4.0-dev.3` - 2026-06-26
+
+- 类型：Added / Changed / Backend / Frontend / Worker / Docs
+- 摘要：收束 v0.4：行情 API 与 Worker 刷新、策略暂停联动、模拟盘重置/恢复复检、权益曲线与筛选增强。
+- MVP 边界影响：无；仍为模拟盘，无实盘链路。
+- API / 数据 / 权限 / 风控影响：新增 `GET /market/symbols*`、`POST .../reset`、`GET /admin/paper-accounts/{id}`；策略 `paperEnabled` 筛选；信号 `usedInPaperTrading`；行情过期返回 503。
+- 迁移与兼容：无新 migration（沿用 `202606260005`）。
+- 验证：`pnpm check`。
+
 ### `v0.4.0-dev.2` - 2026-06-26
 
 - 类型：Added / Backend / Frontend / Docs

@@ -50,7 +50,7 @@ export default async function StrategyDetailPage({
           <PageHeader
             eyebrow="策略详情"
             title="需要更高会员计划"
-            description="该策略仅向 Pro 或 Premium 会员开放。当前为模拟开通流程，不会产生真实扣款。"
+            description="该策略仅向 Pro 或 Premium 会员开放。会员支付只开通功能容量，不承诺策略收益或交易结果。"
           />
           <Card className="membership-upgrade-card">
             <p>{error.message}</p>

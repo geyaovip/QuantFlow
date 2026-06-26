@@ -71,6 +71,46 @@ jobs:
             -e 'ssh -i ~/.ssh/quantflow_deploy -o IdentitiesOnly=yes' \
             ./ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
+      - name: Configure runtime payment env
+        env:
+          DEPLOY_HOST: ${{ vars.QUANTFLOW_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.QUANTFLOW_DEPLOY_USER }}
+          PLISIO_API_KEY: ${{ secrets.PLISIO_API_KEY }}
+        run: |
+          if [ -z "$PLISIO_API_KEY" ]; then
+            echo "missing production secret: PLISIO_API_KEY" >&2
+            exit 1
+          fi
+
+          ssh -i ~/.ssh/quantflow_deploy -o IdentitiesOnly=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "PLISIO_API_KEY=$(printf '%q' "$PLISIO_API_KEY") sh -s" <<'REMOTE'
+          set -eu
+
+          ENV_FILE=/home/ubuntu/apps/quantflow/shared/.env
+          if [ ! -f "$ENV_FILE" ]; then
+            echo "missing production environment file: $ENV_FILE" >&2
+            exit 1
+          fi
+
+          upsert_env() {
+            key=$1
+            value=$2
+            escaped=$(printf '%s' "$value" | sed 's/[&|]/\\&/g')
+            if grep -q "^$key=" "$ENV_FILE"; then
+              sed -i "s|^$key=.*|$key=$escaped|" "$ENV_FILE"
+            else
+              printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
+            fi
+          }
+
+          upsert_env ENABLE_PRODUCTION_PAYMENTS true
+          upsert_env PLISIO_API_KEY "$PLISIO_API_KEY"
+          upsert_env PUBLIC_WEB_URL https://quantflow.chat
+          upsert_env PUBLIC_API_URL https://api.quantflow.chat
+          chmod 600 "$ENV_FILE"
+          REMOTE
+
       - name: Build and deploy
         env:
           DEPLOY_HOST: ${{ vars.QUANTFLOW_DEPLOY_HOST }}

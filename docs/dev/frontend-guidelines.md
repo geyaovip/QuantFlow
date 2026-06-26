@@ -142,7 +142,7 @@ src/
 5. `/app/signals` 信号中心。
 6. `/app/my-strategies` 我的策略。
 7. `/app/paper-trading` 模拟盘列表、创建、详情。
-8. `/app/membership` 会员计划与当前订阅；展示参考价格和“暂未开放在线购买”，不实现支付结果页。
+8. `/app/membership` 会员计划与当前订阅；生产支付开启时创建 Plisio invoice 并跳转支付页，支付结果以后端回调为准。
 9. `/app/profile` 个人中心。
 
 页面规则：
@@ -259,7 +259,7 @@ MVP 可先使用轮询，后续接入 WebSocket。
 2. `enableSemiAutoTrading`：MVP 默认为 false。
 3. `enableAutoTrading`：MVP 默认为 false。
 4. `enableAuthorPortal`：MVP 默认为 false。
-5. `enableProductionPayments`：MVP 默认为 false。
+5. `enableProductionPayments`：默认 false；生产环境可开启 Plisio 会员支付。
 
 规则：
 

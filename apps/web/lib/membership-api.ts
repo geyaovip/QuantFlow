@@ -1,9 +1,13 @@
 import {
   membershipMockCheckoutSchema,
+  membershipCheckoutCreateSchema,
+  membershipPaymentResponseSchema,
   membershipPlanListResponseSchema,
   membershipSubscriptionResponseSchema,
   userEntitlementsSchema,
+  type MembershipCheckoutCreate,
   type MembershipMockCheckout,
+  type MembershipPaymentResponse,
   type MembershipPlanListResponse,
   type MembershipSubscriptionResponse,
   type UserEntitlements,
@@ -33,6 +37,14 @@ export async function mockCheckoutMembership(
   membershipMockCheckoutSchema.parse(input);
   const payload = await postJson("/api/v1/membership/mock-checkout", input);
   return membershipSubscriptionResponseSchema.parse(payload);
+}
+
+export async function createMembershipCheckout(
+  input: MembershipCheckoutCreate,
+): Promise<MembershipPaymentResponse> {
+  membershipCheckoutCreateSchema.parse(input);
+  const payload = await postJson("/api/v1/membership/checkout", input);
+  return membershipPaymentResponseSchema.parse(payload);
 }
 
 export function resolveMembershipApiBaseUrl() {
