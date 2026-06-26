@@ -14,7 +14,7 @@ import {
 } from "@quantflow/contracts";
 import { cookies } from "next/headers";
 
-import { resolveApiBaseUrl } from "./auth-session";
+import { resolveApiBaseUrl } from "./api-base-url";
 import { ApiError } from "./api-error";
 
 type StrategyListQuery = {

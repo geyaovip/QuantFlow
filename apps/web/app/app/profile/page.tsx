@@ -3,7 +3,8 @@ import Link from "next/link";
 import { PageHeader } from "@quantflow/ui";
 
 import { LogoutButton } from "../../../components/auth/logout-button";
-import { getUserSession, resolveApiBaseUrl } from "../../../lib/auth-session";
+import { getUserSession } from "../../../lib/auth-session";
+import { resolveApiBaseUrl } from "../../../lib/api-base-url";
 import { getMembershipEntitlements } from "../../../lib/membership-api";
 import { getMyStrategies, getSecurityEvents } from "../../../lib/strategy-api";
 import { formatSecurityEvent } from "../../../lib/security-format";

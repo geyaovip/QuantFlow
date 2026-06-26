@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button } from "@quantflow/ui";
 
-import { resolveApiBaseUrl } from "../lib/auth-session";
+import { resolveApiBaseUrl } from "../lib/api-base-url";
 
 type PaperAccountActionsProps = {
   accountId: string;

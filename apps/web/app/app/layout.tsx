@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
-import { getUserSession, resolveApiBaseUrl } from "../../lib/auth-session";
+import { getUserSession } from "../../lib/auth-session";
+import { resolveApiBaseUrl } from "../../lib/api-base-url";
 import { UserAppShell } from "../../components/user-app-shell";
 
 export const dynamic = "force-dynamic";

@@ -10,7 +10,7 @@ import {
 } from "@quantflow/contracts";
 
 import { getJson, postJson } from "./strategy-api";
-import { resolveApiBaseUrl } from "./auth-session";
+import { resolveApiBaseUrl } from "./api-base-url";
 
 export async function getPaperAccounts(
   page = 1,

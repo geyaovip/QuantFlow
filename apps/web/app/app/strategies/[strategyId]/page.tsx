@@ -6,7 +6,7 @@ import { Badge, Card, PageHeader, RiskBadge } from "@quantflow/ui";
 import { StrategySubscriptionControls } from "../../../../components/strategy-subscription-controls";
 import { PaperAccountCreateForm } from "../../../../components/paper-account-create-form";
 import { ApiError } from "../../../../lib/api-error";
-import { resolveApiBaseUrl } from "../../../../lib/auth-session";
+import { resolveApiBaseUrl } from "../../../../lib/api-base-url";
 import { getStrategy } from "../../../../lib/strategy-api";
 import {
   formatDateTime,

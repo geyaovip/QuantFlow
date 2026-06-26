@@ -9,7 +9,7 @@ import {
   type UserEntitlements,
 } from "@quantflow/contracts";
 
-import { resolveApiBaseUrl } from "./auth-session";
+import { resolveApiBaseUrl } from "./api-base-url";
 import { getJson, postJson } from "./strategy-api";
 
 export async function getMembershipPlans(): Promise<MembershipPlanListResponse> {

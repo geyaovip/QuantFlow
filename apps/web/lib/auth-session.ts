@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 
+import { resolveApiBaseUrl } from "./api-base-url";
+
 export type UserSession = {
   subjectId: string;
   audience: "user";
@@ -8,10 +10,6 @@ export type UserSession = {
   displayName?: string;
   membershipPlan?: string;
 };
-
-export function resolveApiBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.quantflow.chat";
-}
 
 export async function getUserSession(): Promise<UserSession | null> {
   const cookieStore = await cookies();

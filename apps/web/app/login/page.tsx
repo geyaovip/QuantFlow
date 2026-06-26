@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 
 import { Brand } from "../../components/brand";
 import { EmailOtpLogin } from "../../components/auth/email-otp-login";
-import { getUserSession, resolveApiBaseUrl } from "../../lib/auth-session";
+import { getUserSession } from "../../lib/auth-session";
+import { resolveApiBaseUrl } from "../../lib/api-base-url";
 
 export const dynamic = "force-dynamic";
 
