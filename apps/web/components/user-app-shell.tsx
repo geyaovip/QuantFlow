@@ -27,7 +27,7 @@ export function UserAppShell({ children, session }: UserAppShellProps) {
   return (
     <div className="user-app-shell">
       <header className="app-topbar">
-        <Link href="/app/strategies">
+        <Link href="/" aria-label="返回 QuantFlow 首页">
           <Brand />
         </Link>
         <nav aria-label="应用导航">
