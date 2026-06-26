@@ -9,10 +9,12 @@ test.describe("User journey web", () => {
   }) => {
     await loginWithEmailOtp(request);
 
+    const startedAt = Date.now();
     await page.goto("/app/strategies");
     await expect(
       page.getByRole("heading", { name: "发现可跟踪的策略" }),
     ).toBeVisible();
+    expect(Date.now() - startedAt).toBeLessThan(3000);
     await expect(page.getByText("最大回撤", { exact: false })).toBeVisible();
 
     await page.goto("/app/paper-trading");

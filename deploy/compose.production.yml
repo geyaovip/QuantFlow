@@ -56,8 +56,17 @@ services:
     image: postgres:18-alpine
     restart: unless-stopped
     env_file: ${QUANTFLOW_ENV_FILE:-/home/ubuntu/apps/quantflow/shared/.env}
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=test ! -f /wal-archive/%f && cp %p /wal-archive/%f
     volumes:
       - quantflow-postgres-data:/var/lib/postgresql
+      - ${QUANTFLOW_WAL_ARCHIVE_HOST_DIR:-/home/ubuntu/apps/quantflow/wal-archive}:/wal-archive
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s

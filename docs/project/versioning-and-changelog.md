@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.6.0-dev.4` - 2026-06-26
+
+- 类型：Added / Ops / Frontend / Docs
+- 摘要：收束 v0.6 发布门禁：生产 PostgreSQL WAL 归档、P0 验收脚本、策略列表性能预算、Sentry 全局错误边界与 E2E 周计划。
+- MVP 边界影响：无；`check-acceptance-p0` 阻断实盘 flag 与禁止路由回归。
+- API / 数据 / 权限 / 风控影响：无新 API；生产 Compose 启用 `archive_mode` 与宿主机 WAL 目录。
+- 迁移与兼容：无；已有 PostgreSQL volume 需在新配置下重启一次以启用 WAL 归档。
+- 验证：`pnpm check`；E2E 增加策略广场 3s 加载断言；`check-performance-budget` 覆盖策略列表 API。
+- 监控与回滚：`archive-wal.sh` 支持 R2 同步；Web/Admin `global-error.tsx` 上报 Sentry。
+
 ### `v0.6.0-dev.3` - 2026-06-26
 
 - 类型：Added / Frontend / Ops / Docs

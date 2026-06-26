@@ -2,6 +2,8 @@ name: E2E
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 1"
 
 permissions:
   contents: read
@@ -64,6 +66,9 @@ jobs:
       - run: ./scripts/check-performance-budget.sh
         env:
           PERF_BASE_URL: http://127.0.0.1:3002
+      - run: ./scripts/check-acceptance-p0.sh
+        env:
+          ACCEPTANCE_API_URL: http://127.0.0.1:3002
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: packages/e2e
       - run: pnpm exec playwright test api-smoke user-journey paper-journey marketing user-journey-web

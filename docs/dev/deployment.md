@@ -43,7 +43,7 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 ## 4. 数据与备份
 
 1. PostgreSQL 使用独立 named volume，生产数据库不与其他项目共享实例、用户或 schema。
-2. 每日执行完整备份，持续归档 WAL 到 R2；备份上传前使用独立备份密钥加密。本地脚本：`scripts/backup-database.sh`（`pg_dump` + 可选 R2 上传）、`scripts/archive-wal.sh`（触发 WAL 轮转）、`scripts/restore-database.sh` 与 `scripts/verify-backup.sh`（恢复演练）。
+2. 每日执行完整备份，持续归档 WAL 到 R2；备份上传前使用独立备份密钥加密。本地脚本：`scripts/backup-database.sh`（`pg_dump` + 可选 R2 上传）、`scripts/archive-wal.sh`（`pg_switch_wal` + 本地 WAL 目录同步 R2）、`scripts/restore-database.sh` 与 `scripts/verify-backup.sh`（恢复演练）。生产 Compose 已启用 `archive_mode`，WAL 写入宿主机 `QUANTFLOW_WAL_ARCHIVE_HOST_DIR`（默认 `/home/ubuntu/apps/quantflow/wal-archive`）。
 3. 本地保留最近 7 天完整备份，R2 保留最近 30 天；季度执行从 R2 到隔离数据库的恢复演练。
 4. 目标 RPO 15 分钟、RTO 4 小时。连续 WAL 归档未验证前不得宣称满足该目标。
 
