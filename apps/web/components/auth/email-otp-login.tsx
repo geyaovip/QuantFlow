@@ -29,9 +29,6 @@ type EmailOtpLoginProps = {
 
 type Step = "email" | "code" | "success";
 
-const disclaimer =
-  "QuantFlow 不提供投资建议，不承诺任何收益。所有策略信号仅供参考，加密资产价格波动较大，用户需自行承担交易风险。历史表现不代表未来收益。";
-
 async function postJson<TResponse>(
   apiBaseUrl: string,
   path: string,
@@ -122,7 +119,7 @@ export function EmailOtpLogin({
         },
       );
       setStep("code");
-      setMessage("验证码已发送。如果邮箱可用，请在 10 分钟内完成验证。");
+      setMessage("验证码已发送，请查看邮箱。");
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -163,9 +160,9 @@ export function EmailOtpLogin({
   return (
     <Card className="auth-card" aria-label="邮箱验证码登录">
       <div className="auth-card__header">
-        <p>邮箱验证码登录</p>
-        <h1>进入 QuantFlow 应用工作台</h1>
-        <span>不需要密码。验证码和会话由 QuantFlow 后端安全管理。</span>
+        <p>登录</p>
+        <h1>进入应用</h1>
+        <span>输入邮箱，获取一次性验证码。</span>
       </div>
 
       <form
@@ -239,8 +236,6 @@ export function EmailOtpLogin({
           </button>
         ) : null}
       </form>
-
-      <p className="auth-risk">{disclaimer}</p>
     </Card>
   );
 }

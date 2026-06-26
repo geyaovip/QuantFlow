@@ -275,19 +275,6 @@ td {
   line-height: 1.08;
   letter-spacing: -0.055em;
 }
-.admin-login-copy ul {
-  display: grid;
-  gap: 12px;
-  margin: 30px 0 0;
-  padding: 0;
-  color: #d1d5db;
-  line-height: 1.7;
-  list-style: none;
-}
-.admin-login-copy li {
-  padding-left: 18px;
-  border-left: 2px solid #374151;
-}
 .admin-login-card {
   align-self: center;
   width: min(460px, calc(100% - 48px));

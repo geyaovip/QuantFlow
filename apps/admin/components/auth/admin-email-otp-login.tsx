@@ -109,7 +109,7 @@ export function AdminEmailOtpLogin({
         turnstileToken: turnstileToken || undefined,
       });
       setHasRequestedCode(true);
-      setMessage("如果该邮箱已被授权，验证码会在 10 分钟内有效。");
+      setMessage("验证码已发送，请查看邮箱。");
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -150,8 +150,8 @@ export function AdminEmailOtpLogin({
     <Card className="admin-login-card" aria-label="管理后台邮箱验证码登录">
       <div className="admin-login-card__header">
         <p>管理后台</p>
-        <h1>QuantFlow 管理员登录</h1>
-        <span>仅预授权管理员邮箱可登录。未知邮箱不会暴露账号状态。</span>
+        <h1>管理员登录</h1>
+        <span>输入管理员邮箱，获取一次性验证码。</span>
       </div>
 
       <form

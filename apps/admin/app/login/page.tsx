@@ -32,13 +32,8 @@ export default function AdminLoginPage() {
           </span>
         </div>
         <div className="admin-login-copy">
-          <p>运营与风控管理</p>
-          <h1>敏感操作先认证，后授权，全部留痕。</h1>
-          <ul>
-            <li>仅预授权管理员邮箱可登录。</li>
-            <li>管理员会话与用户会话 audience 分离。</li>
-            <li>策略、信号、会员、风险和权限变更必须写审计日志。</li>
-          </ul>
+          <p>Admin console</p>
+          <h1>QuantFlow 运营后台</h1>
         </div>
       </section>
       <AdminEmailOtpLogin

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "登录",
-  description: "使用邮箱验证码登录 QuantFlow 应用工作台。",
+  description: "登录 QuantFlow 应用工作台。",
   robots: { index: false, follow: false },
 };
 
@@ -54,13 +54,9 @@ async function LoginPageContent({
       </div>
       <section className="auth-page__grid">
         <div className="auth-copy">
-          <p>QuantFlow 应用工作台</p>
-          <h2>先验证身份，再查看策略、信号和模拟盘。</h2>
-          <ul>
-            <li>用户端与管理端统一使用 Resend 邮箱验证码。</li>
-            <li>验证码只由后端生成和校验，浏览器不保存明文会话。</li>
-            <li>所有策略信号仅供参考，不连接交易所、不读取真实资产。</li>
-          </ul>
+          <p>QuantFlow</p>
+          <h2>登录你的策略工作台</h2>
+          <span>查看策略、信号和模拟盘。</span>
         </div>
         <EmailOtpLogin
           apiBaseUrl={apiBaseUrl}
