@@ -12,6 +12,7 @@
   "dependencies": {
     "@quantflow/contracts": "workspace:*",
     "@quantflow/ui": "workspace:*",
+    "@sentry/react": "9.47.1",
     "lucide-react": "1.21.0",
     "next": "16.2.0",
     "react": "19.2.0",

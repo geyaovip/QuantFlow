@@ -5,9 +5,11 @@ import { NestFactory } from "@nestjs/core";
 
 import { AppModule } from "./app.module.js";
 import { loadAppConfig } from "./config/app-config.js";
+import { initSentry } from "./instrumentation/sentry.js";
 
 async function bootstrap() {
   const config = loadAppConfig();
+  initSentry(config.sentryDsn, config.nodeEnv);
   const app = await NestFactory.create(AppModule, { cors: false });
   app.enableCors({
     origin(

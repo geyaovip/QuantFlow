@@ -17,7 +17,10 @@ import { NoopTurnstileVerifier } from "./infrastructure/noop-turnstile-verifier.
 import { PrismaAuthRepository } from "./infrastructure/prisma-auth-repository.js";
 import { ResendAuthMailer } from "./infrastructure/resend-auth-mailer.js";
 import { AuthController } from "./interfaces/auth.controller.js";
+import { E2eAuthController } from "./interfaces/e2e-auth.controller.js";
 import { MeController } from "./interfaces/me.controller.js";
+
+const testAuthMailer = new FakeAuthMailer();
 
 @Module({
   imports: [
@@ -25,7 +28,7 @@ import { MeController } from "./interfaces/me.controller.js";
     forwardRef(() => MembershipModule),
     forwardRef(() => AdminAccessModule),
   ],
-  controllers: [AuthController, MeController],
+  controllers: [AuthController, MeController, E2eAuthController],
   providers: [
     AuthService,
     PrismaAuthRepository,
@@ -40,7 +43,7 @@ import { MeController } from "./interfaces/me.controller.js";
       useFactory: () => {
         const config = loadAppConfig();
         return config.nodeEnv === "test"
-          ? new FakeAuthMailer()
+          ? testAuthMailer
           : new ResendAuthMailer(
               config.auth.resendApiKey,
               config.auth.emailFrom,

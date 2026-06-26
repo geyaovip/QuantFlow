@@ -1,7 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.quantflow.chat";
+function resolveApiBaseUrl(request: NextRequest) {
+  if (process.env.NEXT_PROXY_API === "true") {
+    return request.nextUrl.origin;
+  }
+
+  return process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.quantflow.chat";
+}
 
 export async function proxy(request: NextRequest) {
   const isValid = await hasValidSession(request, "admin");
@@ -20,7 +26,7 @@ async function hasValidSession(request: NextRequest, audience: "admin") {
 
   try {
     const response = await fetch(
-      `${apiBaseUrl}/api/v1/auth/session?audience=${audience}`,
+      `${resolveApiBaseUrl(request)}/api/v1/auth/session?audience=${audience}`,
       {
         headers: {
           cookie: `qf_admin_session=${encodeURIComponent(token)}`,

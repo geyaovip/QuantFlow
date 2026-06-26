@@ -1,7 +1,9 @@
 import {
   Activity,
   ChartNoAxesCombined,
+  CreditCard,
   FileClock,
+  Megaphone,
   Radio,
   Shield,
   ShieldAlert,
@@ -18,6 +20,8 @@ const links = [
   { href: "/admin/strategies", label: "策略管理", Icon: Activity },
   { href: "/admin/signals", label: "信号管理", Icon: Radio },
   { href: "/admin/paper-accounts", label: "模拟盘管理", Icon: WalletCards },
+  { href: "/admin/memberships", label: "会员管理", Icon: CreditCard },
+  { href: "/admin/announcements", label: "系统公告", Icon: Megaphone },
   { href: "/admin/risk", label: "风险管理", Icon: ShieldAlert },
   { href: "/admin/access", label: "角色权限", Icon: Shield },
   { href: "/admin/audit", label: "审计日志", Icon: FileClock },

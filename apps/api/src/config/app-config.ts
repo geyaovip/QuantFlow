@@ -56,12 +56,17 @@ const environmentSchema = z.object({
     .url()
     .optional()
     .default("https://api.quantflow.chat"),
+  ENABLE_E2E_AUTH: booleanFlag,
+  SENTRY_DSN: z.string().optional().default(""),
 });
 
 export type AppConfig = ReturnType<typeof loadAppConfig>;
 
 export function loadAppConfig(environment: NodeJS.ProcessEnv = process.env) {
   const parsed = environmentSchema.parse(environment);
+  if (parsed.ENABLE_E2E_AUTH && parsed.NODE_ENV !== "test") {
+    throw new Error("ENABLE_E2E_AUTH is only allowed when NODE_ENV=test");
+  }
   if (parsed.NODE_ENV === "production") {
     const missing = [
       ["RESEND_API_KEY", parsed.RESEND_API_KEY],
@@ -85,6 +90,8 @@ export function loadAppConfig(environment: NodeJS.ProcessEnv = process.env) {
   return {
     nodeEnv: parsed.NODE_ENV,
     port: parsed.PORT,
+    enableE2eAuth: parsed.NODE_ENV === "test" && parsed.ENABLE_E2E_AUTH,
+    sentryDsn: parsed.SENTRY_DSN || undefined,
     auth: {
       resendApiKey: parsed.RESEND_API_KEY,
       emailFrom: parsed.AUTH_EMAIL_FROM,

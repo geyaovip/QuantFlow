@@ -11,11 +11,13 @@
     "build": "pnpm sync:brand && pnpm -r build",
     "lint": "eslint .",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
+    "test": "pnpm -r --filter '!@quantflow/e2e' test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:docs": "./scripts/check-docs.sh",
-    "check": "pnpm check:docs && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "check:compliance": "./scripts/check-compliance-copy.sh",
+    "check": "pnpm check:docs && pnpm check:compliance && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "test:e2e": "pnpm --filter @quantflow/e2e test",
     "sync:brand": "node scripts/sync-brand-assets.mjs"
   },
   "devDependencies": {

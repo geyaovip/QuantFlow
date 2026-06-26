@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import "@quantflow/ui/styles.css";
 import "./styles.css";
 
+import { SentryClientInit } from "../components/sentry-client-init";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://quantflow.chat"),
   title: {
@@ -39,7 +41,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <SentryClientInit dsn={process.env.NEXT_PUBLIC_SENTRY_DSN} />
+        {children}
+      </body>
     </html>
   );
 }

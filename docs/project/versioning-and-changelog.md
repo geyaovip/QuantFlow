@@ -31,6 +31,36 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.6.0-dev.3` - 2026-06-26
+
+- 类型：Added / Frontend / Ops / Docs
+- 摘要：收束 v0.6 可观测与 E2E：Web/Admin Sentry、同源 API 代理、模拟盘 journey、备份恢复与 WAL 轮转脚本。
+- MVP 边界影响：无；`NEXT_PROXY_API` 仅用于开发/E2E，生产仍使用独立 API 域名与 cookie 域。
+- API / 数据 / 权限 / 风控影响：无新 API；E2E 使用既有测试 OTP 助手。
+- 迁移与兼容：无。
+- 验证：`pnpm check`；E2E workflow 扩展为 API + Web + 模拟盘 + 营销性能。
+- 监控与回滚：新增 `restore-database.sh`、`verify-backup.sh`、`archive-wal.sh`。
+
+### `v0.6.0-dev.2` - 2026-06-26
+
+- 类型：Added / Backend / Worker / Ops / Docs
+- 摘要：补齐 v0.6：Worker OTP/会话清理、E2E 登录 journey、DB 备份脚本、API Sentry 与性能预算检查。
+- MVP 边界影响：无；`ENABLE_E2E_AUTH` 仅 `NODE_ENV=test` 可用。
+- API / 数据 / 权限 / 风控影响：`GET /test/e2e/last-otp`（测试专用）；无新 migration。
+- 迁移与兼容：无；Worker 新增认证维护任务。
+- 验证：`pnpm check`；E2E workflow 增加 `user-journey` 与 `check-performance-budget`。
+- 监控与回滚：`SENTRY_DSN` 可选接入 API；`scripts/backup-database.sh` 支持本地保留与 R2 上传。
+
+### `v0.6.0-dev.1` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Ops / Docs
+- 摘要：启动 v0.6 发布候选：就绪探针、合规文案扫描、E2E 冒烟、管理端会员/公告页与手动回滚脚本。
+- MVP 边界影响：无；合规扫描阻断禁止表达与 affirmative 实盘入口文案。
+- API / 数据 / 权限 / 风控影响：新增 `GET /health/ready`、`GET /health/live`；无新 migration。
+- 迁移与兼容：无；部署健康检查改为 `/api/v1/health/ready`。
+- 验证：`pnpm check`；`pnpm test:e2e`（需本地 API/Web）；GitHub `E2E` workflow 可手动触发 API smoke。
+- 监控与回滚：新增 `scripts/rollback-production.sh`；失败部署仍自动回滚上一镜像 tag。
+
 ### `v0.5.0-dev.2` - 2026-06-26
 
 - 类型：Added / Backend / Frontend / Docs

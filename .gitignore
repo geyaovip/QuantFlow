@@ -11,3 +11,6 @@ coverage/
 **/.next/
 apps/*/public/brand/
 *.log
+backups/
+**/test-results/
+**/playwright-report/

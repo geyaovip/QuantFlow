@@ -104,7 +104,7 @@ fi
 
 if wait_for_url http://127.0.0.1:3100 45 \
   && wait_for_url http://127.0.0.1:3101/admin 45 \
-  && wait_for_url http://127.0.0.1:3102/api/v1/health 45; then
+  && wait_for_url http://127.0.0.1:3102/api/v1/health/ready 45; then
   printf '%s\n' "$IMAGE_TAG" > "$CURRENT_TAG_FILE"
   prune_old_release_images
   echo "deployment healthy: $IMAGE_TAG"

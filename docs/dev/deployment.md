@@ -43,7 +43,7 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 ## 4. 数据与备份
 
 1. PostgreSQL 使用独立 named volume，生产数据库不与其他项目共享实例、用户或 schema。
-2. 每日执行完整备份，持续归档 WAL 到 R2；备份上传前使用独立备份密钥加密。
+2. 每日执行完整备份，持续归档 WAL 到 R2；备份上传前使用独立备份密钥加密。本地脚本：`scripts/backup-database.sh`（`pg_dump` + 可选 R2 上传）、`scripts/archive-wal.sh`（触发 WAL 轮转）、`scripts/restore-database.sh` 与 `scripts/verify-backup.sh`（恢复演练）。
 3. 本地保留最近 7 天完整备份，R2 保留最近 30 天；季度执行从 R2 到隔离数据库的恢复演练。
 4. 目标 RPO 15 分钟、RTO 4 小时。连续 WAL 归档未验证前不得宣称满足该目标。
 
@@ -58,7 +58,7 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 
 1. PR 必须通过文档、lint、typecheck、unit、contract 和 build 门禁。
 2. 生产发布由 `.github/workflows/deploy-production.yml` 在 GitHub Actions 中构建统一 release 镜像并推送到 GHCR，然后通过 SSH/rsync 同步固定 commit 到 VPS，再调用 `scripts/deploy-production.sh` 在 VPS 上登录 GHCR、拉取指定 commit 镜像、启动 PostgreSQL、执行 `prisma migrate deploy`、更新 Compose 服务并检查 VPS 本机健康端点。GitHub runner 不直接用公网域名作为发布判定，避免 Cloudflare/WAF 对 CI 出口 IP 返回 403 造成误失败。
-3. migration 失败必须阻断发布；健康检查失败立即恢复上一镜像 tag。数据库变更优先前滚，任何不可逆 migration 必须先备份并单独审批。
+3. migration 失败必须阻断发布；健康检查使用 `http://127.0.0.1:3102/api/v1/health/ready`，失败立即恢复上一镜像 tag。需要人工回滚时可执行 `scripts/rollback-production.sh <image-tag>`。数据库变更优先前滚，任何不可逆 migration 必须先备份并单独审批。
 4. Worker 和 API 不得同时运行不兼容 schema；发布顺序遵循 expand → migrate → deploy → contract。
 
 当前仓库已初始化 Web、Admin、API 和 Worker。`deploy/Dockerfile.release` 构建统一镜像 `ghcr.io/geyaovip/quantflow/app:<commit-sha>`，`deploy/compose.production.yml` 通过服务级 `APP=web|admin|api|worker` 启动不同进程；该方式避免四个镜像重复安装依赖、重复构建和重复复制 runtime 层。部署失败时脚本恢复上一健康镜像 tag。

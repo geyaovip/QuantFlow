@@ -23,6 +23,12 @@ describe("loadAppConfig", () => {
     expect(() => loadAppConfig({ ENABLE_AUTO_TRADING: "true" })).toThrow();
   });
 
+  it("rejects ENABLE_E2E_AUTH outside test", () => {
+    expect(() =>
+      loadAppConfig({ NODE_ENV: "production", ENABLE_E2E_AUTH: "true" }),
+    ).toThrow(/ENABLE_E2E_AUTH/);
+  });
+
   it("requires production auth secrets", () => {
     expect(() => loadAppConfig({ NODE_ENV: "production" })).toThrow(
       /Missing production auth config/,
