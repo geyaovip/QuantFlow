@@ -1,3 +1,11 @@
+@media (min-width: 768px) {
+  .app-sidebar {
+    display: flex;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+}
 @media (max-width: 1023px) {
   .hero {
     grid-template-columns: 1fr;
@@ -30,8 +38,11 @@
 }
 @media (max-width: 767px) {
   .marketing-header__inner,
-  .app-topbar {
+  .app-mobile-topbar {
     padding: 0 16px;
+  }
+  .app-mobile-topbar {
+    display: flex;
   }
   .marketing-header nav {
     display: none;
@@ -57,9 +68,6 @@
   .marketing-mobile-nav .primary-link {
     justify-content: center;
     margin-top: 8px;
-  }
-  .app-topbar nav {
-    display: none;
   }
   .hero,
   .section-block,
@@ -150,5 +158,9 @@
     gap: 4px;
     color: var(--qf-text-secondary);
     font-size: 11px;
+  }
+  .mobile-bottom-nav a.is-active {
+    color: var(--qf-text);
+    font-weight: 700;
   }
 }

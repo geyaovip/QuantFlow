@@ -49,3 +49,14 @@ export type AuthSessionSubject = {
   audience: AuthPortal;
   expiresAt: Date;
 };
+
+export type AuthUserProfile = {
+  email: string;
+  nickname: string | null;
+};
+
+export type AuthSessionView = AuthSessionSubject & {
+  email?: string;
+  displayName?: string;
+  membershipPlan?: string;
+};

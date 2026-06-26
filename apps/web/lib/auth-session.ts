@@ -4,6 +4,9 @@ export type UserSession = {
   subjectId: string;
   audience: "user";
   expiresAt: string;
+  email?: string;
+  displayName?: string;
+  membershipPlan?: string;
 };
 
 export function resolveApiBaseUrl() {

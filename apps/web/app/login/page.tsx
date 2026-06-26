@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { Brand } from "../../components/brand";
 import { EmailOtpLogin } from "../../components/auth/email-otp-login";
+import { LoggedInPanel } from "../../components/auth/logged-in-panel";
 import { getUserSession, resolveApiBaseUrl } from "../../lib/auth-session";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +28,13 @@ export default function LoginPage({
   );
 }
 
+function formatSessionExpiry(expiresAt: string) {
+  return new Intl.DateTimeFormat("zh-CN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(expiresAt));
+}
+
 async function LoginPageContent({
   apiBaseUrl,
   searchParams,
@@ -42,9 +49,6 @@ async function LoginPageContent({
     ? params.next
     : "/app/strategies";
   const session = await getUserSession();
-  if (session) {
-    redirect(nextPath);
-  }
 
   return (
     <main className="auth-page">
@@ -60,11 +64,19 @@ async function LoginPageContent({
           <h2>登录你的策略工作台</h2>
           <span>查看策略、信号和模拟盘。</span>
         </div>
-        <EmailOtpLogin
-          apiBaseUrl={apiBaseUrl}
-          nextPath={nextPath}
-          siteKey={siteKey}
-        />
+        {session ? (
+          <LoggedInPanel
+            apiBaseUrl={apiBaseUrl}
+            expiresAtLabel={formatSessionExpiry(session.expiresAt)}
+            nextPath={nextPath}
+          />
+        ) : (
+          <EmailOtpLogin
+            apiBaseUrl={apiBaseUrl}
+            nextPath={nextPath}
+            siteKey={siteKey}
+          />
+        )}
       </section>
     </main>
   );

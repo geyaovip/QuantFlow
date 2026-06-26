@@ -17,8 +17,7 @@ body {
   border-bottom: 1px solid var(--qf-border);
   backdrop-filter: blur(12px);
 }
-.marketing-header__inner,
-.app-topbar {
+.marketing-header__inner {
   display: flex;
   align-items: center;
   max-width: var(--qf-content);
@@ -59,16 +58,14 @@ body {
   font-size: 18px;
   letter-spacing: -0.03em;
 }
-.marketing-header nav,
-.app-topbar nav {
+.marketing-header nav {
   display: flex;
   align-items: center;
   gap: 26px;
   color: var(--qf-text-secondary);
   font-size: 14px;
 }
-.marketing-header nav a:hover,
-.app-topbar nav a:hover {
+.marketing-header nav a:hover {
   color: var(--qf-text);
 }
 .header-cta,

@@ -2,6 +2,7 @@ import type {
   AuthPortal,
   AuthSessionSubject,
   AuthSubject,
+  AuthUserProfile,
   CreateChallengeInput,
   CreateSessionInput,
   EmailChallenge,
@@ -56,6 +57,7 @@ export interface AuthRepository {
     audience: AuthPortal,
     now: Date,
   ): Promise<AuthSessionSubject | null>;
+  findUserProfileById(userId: string): Promise<AuthUserProfile | null>;
   touchSession(tokenHash: string, at: Date): Promise<void>;
   recordSecurityEvent(input: SecurityEventInput): Promise<void>;
 }

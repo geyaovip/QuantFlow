@@ -12,7 +12,11 @@ import {
   AUTH_REPOSITORY,
   type AuthRepository,
 } from "../domain/auth-repository.js";
-import type { AuthPortal, AuthSessionRecord } from "../domain/auth-types.js";
+import type {
+  AuthPortal,
+  AuthSessionRecord,
+  AuthSessionView,
+} from "../domain/auth-types.js";
 import { CLOCK, type Clock } from "../domain/clock.js";
 import {
   TURNSTILE_VERIFIER,
@@ -236,7 +240,10 @@ export class AuthService {
     };
   }
 
-  async validateSession(token: string | undefined, audience: AuthPortal) {
+  async validateSession(
+    token: string | undefined,
+    audience: AuthPortal,
+  ): Promise<AuthSessionView> {
     if (!token) {
       throw new AuthAccessDeniedError();
     }
@@ -253,7 +260,24 @@ export class AuthService {
     }
 
     await this.repository.touchSession(tokenHash, this.clock.now());
-    return session;
+
+    if (audience !== "user") {
+      return session;
+    }
+
+    const profile = await this.repository.findUserProfileById(
+      session.subjectId,
+    );
+    if (!profile) {
+      return session;
+    }
+
+    return {
+      ...session,
+      email: profile.email,
+      displayName: profile.nickname ?? profile.email.split("@")[0] ?? "用户",
+      membershipPlan: "Free",
+    };
   }
 
   private async recordOtpFailure(

@@ -39,6 +39,7 @@ class MemoryAuthRepository implements AuthRepository {
   challenges: EmailChallenge[] = [];
   sessions: CreateSessionInput[] = [];
   events: SecurityEventInput[] = [];
+  userEmails = new Map<string, string>();
 
   constructor(private readonly clock: Clock) {}
 
@@ -51,13 +52,14 @@ class MemoryAuthRepository implements AuthRepository {
     );
   }
 
-  async createUser(_email: string, emailNormalized: string) {
+  async createUser(email: string, emailNormalized: string) {
     const subject: AuthSubject = {
       id: `user:${emailNormalized}`,
       audience: "user",
       status: "active",
     };
     this.subjects.push(subject);
+    this.userEmails.set(subject.id, email);
     return subject;
   }
 
@@ -151,6 +153,11 @@ class MemoryAuthRepository implements AuthRepository {
       : null;
   }
 
+  async findUserProfileById(userId: string) {
+    const email = this.userEmails.get(userId);
+    return email ? { email, nickname: null } : null;
+  }
+
   async touchSession() {}
 
   async recordSecurityEvent(input: SecurityEventInput) {
@@ -238,6 +245,9 @@ describe("AuthService", () => {
     ).resolves.toMatchObject({
       audience: "user",
       subjectId: "user:user@example.com",
+      email: "user@example.com",
+      displayName: "user",
+      membershipPlan: "Free",
     });
     await expect(
       service.validateSession(session.token, "admin"),

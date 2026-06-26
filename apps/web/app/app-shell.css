@@ -1,13 +1,198 @@
-.app-topbar {
-  justify-content: space-between;
+.user-app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--qf-background);
+}
+.app-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.app-sidebar {
+  display: none;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 248px;
+  border-right: 1px solid var(--qf-border);
+  background: var(--qf-surface);
+}
+.app-sidebar__brand {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  padding: 0 18px;
   border-bottom: 1px solid var(--qf-border);
 }
-.user-app-shell {
-  min-height: 100vh;
+.app-sidebar__nav {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  align-content: start;
+  padding: 14px 12px;
 }
-.app-topbar {
-  max-width: none;
+.app-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--qf-text-secondary);
+  font-size: 14px;
+  font-weight: 650;
+}
+.app-sidebar__link:hover {
+  background: var(--qf-surface-muted);
+  color: var(--qf-text);
+}
+.app-sidebar__link.is-active {
+  background: var(--qf-surface-muted);
+  color: var(--qf-text);
+}
+.app-sidebar__footer {
+  padding: 12px;
+  border-top: 1px solid var(--qf-border);
+}
+.app-sidebar__login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid var(--qf-border);
+  border-radius: 8px;
+  color: var(--qf-text-secondary);
   background: var(--qf-surface);
+  font-size: 14px;
+  font-weight: 650;
+}
+.app-user-menu {
+  position: relative;
+}
+.app-user-menu__trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--qf-text);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.app-user-menu__trigger:hover,
+.app-user-menu__trigger[aria-expanded="true"] {
+  background: var(--qf-surface-muted);
+}
+.app-user-avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--qf-border);
+  border-radius: 999px;
+  color: var(--qf-text-secondary);
+  background: var(--qf-surface-muted);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.app-user-menu__meta {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.app-user-menu__meta strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-user-menu__meta span {
+  overflow: hidden;
+  color: var(--qf-text-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-user-menu__more {
+  flex-shrink: 0;
+  color: var(--qf-text-muted);
+}
+.app-user-menu__popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 40;
+  overflow: hidden;
+  padding: 8px;
+  border: 1px solid var(--qf-border);
+  border-radius: 12px;
+  background: var(--qf-surface);
+  box-shadow: 0 16px 40px rgb(17 24 39 / 0.08);
+}
+.app-user-menu__popover-header {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px 10px;
+}
+.app-user-menu__popover-header strong {
+  font-size: 14px;
+}
+.app-user-menu__popover-header span {
+  overflow: hidden;
+  color: var(--qf-text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--qf-text-secondary);
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+}
+.app-user-menu__item:hover {
+  background: var(--qf-surface-muted);
+  color: var(--qf-text);
+}
+.app-user-menu__logout .logout-button {
+  gap: 0;
+}
+.app-user-menu__logout-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--qf-border);
+  background: var(--qf-surface);
+}
+.app-mobile-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .icon-button {
   display: grid;
@@ -41,9 +226,11 @@
   background: var(--qf-surface-muted);
 }
 .app-content {
+  flex: 1;
   max-width: var(--qf-content);
+  width: 100%;
   margin: 0 auto;
-  padding: 44px 32px 80px;
+  padding: 32px 32px 48px;
 }
 .filter-bar {
   display: flex;

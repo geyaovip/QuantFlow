@@ -133,6 +133,9 @@ export class AuthController {
           subjectId: session.subjectId,
           audience: session.audience,
           expiresAt: session.expiresAt.toISOString(),
+          email: session.email,
+          displayName: session.displayName,
+          membershipPlan: session.membershipPlan,
         },
       };
     } catch (error) {

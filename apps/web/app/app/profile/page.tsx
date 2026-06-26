@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { PageHeader } from "@quantflow/ui";
 
-import { getUserSession } from "../../../lib/auth-session";
+import { LogoutButton } from "../../../components/auth/logout-button";
+import { getUserSession, resolveApiBaseUrl } from "../../../lib/auth-session";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +26,18 @@ export default async function ProfilePage() {
       />
       {session ? (
         <div className="empty-state">
-          <strong>你已登录</strong>
+          <strong>{session.displayName ?? "你已登录"}</strong>
           <p>
+            {session.email ? `${session.email} · ` : ""}
             当前会话有效，将于 {formatSessionExpiry(session.expiresAt)} 到期。
+            {session.membershipPlan
+              ? ` 当前计划：${session.membershipPlan}。`
+              : ""}
           </p>
+          <LogoutButton
+            apiBaseUrl={resolveApiBaseUrl()}
+            redirectTo="/login?next=/app/profile"
+          />
         </div>
       ) : (
         <div className="empty-state">
