@@ -24,6 +24,7 @@ import {
   StrategyInvalidStateError,
   StrategyNotFoundError,
   StrategySubscriptionLimitError,
+  StrategyTierAccessError,
 } from "../domain/strategy-errors.js";
 
 type RequestLike = {
@@ -300,6 +301,9 @@ function toHttpError(error: unknown) {
     return new HttpException(error.message, HttpStatus.NOT_FOUND);
   }
   if (error instanceof StrategySubscriptionLimitError) {
+    return new HttpException(error.message, HttpStatus.FORBIDDEN);
+  }
+  if (error instanceof StrategyTierAccessError) {
     return new HttpException(error.message, HttpStatus.FORBIDDEN);
   }
   if (error instanceof StrategyInvalidStateError) {

@@ -3,6 +3,7 @@ import type {
   AdminStrategyDetailResponse,
   AdminStrategyListResponse,
   AdminStrategyAction,
+  MembershipTier,
   SignalDetail,
   SignalListItem,
   StrategySubscription,
@@ -21,6 +22,7 @@ export type ListStrategiesInput = {
   sortBy?: "publishedAt" | "riskLevel";
   sortOrder?: "asc" | "desc";
   period?: string;
+  maxTier?: MembershipTier;
 };
 
 export type ListSignalsInput = {
@@ -29,6 +31,8 @@ export type ListSignalsInput = {
   userId?: string;
   direction?: string;
   status?: string;
+  historySince?: Date;
+  signalVisibleBefore?: Date;
 };
 
 export type AuditContext = {
@@ -58,6 +62,7 @@ export interface StrategyRepository {
   findVisibleSignal(
     signalId: string,
     userId?: string,
+    access?: Pick<ListSignalsInput, "historySince" | "signalVisibleBefore">,
   ): Promise<SignalDetail | null>;
   subscribeToStrategy(
     userId: string,

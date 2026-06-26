@@ -5,7 +5,11 @@ import { StrategyCard } from "@quantflow/ui";
 
 import { ListPagination } from "../../../components/list-pagination";
 import type { StrategyCardRecord } from "../../../lib/strategy-format";
-import { riskLevelLabel, strategyTypeLabel } from "../../../lib/list-query";
+import {
+  riskLevelLabel,
+  strategySymbolLabel,
+  strategyTypeLabel,
+} from "../../../lib/list-query";
 
 type StrategyExplorerProps = {
   pagination: Pagination;
@@ -13,6 +17,7 @@ type StrategyExplorerProps = {
   riskLevel?: RiskLevel;
   sortBy?: string;
   strategies: StrategyCardRecord[];
+  symbol?: string;
   type?: StrategyType;
 };
 
@@ -31,6 +36,14 @@ const typeOptions: Array<StrategyType | undefined> = [
   "grid",
   "dca",
 ];
+
+const symbolOptions = [
+  undefined,
+  "BTCUSDT",
+  "ETHUSDT",
+  "SOLUSDT",
+  "BNBUSDT",
+] as const;
 
 const sortOptions = [
   { value: undefined, label: "最新上线" },
@@ -60,9 +73,10 @@ export function StrategyExplorer({
   riskLevel,
   sortBy,
   strategies,
+  symbol,
   type,
 }: StrategyExplorerProps) {
-  const baseQuery = { ...query, risk: riskLevel, type, sortBy };
+  const baseQuery = { ...query, risk: riskLevel, type, symbol, sortBy };
 
   return (
     <>
@@ -93,6 +107,21 @@ export function StrategyExplorer({
                 key={item ?? "all-type"}
               >
                 {strategyTypeLabel(item)}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="filter-group" role="group" aria-label="交易币种">
+          {symbolOptions.map((item) => {
+            const active = item === symbol;
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "filter-chip is-active" : "filter-chip"}
+                href={buildHref(baseQuery, { symbol: item, page: undefined })}
+                key={item ?? "all-symbol"}
+              >
+                {strategySymbolLabel(item)}
               </Link>
             );
           })}

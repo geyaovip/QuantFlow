@@ -3,7 +3,6 @@ import {
   BellRing,
   ChartNoAxesCombined,
   ChartSpline,
-  CircleDollarSign,
   Layers3,
   LineChart,
   Radio,
@@ -17,6 +16,12 @@ import { Badge, Card, RiskBadge } from "@quantflow/ui";
 
 import { MarketingFooter } from "../components/marketing-footer";
 import { MarketingHeader } from "../components/marketing-header";
+import { getMembershipPlans } from "../lib/membership-api";
+import {
+  formatPlanPerks,
+  formatPlanPrice,
+  formatPlanSummary,
+} from "../lib/membership-format";
 import { getStrategies } from "../lib/strategy-api";
 import {
   formatPercent,
@@ -48,34 +53,14 @@ const fallbackPreview = [
   },
 ];
 
-const membershipPlans = [
-  {
-    name: "Free",
-    price: "¥0",
-    summary: "体验策略浏览与基础模拟容量。",
-    perks: ["3 个策略订阅", "1 个模拟盘", "15 分钟信号延迟"],
-  },
-  {
-    name: "Pro",
-    price: "¥69/月",
-    summary: "适合持续跟踪策略与信号。",
-    perks: ["20 个策略订阅", "10 个模拟盘", "更快信号触达"],
-    featured: true,
-  },
-  {
-    name: "Premium",
-    price: "¥199/月",
-    summary: "更高配额与深度分析能力。",
-    perks: ["50 个策略订阅", "30 个模拟盘", "优先客服支持"],
-  },
-] as const;
-
 export const dynamic = "force-dynamic";
 
 export default async function MarketingPage() {
-  const strategies = await getStrategies({ page: 1, pageSize: 3 }).catch(
-    () => null,
-  );
+  const [strategies, membershipPlansResponse] = await Promise.all([
+    getStrategies({ page: 1, pageSize: 3 }).catch(() => null),
+    getMembershipPlans().catch(() => null),
+  ]);
+  const membershipPlans = membershipPlansResponse?.data ?? [];
   const featuredStrategy = strategies?.data[0];
   const previewRows = strategies?.data.length
     ? strategies.data.map((strategy) => ({
@@ -398,27 +383,33 @@ export default async function MarketingPage() {
             </p>
           </div>
           <div className="pricing-grid">
-            {membershipPlans.map((plan) => (
-              <Card
-                className={
-                  "featured" in plan && plan.featured
-                    ? "pricing-card pricing-card--featured"
-                    : "pricing-card"
-                }
-                key={plan.name}
-              >
-                <div className="pricing-card__header">
-                  <span>{plan.name}</span>
-                  <strong>{plan.price}</strong>
-                </div>
-                <p>{plan.summary}</p>
-                <ul>
-                  {plan.perks.map((perk) => (
-                    <li key={perk}>{perk}</li>
-                  ))}
-                </ul>
-              </Card>
-            ))}
+            {membershipPlans.length ? (
+              membershipPlans.map((plan) => (
+                <Card
+                  className={
+                    plan.tier === "pro"
+                      ? "pricing-card pricing-card--featured"
+                      : "pricing-card"
+                  }
+                  key={plan.tier}
+                >
+                  <div className="pricing-card__header">
+                    <span>{plan.name}</span>
+                    <strong>{formatPlanPrice(plan)}</strong>
+                  </div>
+                  <p>{formatPlanSummary(plan)}</p>
+                  <ul>
+                    {formatPlanPerks(plan).map((perk) => (
+                      <li key={perk}>{perk}</li>
+                    ))}
+                  </ul>
+                </Card>
+              ))
+            ) : (
+              <p className="section-note">
+                会员计划暂时无法加载，请进入应用后查看权益说明。
+              </p>
+            )}
           </div>
           <p className="section-note">
             价格为内测参考价，不构成收费承诺。Pro / Premium
@@ -431,7 +422,7 @@ export default async function MarketingPage() {
           id="risk-disclosure"
         >
           <Card className="risk-disclosure-card">
-            <CircleDollarSign aria-hidden="true" size={20} />
+            <ShieldCheck aria-hidden="true" size={20} />
             <div>
               <h2>风险提示</h2>
               <p>

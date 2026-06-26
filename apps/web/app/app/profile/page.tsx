@@ -32,16 +32,35 @@ export default async function ProfilePage() {
   const subscriptionLimit = entitlements?.strategySubscriptionsMax ?? 3;
 
   return (
-    <div>
+    <div className="app-page-stack">
       <PageHeader
         eyebrow="个人中心"
         title="我的 QuantFlow"
-        description="查看邮箱登录状态、访问权益、通知偏好和安全记录。用户端与管理端统一使用邮箱验证码登录。"
+        description="查看邮箱登录状态、访问权益、订阅配额和安全记录。用户端与管理端统一使用邮箱验证码登录。"
       />
       {session ? (
         <div className="profile-panel">
+          <div className="app-kpi-grid" aria-label="账户概览">
+            <div>
+              <span>当前计划</span>
+              <strong>
+                {entitlements?.planName ?? session.membershipPlan ?? "Free"}
+              </strong>
+            </div>
+            <div>
+              <span>策略订阅</span>
+              <strong>
+                {activeCount} / {subscriptionLimit}
+              </strong>
+            </div>
+            <div>
+              <span>模拟盘容量</span>
+              <strong>{entitlements?.paperAccountsMax ?? 1} 个</strong>
+            </div>
+          </div>
           <section className="profile-panel__section">
-            <strong>{session.displayName ?? "你已登录"}</strong>
+            <h2>账户状态</h2>
+            <strong>{session.displayName ?? "QuantFlow 用户"}</strong>
             <p>
               {session.email ? `${session.email} · ` : ""}
               当前会话有效，将于 {formatSessionExpiry(session.expiresAt)} 到期。
@@ -66,7 +85,7 @@ export default async function ProfilePage() {
                 查看我的策略
               </Link>
               <Link className="secondary-link" href="/app/membership">
-                管理会员权益
+                查看会员权益
               </Link>
             </div>
           </section>
@@ -89,9 +108,9 @@ export default async function ProfilePage() {
             )}
           </section>
           <section className="profile-panel__section">
-            <h2>待接入能力</h2>
+            <h2>通知与边界</h2>
             <p>
-              通知偏好将在后续版本接入。当前模拟开通不产生真实扣款或自动续费。
+              通知偏好将在后续版本接入。当前模拟开通不产生真实扣款或自动续费；平台不提供真实下单入口。
             </p>
           </section>
         </div>

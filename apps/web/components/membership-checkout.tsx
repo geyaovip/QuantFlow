@@ -5,17 +5,17 @@ import { useState } from "react";
 import type { MembershipPlan, MembershipTier } from "@quantflow/contracts";
 import { Button, Card } from "@quantflow/ui";
 
-import { mockCheckoutMembership } from "../lib/membership-api";
-
 const RISK_DISCLOSURE =
   "QuantFlow 不提供投资建议，不承诺任何收益。所有策略信号仅供参考，加密资产价格波动较大，用户需自行承担交易风险。历史表现不代表未来收益。";
 
 type MembershipCheckoutProps = {
+  apiBaseUrl: string;
   currentTier: MembershipTier;
   plans: MembershipPlan[];
 };
 
 export function MembershipCheckout({
+  apiBaseUrl,
   currentTier,
   plans,
 }: MembershipCheckoutProps) {
@@ -41,11 +41,25 @@ export function MembershipCheckout({
     setMessage(null);
 
     try {
-      const result = await mockCheckoutMembership({
-        tier: selectedTier,
-        billingCycle,
-        riskAccepted: true,
-      });
+      const response = await fetch(
+        `${apiBaseUrl}/api/v1/membership/mock-checkout`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            tier: selectedTier,
+            billingCycle,
+            riskAccepted: true,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("mock checkout failed");
+      }
+
+      const result = await response.json();
       setMessage(
         `已模拟开通 ${result.data.planName}，有效期至 ${new Date(result.data.endsAt).toLocaleString("zh-CN")}。未产生真实扣款。`,
       );
@@ -65,6 +79,7 @@ export function MembershipCheckout({
         aria-label="计费周期"
       >
         <button
+          aria-pressed={billingCycle === "monthly"}
           className={
             billingCycle === "monthly" ? "filter-chip is-active" : "filter-chip"
           }
@@ -74,6 +89,7 @@ export function MembershipCheckout({
           月付
         </button>
         <button
+          aria-pressed={billingCycle === "yearly"}
           className={
             billingCycle === "yearly" ? "filter-chip is-active" : "filter-chip"
           }
@@ -90,10 +106,18 @@ export function MembershipCheckout({
               ? plan.monthlyPriceCny
               : plan.yearlyPriceCny;
           const isCurrent = plan.tier === currentTier;
+          const isSelected = selectedTier === plan.tier;
           const canSelect = plan.tier === "pro" || plan.tier === "premium";
 
           return (
-            <Card className="membership-card" key={plan.tier}>
+            <Card
+              className={
+                isCurrent || isSelected
+                  ? "membership-card membership-card--active"
+                  : "membership-card"
+              }
+              key={plan.tier}
+            >
               <div className="membership-card__header">
                 <strong>{plan.name}</strong>
                 <span>
@@ -119,7 +143,8 @@ export function MembershipCheckout({
               ) : (
                 <Button
                   disabled={!canSelect}
-                  variant={selectedTier === plan.tier ? "primary" : "secondary"}
+                  aria-pressed={isSelected}
+                  variant={isSelected ? "primary" : "secondary"}
                   onClick={() =>
                     setSelectedTier(plan.tier as "pro" | "premium")
                   }

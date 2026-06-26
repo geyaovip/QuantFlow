@@ -15,6 +15,7 @@ import {
 import { cookies } from "next/headers";
 
 import { resolveApiBaseUrl } from "./auth-session";
+import { ApiError } from "./api-error";
 
 type StrategyListQuery = {
   page?: number;
@@ -114,7 +115,8 @@ export async function getJson(path: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`QuantFlow API request failed: ${response.status}`);
+    const message = await readErrorMessage(response);
+    throw new ApiError(response.status, message);
   }
 
   return response.json();
@@ -133,10 +135,27 @@ export async function postJson(path: string, body: unknown) {
   });
 
   if (!response.ok) {
-    throw new Error(`QuantFlow API request failed: ${response.status}`);
+    const message = await readErrorMessage(response);
+    throw new ApiError(response.status, message);
   }
 
   return response.json();
+}
+
+async function readErrorMessage(response: Response) {
+  try {
+    const payload = (await response.json()) as { message?: string | string[] };
+    if (Array.isArray(payload.message)) {
+      return payload.message.join("，");
+    }
+    if (payload.message) {
+      return payload.message;
+    }
+  } catch {
+    // ignore parse errors
+  }
+
+  return `QuantFlow API request failed: ${response.status}`;
 }
 
 async function getCookieHeader() {

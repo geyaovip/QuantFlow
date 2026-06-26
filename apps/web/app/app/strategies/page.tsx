@@ -5,6 +5,7 @@ import { Card, PageHeader } from "@quantflow/ui";
 import {
   parsePage,
   parseRiskLevel,
+  parseStrategySymbol,
   parseStrategyType,
   USER_PAGE_SIZE,
 } from "../../../lib/list-query";
@@ -21,6 +22,7 @@ type StrategiesPageProps = {
     type?: string;
     sortBy?: string;
     sortOrder?: string;
+    symbol?: string;
   }>;
 };
 
@@ -30,16 +32,18 @@ export default async function StrategiesPage({
   const params = await searchParams;
   const riskLevel = parseRiskLevel(params.risk);
   const type = parseStrategyType(params.type);
+  const symbol = parseStrategySymbol(params.symbol);
   const strategies = await getStrategies({
     page: parsePage(params.page),
     pageSize: USER_PAGE_SIZE,
     riskLevel,
     type,
+    symbol,
     sortBy: params.sortBy,
     sortOrder: params.sortOrder,
   });
   const visibleCount = strategies.data.length;
-  const activeFilterCount = [riskLevel, type, params.sortBy].filter(
+  const activeFilterCount = [riskLevel, type, symbol, params.sortBy].filter(
     Boolean,
   ).length;
 
@@ -87,11 +91,13 @@ export default async function StrategiesPage({
         query={{
           risk: riskLevel,
           type,
+          symbol,
           sortBy: params.sortBy,
         }}
         riskLevel={riskLevel}
         sortBy={params.sortBy}
         strategies={strategies.data.map(toStrategyCardRecord)}
+        symbol={symbol}
         type={type}
       />
       <aside className="disclaimer">

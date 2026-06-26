@@ -4,6 +4,7 @@ import {
   RiskLevel as PrismaRiskLevel,
   StrategyStatus as PrismaStrategyStatus,
   StrategyType as PrismaStrategyType,
+  type MembershipTier as PrismaMembershipTier,
 } from "@prisma/client";
 
 import type {
@@ -19,6 +20,7 @@ import type {
 } from "@quantflow/contracts";
 
 import { PrismaService } from "../../prisma/prisma.service.js";
+import { accessibleTiers } from "../../membership/domain/tier-access.js";
 import {
   StrategyInvalidStateError,
   StrategyNotFoundError,
@@ -186,7 +188,13 @@ export class PrismaStrategyRepository implements StrategyRepository {
   async listActiveSignals(
     input: ListSignalsInput,
   ): Promise<PaginatedResult<SignalListItem>> {
-    const where = signalWhere(input.userId, input.direction, input.status);
+    const where = signalWhere({
+      userId: input.userId,
+      direction: input.direction,
+      status: input.status,
+      historySince: input.historySince,
+      signalVisibleBefore: input.signalVisibleBefore,
+    });
     const [total, signals] = await this.prisma.$transaction([
       this.prisma.strategySignal.count({ where }),
       this.prisma.strategySignal.findMany({
@@ -210,11 +218,16 @@ export class PrismaStrategyRepository implements StrategyRepository {
   async findVisibleSignal(
     signalId: string,
     userId?: string,
+    access?: Pick<ListSignalsInput, "historySince" | "signalVisibleBefore">,
   ): Promise<SignalDetail | null> {
     const signal = await this.prisma.strategySignal.findFirst({
       where: {
         id: signalId,
-        ...signalWhere(userId),
+        ...signalWhere({
+          userId,
+          historySince: access?.historySince,
+          signalVisibleBefore: access?.signalVisibleBefore,
+        }),
       },
       include: { strategy: { select: { slug: true, name: true } } },
     });
@@ -586,7 +599,7 @@ const strategyDetailIncludes = {
 };
 
 function activeStrategyWhere(
-  input: Pick<ListStrategiesInput, "riskLevel" | "type" | "symbol">,
+  input: Pick<ListStrategiesInput, "riskLevel" | "type" | "symbol" | "maxTier">,
   period = "ninety_days",
 ) {
   return {
@@ -599,25 +612,56 @@ function activeStrategyWhere(
     ...(input.symbol
       ? { versions: { some: { symbols: { has: input.symbol } } } }
       : {}),
+    ...(input.maxTier
+      ? {
+          requiredTier: {
+            in: accessibleTiers(input.maxTier) as PrismaMembershipTier[],
+          },
+        }
+      : {}),
     metrics: { some: { period: period as "ninety_days" } },
     versions: { some: {} },
   } satisfies Prisma.StrategyWhereInput;
 }
 
-function signalWhere(userId?: string, direction?: string, status?: string) {
+type SignalWhereInput = {
+  userId?: string;
+  direction?: string;
+  status?: string;
+  historySince?: Date;
+  signalVisibleBefore?: Date;
+};
+
+function signalWhere(input: SignalWhereInput) {
   return {
-    status: (status ?? "active") as
+    status: (input.status ?? "active") as
       | "active"
       | "expired"
       | "cancelled"
       | "strategy_paused"
       | "risk_blocked",
-    ...(direction ? { direction: direction as "buy" | "sell" | "watch" } : {}),
+    ...(input.direction
+      ? { direction: input.direction as "buy" | "sell" | "watch" }
+      : {}),
+    ...(input.historySince || input.signalVisibleBefore
+      ? {
+          generatedAt: {
+            ...(input.historySince ? { gte: input.historySince } : {}),
+            ...(input.signalVisibleBefore
+              ? { lte: input.signalVisibleBefore }
+              : {}),
+          },
+        }
+      : {}),
     strategy: {
       status: "active" as const,
       deletedAt: null,
-      ...(userId
-        ? { subscriptions: { some: { userId, status: "active" as const } } }
+      ...(input.userId
+        ? {
+            subscriptions: {
+              some: { userId: input.userId, status: "active" as const },
+            },
+          }
         : {}),
     },
   } satisfies Prisma.StrategySignalWhereInput;

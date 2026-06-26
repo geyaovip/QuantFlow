@@ -9,7 +9,10 @@ import type {
   UserEntitlements,
 } from "@quantflow/contracts";
 
-import { StrategyNotFoundError } from "../domain/strategy-errors.js";
+import {
+  StrategyNotFoundError,
+  StrategyTierAccessError,
+} from "../domain/strategy-errors.js";
 import type {
   ListSignalsInput,
   ListStrategiesInput,
@@ -69,7 +72,14 @@ class MemoryStrategyRepository implements StrategyRepository {
     };
   }
 
-  async findVisibleSignal(): Promise<SignalDetail | null> {
+  async findVisibleSignal(
+    signalId?: string,
+    userId?: string,
+    access?: Pick<ListSignalsInput, "historySince" | "signalVisibleBefore">,
+  ): Promise<SignalDetail | null> {
+    void signalId;
+    void userId;
+    void access;
     return this.signals[0]
       ? { ...this.signals[0], riskDisclosure: detail.riskDisclosure }
       : null;
@@ -266,5 +276,17 @@ describe("StrategyService", () => {
       data: [{ direction: "sell" }],
       pagination: { total: 1 },
     });
+  });
+
+  it("blocks strategy details when membership tier is insufficient", async () => {
+    const proStrategy = { ...strategy, requiredTier: "pro" as const };
+    const proDetail = { ...detail, requiredTier: "pro" as const };
+    const service = createService(
+      new MemoryStrategyRepository([proStrategy], proDetail, [signal]),
+    );
+
+    await expect(service.getStrategy("btc-trend")).rejects.toBeInstanceOf(
+      StrategyTierAccessError,
+    );
   });
 });

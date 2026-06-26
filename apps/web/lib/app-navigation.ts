@@ -3,6 +3,8 @@ export const primaryAppRoutes = [
   { href: "/app/signals", label: "信号" },
   { href: "/app/my-strategies", label: "我的策略" },
   { href: "/app/paper-trading", label: "模拟盘" },
+  { href: "/app/membership", label: "会员权益" },
+  { href: "/app/profile", label: "个人中心" },
 ] as const;
 
 export const profileAppRoute = {

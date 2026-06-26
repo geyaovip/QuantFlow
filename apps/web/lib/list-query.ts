@@ -60,6 +60,25 @@ export function parseStrategyType(
   return undefined;
 }
 
+const STRATEGY_SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"] as const;
+
+export function parseStrategySymbol(value: string | undefined) {
+  if (
+    value &&
+    STRATEGY_SYMBOLS.includes(value as (typeof STRATEGY_SYMBOLS)[number])
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+export function strategySymbolLabel(symbol: string | undefined) {
+  if (!symbol) {
+    return "全部币种";
+  }
+  return symbol.replace("USDT", "/USDT");
+}
+
 export function strategyTypeLabel(type: StrategyType | undefined) {
   const labels: Record<StrategyType, string> = {
     spot: "现货",

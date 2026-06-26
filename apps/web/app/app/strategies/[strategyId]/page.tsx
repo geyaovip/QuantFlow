@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Badge, Button, Card, PageHeader, RiskBadge } from "@quantflow/ui";
 
 import { StrategySubscriptionControls } from "../../../../components/strategy-subscription-controls";
+import { ApiError } from "../../../../lib/api-error";
 import { resolveApiBaseUrl } from "../../../../lib/auth-session";
 import { getStrategy } from "../../../../lib/strategy-api";
 import {
@@ -37,9 +38,34 @@ export default async function StrategyDetailPage({
   params,
 }: StrategyDetailPageProps) {
   const { strategyId } = await params;
-  const response = await getStrategy(strategyId).catch(() => null);
+  let response;
 
-  if (!response) {
+  try {
+    response = await getStrategy(strategyId);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 403) {
+      return (
+        <>
+          <PageHeader
+            eyebrow="策略详情"
+            title="需要更高会员计划"
+            description="该策略仅向 Pro 或 Premium 会员开放。当前为模拟开通流程，不会产生真实扣款。"
+          />
+          <Card className="membership-upgrade-card">
+            <p>{error.message}</p>
+            <div className="app-hero-actions">
+              <Link className="primary-link" href="/app/membership">
+                查看会员计划
+              </Link>
+              <Link className="secondary-link" href="/app/strategies">
+                返回策略广场
+              </Link>
+            </div>
+          </Card>
+        </>
+      );
+    }
+
     notFound();
   }
 

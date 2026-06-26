@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@quantflow/ui";
@@ -35,13 +36,25 @@ export function StrategySubscriptionControls({
       );
 
       if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          message?: string;
+        } | null;
+        if (response.status === 403) {
+          throw new Error(
+            payload?.message ?? "当前会员计划无法订阅该策略，请升级后重试。",
+          );
+        }
         throw new Error("subscription failed");
       }
 
       setSubscribed(!subscribed);
       setMessage(subscribed ? "已取消订阅。" : "已订阅策略信号。");
-    } catch {
-      setError("操作失败，请稍后重试。Free 计划最多订阅 3 个策略。");
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "操作失败，请稍后重试。",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -57,7 +70,14 @@ export function StrategySubscriptionControls({
         {isSubmitting ? "处理中..." : subscribed ? "取消订阅" : "订阅信号"}
       </Button>
       {message ? <p className="auth-message">{message}</p> : null}
-      {error ? <p className="auth-error">{error}</p> : null}
+      {error ? (
+        <p className="auth-error">
+          {error}{" "}
+          <Link className="inline-link" href="/app/membership">
+            查看会员计划
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,12 @@
 "use client";
 
-import { ChartNoAxesCombined, Layers3, Radio, WalletCards } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  CircleUserRound,
+  Layers3,
+  Radio,
+  WalletCards,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -14,6 +20,8 @@ const routeIcons = {
   "/app/signals": Radio,
   "/app/my-strategies": Layers3,
   "/app/paper-trading": WalletCards,
+  "/app/membership": Layers3,
+  "/app/profile": CircleUserRound,
 } as const;
 
 type AppSidebarProps = {

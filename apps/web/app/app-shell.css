@@ -478,6 +478,10 @@
   gap: 14px;
   padding: 20px;
 }
+.membership-card--active {
+  border-color: var(--qf-accent);
+  box-shadow: 0 0 0 1px rgb(100 116 139 / 0.14);
+}
 .membership-card__header {
   display: flex;
   justify-content: space-between;
@@ -493,13 +497,36 @@
 }
 .membership-card__note {
   margin: 0;
-  color: var(--qf-text-muted);
+  color: var(--qf-text-secondary);
   font-size: 13px;
 }
 .membership-checkout-panel {
   display: grid;
   gap: 14px;
   padding: 24px;
+}
+.membership-upgrade-card {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+}
+.membership-upgrade-card p {
+  margin: 0;
+  color: var(--qf-text-secondary);
+  line-height: 1.65;
+}
+.inline-link {
+  color: var(--qf-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.membership-checkout-panel h2,
+.membership-checkout-panel p {
+  margin: 0;
+}
+.membership-checkout-panel p {
+  color: var(--qf-text-secondary);
+  line-height: 1.65;
 }
 .membership-risk-check {
   display: grid;

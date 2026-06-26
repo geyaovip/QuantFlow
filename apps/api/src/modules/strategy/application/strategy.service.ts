@@ -9,16 +9,23 @@ import type {
   SignalListResponse,
   StrategySubscriptionListResponse,
   StrategySubscriptionResponse,
+  StrategyDetail,
   StrategyDetailResponse,
   StrategyListResponse,
+  UserEntitlements,
 } from "@quantflow/contracts";
 
+import {
+  signalDelayMinutes,
+  tierMeetsRequired,
+} from "../../membership/domain/tier-access.js";
+import { MembershipService } from "../../membership/application/membership.service.js";
 import {
   SignalNotFoundError,
   StrategyNotFoundError,
   StrategySubscriptionLimitError,
+  StrategyTierAccessError,
 } from "../domain/strategy-errors.js";
-import { MembershipService } from "../../membership/application/membership.service.js";
 import {
   STRATEGY_REPOSITORY,
   type AuditContext,
@@ -29,6 +36,14 @@ import {
 
 export const USER_DEFAULT_PAGE_SIZE = 20;
 export const API_MAX_PAGE_SIZE = 100;
+
+const ANONYMOUS_ENTITLEMENTS: UserEntitlements = {
+  tier: "free",
+  planName: "Free",
+  strategySubscriptionsMax: 0,
+  paperAccountsMax: 0,
+  historyDays: 30,
+};
 
 @Injectable()
 export class StrategyService {
@@ -43,6 +58,7 @@ export class StrategyService {
     input: Partial<ListStrategiesInput>,
     userId?: string,
   ): Promise<StrategyListResponse> {
+    const entitlements = await this.resolveEntitlements(userId);
     const page = normalizePage(input.page);
     const pageSize = normalizePageSize(input.pageSize);
     const result = await this.repository.listActiveStrategies(
@@ -55,6 +71,7 @@ export class StrategyService {
         sortBy: input.sortBy,
         sortOrder: input.sortOrder,
         period: input.period,
+        maxTier: entitlements.tier,
       },
       userId,
     );
@@ -69,6 +86,7 @@ export class StrategyService {
     identifier: string,
     userId?: string,
   ): Promise<StrategyDetailResponse> {
+    const entitlements = await this.resolveEntitlements(userId);
     const strategy = await this.repository.findActiveStrategy(
       identifier,
       userId,
@@ -76,14 +94,18 @@ export class StrategyService {
     if (!strategy) {
       throw new StrategyNotFoundError();
     }
+    if (!tierMeetsRequired(entitlements.tier, strategy.requiredTier)) {
+      throw new StrategyTierAccessError(strategy.requiredTier);
+    }
 
-    return { data: strategy };
+    return { data: applyDetailAccess(strategy, entitlements) };
   }
 
   async listSignals(
     input: Partial<ListSignalsInput>,
     userId?: string,
   ): Promise<SignalListResponse> {
+    const entitlements = await this.resolveEntitlements(userId);
     const page = normalizePage(input.page);
     const pageSize = normalizePageSize(input.pageSize);
     const result = await this.repository.listActiveSignals({
@@ -92,6 +114,7 @@ export class StrategyService {
       userId,
       direction: input.direction,
       status: input.status,
+      ...buildSignalAccess(entitlements),
     });
 
     return {
@@ -104,7 +127,10 @@ export class StrategyService {
     signalId: string,
     userId?: string,
   ): Promise<SignalDetailResponse> {
-    const signal = await this.repository.findVisibleSignal(signalId, userId);
+    const entitlements = await this.resolveEntitlements(userId);
+    const signal = await this.repository.findVisibleSignal(signalId, userId, {
+      ...buildSignalAccess(entitlements),
+    });
     if (!signal) {
       throw new SignalNotFoundError();
     }
@@ -117,16 +143,23 @@ export class StrategyService {
     strategyId: string,
   ): Promise<StrategySubscriptionResponse> {
     const entitlements = await this.membershipService.getEntitlements(userId);
-    const activeCount = await this.repository.countActiveSubscriptions(userId);
+    const strategy = await this.repository.findActiveStrategy(
+      strategyId,
+      userId,
+    );
+    if (!strategy) {
+      throw new StrategyNotFoundError();
+    }
+    if (!tierMeetsRequired(entitlements.tier, strategy.requiredTier)) {
+      throw new StrategyTierAccessError(strategy.requiredTier);
+    }
 
-    if (activeCount >= entitlements.strategySubscriptionsMax) {
-      const strategy = await this.repository.findActiveStrategy(
-        strategyId,
-        userId,
-      );
-      if (!strategy?.isSubscribed) {
-        throw new StrategySubscriptionLimitError();
-      }
+    const activeCount = await this.repository.countActiveSubscriptions(userId);
+    if (
+      activeCount >= entitlements.strategySubscriptionsMax &&
+      !strategy.isSubscribed
+    ) {
+      throw new StrategySubscriptionLimitError();
     }
 
     return {
@@ -224,6 +257,14 @@ export class StrategyService {
   ) {
     return this.repository.delistStrategy(strategyId, input, context);
   }
+
+  private async resolveEntitlements(userId?: string) {
+    if (!userId) {
+      return ANONYMOUS_ENTITLEMENTS;
+    }
+
+    return this.membershipService.getEntitlements(userId);
+  }
 }
 
 function normalizePage(page: number | undefined) {
@@ -245,4 +286,47 @@ function buildPagination(page: number, pageSize: number, total: number) {
     total,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
   };
+}
+
+function buildSignalAccess(entitlements: UserEntitlements) {
+  const now = Date.now();
+  const delayMinutes = signalDelayMinutes(entitlements.tier);
+
+  return {
+    historySince: new Date(now - entitlements.historyDays * 86_400_000),
+    signalVisibleBefore:
+      delayMinutes > 0 ? new Date(now - delayMinutes * 60_000) : undefined,
+  };
+}
+
+function applyDetailAccess(
+  strategy: StrategyDetail,
+  entitlements: UserEntitlements,
+): StrategyDetail {
+  const access = buildSignalAccess(entitlements);
+
+  return {
+    ...strategy,
+    recentSignals: strategy.recentSignals.filter((signal) =>
+      isSignalAccessible(signal.generatedAt, access),
+    ),
+  };
+}
+
+function isSignalAccessible(
+  generatedAt: string,
+  access: Pick<ListSignalsInput, "historySince" | "signalVisibleBefore">,
+) {
+  const timestamp = new Date(generatedAt).getTime();
+  if (access.historySince && timestamp < access.historySince.getTime()) {
+    return false;
+  }
+  if (
+    access.signalVisibleBefore &&
+    timestamp > access.signalVisibleBefore.getTime()
+  ) {
+    return false;
+  }
+
+  return true;
 }
