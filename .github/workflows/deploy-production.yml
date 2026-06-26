@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: quantflow-production
@@ -18,6 +19,32 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v5
+
+      - name: Set image registry
+        run: |
+          echo "IMAGE_REGISTRY=ghcr.io/${{ github.repository_owner }}/quantflow" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push release image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker buildx build \
+            --file deploy/Dockerfile.release \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --tag "$IMAGE_REGISTRY/app:$IMAGE_TAG" \
+            --push \
+            .
 
       - name: Install SSH key
         env:
@@ -50,10 +77,12 @@ jobs:
           DEPLOY_PATH: ${{ vars.QUANTFLOW_DEPLOY_PATH }}
           DEPLOY_USER: ${{ vars.QUANTFLOW_DEPLOY_USER }}
           IMAGE_TAG: ${{ github.sha }}
+          GHCR_USERNAME: ${{ github.repository_owner }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ssh -i ~/.ssh/quantflow_deploy -o IdentitiesOnly=yes \
             "$DEPLOY_USER@$DEPLOY_HOST" \
-            "cd '$DEPLOY_PATH' && chmod +x scripts/deploy-production.sh && QUANTFLOW_IMAGE_TAG='$IMAGE_TAG' scripts/deploy-production.sh"
+            "cd '$DEPLOY_PATH' && chmod +x scripts/deploy-production.sh && QUANTFLOW_IMAGE_TAG='$IMAGE_TAG' QUANTFLOW_IMAGE_REGISTRY='${IMAGE_REGISTRY}' QUANTFLOW_BUILD_ON_VPS='false' QUANTFLOW_GHCR_USERNAME='$GHCR_USERNAME' QUANTFLOW_GHCR_TOKEN='$GHCR_TOKEN' scripts/deploy-production.sh"
 
       - name: Verify public endpoints
         env:

@@ -7,6 +7,9 @@ APP_ROOT=${QUANTFLOW_APP_ROOT:-/home/ubuntu/apps/quantflow}
 ENV_FILE=${QUANTFLOW_ENV_FILE:-$APP_ROOT/shared/.env}
 IMAGE_REGISTRY=${QUANTFLOW_IMAGE_REGISTRY:-quantflow}
 IMAGE_TAG=${QUANTFLOW_IMAGE_TAG:-$(git -C "$ROOT" rev-parse --short=12 HEAD)}
+BUILD_ON_VPS=${QUANTFLOW_BUILD_ON_VPS:-true}
+GHCR_USERNAME=${QUANTFLOW_GHCR_USERNAME:-}
+GHCR_TOKEN=${QUANTFLOW_GHCR_TOKEN:-}
 CURRENT_TAG_FILE=$APP_ROOT/current-image-tag
 COMPOSE_FILE=$ROOT/deploy/compose.production.yml
 
@@ -66,7 +69,27 @@ prune_old_release_images() {
   docker builder prune --force --filter "until=168h" >/dev/null
 }
 
-build_release_image
+ensure_registry_login() {
+  case "$IMAGE_REGISTRY" in
+    ghcr.io/*)
+      if [ -z "$GHCR_TOKEN" ] || [ -z "$GHCR_USERNAME" ]; then
+        echo "missing GHCR credentials for private image registry: $IMAGE_REGISTRY" >&2
+        exit 1
+      fi
+      echo "logging in to GHCR as: $GHCR_USERNAME"
+      printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin >/dev/null
+      trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+      ;;
+  esac
+}
+
+if [ "$BUILD_ON_VPS" = "true" ]; then
+  build_release_image
+else
+  ensure_registry_login
+  echo "skipping on-host build; pulling release image: $IMAGE_REGISTRY/app:$IMAGE_TAG"
+  compose "$IMAGE_TAG" pull ""
+fi
 
 compose "$IMAGE_TAG" up "-d --no-recreate postgres"
 compose "$IMAGE_TAG" run "--rm api pnpm --filter @quantflow/api db:deploy"

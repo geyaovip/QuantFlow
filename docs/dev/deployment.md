@@ -57,12 +57,23 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 ## 6. 发布与回滚
 
 1. PR 必须通过文档、lint、typecheck、unit、contract 和 build 门禁。
-2. 生产发布由 `.github/workflows/deploy-production.yml` 通过 SSH/rsync 同步固定 commit，再调用 `scripts/deploy-production.sh` 构建一个统一 release 镜像、启动 PostgreSQL、执行 `prisma migrate deploy`、更新 Compose 服务并检查 VPS 本机健康端点。GitHub runner 不直接用公网域名作为发布判定，避免 Cloudflare/WAF 对 CI 出口 IP 返回 403 造成误失败。
+2. 生产发布由 `.github/workflows/deploy-production.yml` 在 GitHub Actions 中构建统一 release 镜像并推送到 GHCR，然后通过 SSH/rsync 同步固定 commit 到 VPS，再调用 `scripts/deploy-production.sh` 在 VPS 上登录 GHCR、拉取指定 commit 镜像、启动 PostgreSQL、执行 `prisma migrate deploy`、更新 Compose 服务并检查 VPS 本机健康端点。GitHub runner 不直接用公网域名作为发布判定，避免 Cloudflare/WAF 对 CI 出口 IP 返回 403 造成误失败。
 3. migration 失败必须阻断发布；健康检查失败立即恢复上一镜像 tag。数据库变更优先前滚，任何不可逆 migration 必须先备份并单独审批。
 4. Worker 和 API 不得同时运行不兼容 schema；发布顺序遵循 expand → migrate → deploy → contract。
 
-当前仓库已初始化 Web、Admin、API 和 Worker。`deploy/Dockerfile.release` 构建统一镜像 `quantflow/app:<tag>`，`deploy/compose.production.yml` 通过服务级 `APP=web|admin|api|worker` 启动不同进程；该方式避免四个镜像重复安装依赖、重复构建和重复复制 runtime 层。部署失败时脚本恢复上一健康镜像 tag。
+当前仓库已初始化 Web、Admin、API 和 Worker。`deploy/Dockerfile.release` 构建统一镜像 `ghcr.io/geyaovip/quantflow/app:<commit-sha>`，`deploy/compose.production.yml` 通过服务级 `APP=web|admin|api|worker` 启动不同进程；该方式避免四个镜像重复安装依赖、重复构建和重复复制 runtime 层。部署失败时脚本恢复上一健康镜像 tag。
 
-部署脚本在构建前清理 dangling 镜像；发布成功后只保留当前 release 镜像和上一健康 release 镜像，并清理 7 天前的 build cache。共享 VPS 根分区可用空间低于 10GB 时不得继续发布，需先检查 `docker system df`，确认不删除 PostgreSQL volume 的前提下清理旧应用镜像。
+GitHub Actions 使用 Buildx 和 GitHub Actions cache 缓存镜像层，VPS 不再承担默认构建压力。`scripts/deploy-production.sh` 保留 `QUANTFLOW_BUILD_ON_VPS=true` 作为应急回退；正常生产发布必须使用 `QUANTFLOW_BUILD_ON_VPS=false` 从 GHCR 拉取镜像。发布成功后只保留当前 release 镜像和上一健康 release 镜像，并清理 7 天前的 build cache。共享 VPS 根分区可用空间低于 10GB 时不得继续发布，需先检查 `docker system df`，确认不删除 PostgreSQL volume 的前提下清理旧应用镜像。
+
+生产 GitHub Environment `production` 至少需要：
+
+| 类型 | 名称 | 用途 |
+| --- | --- | --- |
+| Variable | `QUANTFLOW_DEPLOY_HOST` | VPS 主机名或 IP |
+| Variable | `QUANTFLOW_DEPLOY_USER` | SSH 用户，当前为 `ubuntu` |
+| Variable | `QUANTFLOW_DEPLOY_PATH` | VPS 代码目录，当前为 `/home/ubuntu/apps/quantflow/current` |
+| Secret | `QUANTFLOW_DEPLOY_SSH_KEY` | 只允许部署 QuantFlow 的 SSH 私钥 |
+
+GHCR 推送和部署拉取使用 workflow 自带 `GITHUB_TOKEN`，仓库 workflow permissions 必须允许 Actions 写入 packages。不要额外创建长期 `QUANTFLOW_GHCR_TOKEN`，除非未来需要跨仓库、跨组织或人工从 VPS 拉取私有镜像。
 
 当前生产仓库为 [geyaovip/QuantFlow](https://github.com/geyaovip/QuantFlow)（private）。PostgreSQL 18 named volume 挂载到 `/var/lib/postgresql`，以符合 18+ 官方镜像的版本化数据目录布局。
