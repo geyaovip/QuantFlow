@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import type { UserSession } from "../lib/auth-session";
 import { Brand } from "./brand";
 
 const navigation = [
@@ -17,7 +18,12 @@ const navigation = [
   { href: "/app/profile", label: "我的", Icon: CircleUserRound },
 ];
 
-export function UserAppShell({ children }: { children: ReactNode }) {
+type UserAppShellProps = {
+  children: ReactNode;
+  session: UserSession | null;
+};
+
+export function UserAppShell({ children, session }: UserAppShellProps) {
   return (
     <div className="user-app-shell">
       <header className="app-topbar">
@@ -32,6 +38,11 @@ export function UserAppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="app-topbar__actions">
+          {!session ? (
+            <Link className="app-login-link" href="/login?next=/app/strategies">
+              登录
+            </Link>
+          ) : null}
           <button className="icon-button" type="button" aria-label="通知">
             <Bell aria-hidden="true" size={19} />
           </button>
