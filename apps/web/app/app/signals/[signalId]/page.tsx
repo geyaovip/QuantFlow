@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
-import { Badge, Button, Card, PageHeader, RiskBadge } from "@quantflow/ui";
+import { Badge, Card, PageHeader, RiskBadge } from "@quantflow/ui";
 
+import { PaperAccountCreateForm } from "../../../../components/paper-account-create-form";
 import { getSignal } from "../../../../lib/strategy-api";
 import {
   formatDateTime,
@@ -39,11 +40,6 @@ export default async function SignalDetailPage({
         eyebrow="信号详情"
         title={`${signal.strategyName} · ${formatSignalDirection(signal.direction)}`}
         description="信号仅用于观察和模拟验证，不提供真实下单、半自动或自动交易入口。"
-        action={
-          <Button disabled variant="secondary">
-            加入模拟盘待接入
-          </Button>
-        }
       />
       <section className="signal-detail-grid">
         <Card className="signal-card">
@@ -87,6 +83,31 @@ export default async function SignalDetailPage({
           </div>
           <p className="signal-card__rationale">{signal.rationale}</p>
         </Card>
+        {signal.status === "active" ? (
+          <Card className="paper-create-panel">
+            <h2>创建模拟盘</h2>
+            <p>
+              创建后可按 paper-engine-v1
+              规则尝试模拟执行该信号。观望信号仅创建账户，不自动成交。
+            </p>
+            <PaperAccountCreateForm
+              defaults={{
+                strategyId: signal.strategyId,
+                symbol: signal.symbol,
+                name: `${signal.strategyName} 模拟盘`,
+                initialBalance: "10000.00",
+                maxPositionPct: "0.10",
+                maxPositions: 3,
+                signalId: signal.id,
+              }}
+              submitLabel={
+                signal.direction === "watch"
+                  ? "创建模拟盘"
+                  : "创建并模拟执行信号"
+              }
+            />
+          </Card>
+        ) : null}
         <Card className="app-section-card">
           <div className="app-section-card__header">
             <div>

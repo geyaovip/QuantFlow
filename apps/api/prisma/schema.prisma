@@ -143,6 +143,45 @@ enum UserSubscriptionSource {
   @@map("user_subscription_source")
 }
 
+enum PaperAccountStatus {
+  running
+  paused
+  ended
+  data_error
+  strategy_paused
+
+  @@map("paper_account_status")
+}
+
+enum PaperOrderSide {
+  buy
+  sell
+
+  @@map("paper_order_side")
+}
+
+enum PaperOrderType {
+  market
+
+  @@map("paper_order_type")
+}
+
+enum PaperOrderStatus {
+  pending
+  filled
+  cancelled
+  rejected
+
+  @@map("paper_order_status")
+}
+
+enum PaperPositionStatus {
+  open
+  closed
+
+  @@map("paper_position_status")
+}
+
 model User {
   id              String                     @id @default(uuid()) @db.Uuid
   emailNormalized String                     @unique @map("email_normalized")
@@ -154,6 +193,7 @@ model User {
   securityEvents  UserSecurityEvent[]
   subscriptions   UserStrategySubscription[]
   membershipSubs  UserSubscription[]
+  paperAccounts   PaperAccount[]
 
   @@map("users")
 }
@@ -245,6 +285,7 @@ model Strategy {
   signals              StrategySignal[]
   subscriptions        UserStrategySubscription[]
   auditLogs            AdminAuditLog[]
+  paperAccounts        PaperAccount[]
 
   @@index([status, riskLevel, publishedAt(sort: Desc), id], map: "idx_strategies_list")
   @@map("strategies")
@@ -267,6 +308,7 @@ model StrategyVersion {
   createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   metrics          StrategyMetric[]
   signals          StrategySignal[]
+  paperAccounts    PaperAccount[]
 
   @@unique([strategyId, version], map: "uniq_strategy_versions_version")
   @@index([strategyId, version(sort: Desc)], map: "idx_strategy_versions_latest")
@@ -314,6 +356,7 @@ model StrategySignal {
   validUntil           DateTime        @map("valid_until") @db.Timestamptz(6)
   createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  paperOrders          PaperOrder[]
 
   @@index([status, generatedAt(sort: Desc), id], map: "idx_strategy_signals_list")
   @@index([strategyId, status, generatedAt(sort: Desc), id], map: "idx_strategy_signals_strategy")
@@ -406,4 +449,164 @@ model UserSubscription {
 
   @@index([userId, status, endsAt(sort: Desc), id(sort: Desc)], map: "idx_user_subscriptions_user")
   @@map("user_subscriptions")
+}
+
+enum MarketSymbolStatus {
+  active
+  inactive
+
+  @@map("market_symbol_status")
+}
+
+model MarketSymbol {
+  id                String               @id @default(uuid()) @db.Uuid
+  symbol            String               @unique
+  baseAsset         String               @map("base_asset")
+  quoteAsset        String               @map("quote_asset")
+  status            MarketSymbolStatus   @default(active)
+  pricePrecision    Int                  @default(2) @map("price_precision")
+  quantityPrecision Int                  @default(8) @map("quantity_precision")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+  priceSnapshots    MarketPriceSnapshot[]
+
+  @@map("market_symbols")
+}
+
+model MarketPriceSnapshot {
+  id         String       @id @default(uuid()) @db.Uuid
+  symbolId   String       @map("symbol_id") @db.Uuid
+  symbol     MarketSymbol @relation(fields: [symbolId], references: [id])
+  price      Decimal      @db.Decimal(28, 8)
+  volume     Decimal?     @db.Decimal(28, 8)
+  changeRate Decimal?     @map("change_rate") @db.Decimal(18, 8)
+  source     String       @default("seed")
+  capturedAt DateTime     @map("captured_at") @db.Timestamptz(6)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([symbolId, capturedAt(sort: Desc)], map: "idx_market_price_snapshots_symbol_time")
+  @@map("market_price_snapshots")
+}
+
+model PaperAccount {
+  id                String             @id @default(uuid()) @db.Uuid
+  userId            String             @map("user_id") @db.Uuid
+  user              User               @relation(fields: [userId], references: [id])
+  strategyId        String             @map("strategy_id") @db.Uuid
+  strategy          Strategy           @relation(fields: [strategyId], references: [id])
+  strategyVersionId String             @map("strategy_version_id") @db.Uuid
+  strategyVersion   StrategyVersion    @relation(fields: [strategyVersionId], references: [id])
+  symbol            String
+  name              String
+  initialBalance    Decimal            @map("initial_balance") @db.Decimal(28, 8)
+  cashBalance       Decimal            @map("cash_balance") @db.Decimal(28, 8)
+  currentEquity     Decimal            @map("current_equity") @db.Decimal(28, 8)
+  peakEquity        Decimal            @map("peak_equity") @db.Decimal(28, 8)
+  maxDrawdown       Decimal            @default(0) @map("max_drawdown") @db.Decimal(18, 8)
+  maxPositionPct    Decimal            @map("max_position_pct") @db.Decimal(18, 8)
+  maxPositions      Int                @map("max_positions")
+  leverage          Int                @default(1)
+  engineVersion     String             @default("paper-engine-v1") @map("engine_version")
+  status            PaperAccountStatus @default(running)
+  startedAt         DateTime           @default(now()) @map("started_at") @db.Timestamptz(6)
+  pausedAt          DateTime?          @map("paused_at") @db.Timestamptz(6)
+  endedAt           DateTime?          @map("ended_at") @db.Timestamptz(6)
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  positions         PaperPosition[]
+  orders            PaperOrder[]
+  trades            PaperTrade[]
+  performancePoints PaperPerformancePoint[]
+  riskEvents        PaperRiskEvent[]
+
+  @@index([userId, status, createdAt(sort: Desc), id(sort: Desc)], map: "idx_paper_accounts_user")
+  @@map("paper_accounts")
+}
+
+model PaperPosition {
+  id               String              @id @default(uuid()) @db.Uuid
+  accountId        String              @map("account_id") @db.Uuid
+  account          PaperAccount        @relation(fields: [accountId], references: [id])
+  symbol           String
+  side             PaperOrderSide      @default(buy)
+  quantity         Decimal             @db.Decimal(28, 8)
+  averagePrice     Decimal             @map("average_price") @db.Decimal(28, 8)
+  markPrice        Decimal             @map("mark_price") @db.Decimal(28, 8)
+  unrealizedPnl    Decimal             @map("unrealized_pnl") @db.Decimal(28, 8)
+  status           PaperPositionStatus @default(open)
+  openedAt         DateTime            @default(now()) @map("opened_at") @db.Timestamptz(6)
+  closedAt         DateTime?           @map("closed_at") @db.Timestamptz(6)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([accountId, status], map: "idx_paper_positions_account")
+  @@map("paper_positions")
+}
+
+model PaperOrder {
+  id             String           @id @default(uuid()) @db.Uuid
+  accountId      String           @map("account_id") @db.Uuid
+  account        PaperAccount     @relation(fields: [accountId], references: [id])
+  signalId       String?          @map("signal_id") @db.Uuid
+  signal         StrategySignal?  @relation(fields: [signalId], references: [id])
+  side           PaperOrderSide
+  type           PaperOrderType   @default(market)
+  price          Decimal?         @db.Decimal(28, 8)
+  quantity       Decimal          @db.Decimal(28, 8)
+  status         PaperOrderStatus @default(pending)
+  rejectReason   String?          @map("reject_reason")
+  engineSnapshot Json?            @map("engine_snapshot")
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  trade          PaperTrade?
+
+  @@index([accountId, createdAt(sort: Desc), id(sort: Desc)], map: "idx_paper_orders_account")
+  @@map("paper_orders")
+}
+
+model PaperTrade {
+  id               String       @id @default(uuid()) @db.Uuid
+  accountId        String       @map("account_id") @db.Uuid
+  account          PaperAccount @relation(fields: [accountId], references: [id])
+  orderId          String       @unique @map("order_id") @db.Uuid
+  order            PaperOrder   @relation(fields: [orderId], references: [id])
+  price            Decimal      @db.Decimal(28, 8)
+  quantity         Decimal      @db.Decimal(28, 8)
+  fee              Decimal      @db.Decimal(28, 8)
+  realizedPnl      Decimal      @default(0) @map("realized_pnl") @db.Decimal(28, 8)
+  executedAt       DateTime     @default(now()) @map("executed_at") @db.Timestamptz(6)
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([accountId, executedAt(sort: Desc), id(sort: Desc)], map: "idx_paper_trades_account")
+  @@map("paper_trades")
+}
+
+model PaperPerformancePoint {
+  id             String       @id @default(uuid()) @db.Uuid
+  accountId      String       @map("account_id") @db.Uuid
+  account        PaperAccount @relation(fields: [accountId], references: [id])
+  equity         Decimal      @db.Decimal(28, 8)
+  returnRate     Decimal      @map("return_rate") @db.Decimal(18, 8)
+  drawdown       Decimal      @db.Decimal(18, 8)
+  positionCount  Int          @map("position_count")
+  recordedAt     DateTime     @default(now()) @map("recorded_at") @db.Timestamptz(6)
+
+  @@unique([accountId, recordedAt], map: "uniq_paper_performance_points_account_time")
+  @@index([accountId, recordedAt(sort: Desc)], map: "idx_paper_performance_points_account")
+  @@map("paper_performance_points")
+}
+
+model PaperRiskEvent {
+  id         String       @id @default(uuid()) @db.Uuid
+  accountId  String       @map("account_id") @db.Uuid
+  account    PaperAccount @relation(fields: [accountId], references: [id])
+  type       String
+  riskLevel  RiskLevel    @map("risk_level")
+  message    String
+  payload    Json?
+  occurredAt DateTime     @default(now()) @map("occurred_at") @db.Timestamptz(6)
+
+  @@index([accountId, occurredAt(sort: Desc), id(sort: Desc)], map: "idx_paper_risk_events_account")
+  @@map("paper_risk_events")
 }

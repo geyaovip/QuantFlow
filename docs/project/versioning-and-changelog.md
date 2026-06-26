@@ -31,6 +31,26 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.4.0-dev.2` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Docs
+- 摘要：补齐 v0.4 模拟盘生命周期与管理端：结束/复制/软删除、分页子资源、历史最大回撤、行情快照校验与管理端治理。
+- MVP 边界影响：无；仍为模拟盘，无交易所连接或真实资产。
+- API / 数据 / 权限 / 风控影响：新增 `POST .../end`、`.../copies`、`DELETE ...`、`GET .../positions|orders|trades|performance|risk-events`；`GET/POST /api/v1/admin/paper-accounts*`；`paper_accounts.max_drawdown` 与 `market_symbols`/`market_price_snapshots`。
+- 迁移与兼容：新增 migration `202606260005_paper_v04_polish`。
+- 验证：`pnpm check`。
+- 监控与回滚：如模拟盘状态机或行情校验异常，可回滚 release 镜像。
+
+### `v0.4.0-dev.1` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Docs
+- 摘要：落地 v0.4 模拟盘垂直切片：信号页创建模拟盘、`paper-engine-v1` 模拟成交、权益/回撤跟踪与模拟盘详情页。
+- MVP 边界影响：无；仍为模拟盘，无交易所连接、真实资产或半自动/自动交易。
+- API / 数据 / 权限 / 风控影响：新增 `GET/POST /api/v1/paper-accounts*`、`POST .../execute-signal`、`.../pause`、`.../resume`；创建校验会员 `paper_accounts_max` 与策略订阅；成交使用信号快照价与版本化费率/滑点。
+- 迁移与兼容：新增 migration `202606260004_paper_trading_foundation`。
+- 验证：`pnpm check`。
+- 监控与回滚：如模拟成交或权益计算异常，可回滚 release 镜像；模拟数据保留在数据库中。
+
 ### `v0.3.0-dev.5` - 2026-06-26
 
 - 类型：Changed / Backend / Frontend / Design / Docs

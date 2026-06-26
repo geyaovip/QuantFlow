@@ -1,6 +1,15 @@
 import { PageHeader } from "@quantflow/ui";
 
-export default function PaperAccountsPage() {
+import { AdminPaperConsole } from "../../../components/admin-paper-console";
+import { getAdminPaperAccounts } from "../../../lib/paper-api";
+import { resolveApiBaseUrl } from "../../../lib/strategy-api";
+
+export default async function PaperAccountsPage() {
+  const accounts = await getAdminPaperAccounts().catch(() => ({
+    data: [],
+    pagination: { page: 1, pageSize: 50, total: 0, totalPages: 1 },
+  }));
+
   return (
     <>
       <PageHeader
@@ -8,12 +17,10 @@ export default function PaperAccountsPage() {
         title="模拟盘管理"
         description="这里只管理模拟余额、模拟订单与风险事件，不存在真实资产或订单。"
       />
-      <div className="admin-empty">
-        <strong>暂无模拟盘记录</strong>
-        <span>
-          用户创建模拟盘后会在这里展示权益、回撤、订单状态和风险事件。
-        </span>
-      </div>
+      <AdminPaperConsole
+        apiBaseUrl={resolveApiBaseUrl()}
+        accounts={accounts.data}
+      />
     </>
   );
 }

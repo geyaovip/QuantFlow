@@ -99,20 +99,21 @@ MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件
 
 ## 4. 模拟盘
 
-| 方法   | 路径                                      | 用途                                 |
-| ------ | ----------------------------------------- | ------------------------------------ |
-| GET    | `/paper-accounts`                         | 当前用户模拟盘列表                   |
-| POST   | `/paper-accounts`                         | 创建模拟盘；校验权益、参数和风险确认 |
-| GET    | `/paper-accounts/{accountId}`             | 详情、模拟权益、回撤、持仓、参数版本 |
-| POST   | `/paper-accounts/{accountId}/pause`       | 暂停；状态机校验                     |
-| POST   | `/paper-accounts/{accountId}/resume`      | 恢复；重新校验策略与行情状态         |
-| POST   | `/paper-accounts/{accountId}/copies`      | 复制配置并创建新模拟盘               |
-| DELETE | `/paper-accounts/{accountId}`             | 软删除已结束/暂停的模拟盘            |
-| GET    | `/paper-accounts/{accountId}/positions`   | 模拟持仓                             |
-| GET    | `/paper-accounts/{accountId}/orders`      | 模拟订单                             |
-| GET    | `/paper-accounts/{accountId}/trades`      | 模拟成交                             |
-| GET    | `/paper-accounts/{accountId}/performance` | 模拟权益与回撤序列                   |
-| GET    | `/paper-accounts/{accountId}/risk-events` | 风险事件                             |
+| 方法   | 路径                                         | 用途                                                    |
+| ------ | -------------------------------------------- | ------------------------------------------------------- |
+| GET    | `/paper-accounts`                            | 当前用户模拟盘列表                                      |
+| POST   | `/paper-accounts`                            | 创建模拟盘；校验权益、参数和风险确认                    |
+| GET    | `/paper-accounts/{accountId}`                | 详情、模拟权益、回撤、持仓、参数版本                    |
+| POST   | `/paper-accounts/{accountId}/execute-signal` | 按信号执行模拟成交；校验风险确认与 paper-engine-v1 规则 |
+| POST   | `/paper-accounts/{accountId}/pause`          | 暂停；状态机校验                                        |
+| POST   | `/paper-accounts/{accountId}/resume`         | 恢复；重新校验策略与行情状态                            |
+| POST   | `/paper-accounts/{accountId}/copies`         | 复制配置并创建新模拟盘                                  |
+| DELETE | `/paper-accounts/{accountId}`                | 软删除已结束/暂停的模拟盘                               |
+| GET    | `/paper-accounts/{accountId}/positions`      | 模拟持仓                                                |
+| GET    | `/paper-accounts/{accountId}/orders`         | 模拟订单                                                |
+| GET    | `/paper-accounts/{accountId}/trades`         | 模拟成交                                                |
+| GET    | `/paper-accounts/{accountId}/performance`    | 模拟权益与回撤序列                                      |
+| GET    | `/paper-accounts/{accountId}/risk-events`    | 风险事件                                                |
 
 创建请求示例：
 

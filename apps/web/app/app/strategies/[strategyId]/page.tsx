@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Badge, Button, Card, PageHeader, RiskBadge } from "@quantflow/ui";
+import { Badge, Card, PageHeader, RiskBadge } from "@quantflow/ui";
 
 import { StrategySubscriptionControls } from "../../../../components/strategy-subscription-controls";
+import { PaperAccountCreateForm } from "../../../../components/paper-account-create-form";
 import { ApiError } from "../../../../lib/api-error";
 import { resolveApiBaseUrl } from "../../../../lib/auth-session";
 import { getStrategy } from "../../../../lib/strategy-api";
@@ -244,11 +245,24 @@ export default async function StrategyDetailPage({
           <h2>模拟盘入口</h2>
           <p>
             当前策略订阅状态：{strategy.isSubscribed ? "已订阅" : "未订阅"}。
-            模拟盘创建正在接入中，后续仅使用模拟资金记录策略过程，不连接交易所或真实资产。
+            模拟盘仅使用模拟资金记录策略过程，不连接交易所或真实资产。
           </p>
-          <Button disabled variant="secondary">
-            创建模拟盘待接入
-          </Button>
+          {strategy.isSubscribed ? (
+            <PaperAccountCreateForm
+              defaults={{
+                strategyId: strategy.id,
+                symbol: strategy.symbols[0] ?? "BTCUSDT",
+                name: `${strategy.name} 模拟盘`,
+                initialBalance: "10000.00",
+                maxPositionPct: "0.10",
+                maxPositions: 3,
+              }}
+              redirectTo="list"
+              submitLabel="创建模拟盘"
+            />
+          ) : (
+            <p className="app-muted-copy">请先订阅策略信号，再创建模拟盘。</p>
+          )}
         </Card>
         <Card className="strategy-detail-side">
           <h2>阅读顺序</h2>

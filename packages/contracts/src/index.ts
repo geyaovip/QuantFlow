@@ -271,6 +271,172 @@ export const securityEventListResponseSchema = z.object({
   pagination: paginationSchema,
 });
 
+export const paperAccountStatusSchema = z.enum([
+  "running",
+  "paused",
+  "ended",
+  "data_error",
+  "strategy_paused",
+]);
+
+export const paperAccountListItemSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  symbol: z.string(),
+  strategyId: z.uuid(),
+  strategyName: z.string(),
+  status: paperAccountStatusSchema,
+  initialBalance: z.string(),
+  currentEquity: z.string(),
+  returnRate: z.string(),
+  maxDrawdown: z.string(),
+  startedAt: z.iso.datetime(),
+  isSimulated: z.literal(true),
+});
+
+export const paperAccountListResponseSchema = z.object({
+  data: z.array(paperAccountListItemSchema),
+  pagination: paginationSchema,
+});
+
+export const paperPositionSchema = z.object({
+  id: z.uuid(),
+  symbol: z.string(),
+  side: z.enum(["buy", "sell"]),
+  quantity: z.string(),
+  averagePrice: z.string(),
+  markPrice: z.string(),
+  unrealizedPnl: z.string(),
+  status: z.enum(["open", "closed"]),
+});
+
+export const paperTradeSchema = z.object({
+  id: z.uuid(),
+  side: z.enum(["buy", "sell"]),
+  price: z.string(),
+  quantity: z.string(),
+  fee: z.string(),
+  realizedPnl: z.string(),
+  executedAt: z.iso.datetime(),
+});
+
+export const paperPerformancePointSchema = z.object({
+  equity: z.string(),
+  returnRate: z.string(),
+  drawdown: z.string(),
+  positionCount: z.number().int().min(0),
+  recordedAt: z.iso.datetime(),
+});
+
+export const paperRiskEventSchema = z.object({
+  id: z.uuid(),
+  type: z.string(),
+  riskLevel: riskLevelSchema,
+  message: z.string(),
+  occurredAt: z.iso.datetime(),
+});
+
+export const paperAccountDetailSchema = paperAccountListItemSchema.extend({
+  cashBalance: z.string(),
+  maxPositionPct: z.string(),
+  maxPositions: z.number().int().min(1),
+  engineVersion: z.string(),
+  positions: z.array(paperPositionSchema),
+  recentTrades: z.array(paperTradeSchema),
+  performance: z.array(paperPerformancePointSchema),
+  riskEvents: z.array(paperRiskEventSchema),
+  riskDisclosure: z.string(),
+});
+
+export const paperAccountDetailResponseSchema = z.object({
+  data: paperAccountDetailSchema,
+});
+
+export const paperAccountCreateSchema = z.object({
+  strategyId: z.uuid(),
+  symbol: z.string().min(3),
+  name: z.string().min(1).max(80),
+  initialBalance: z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/)
+    .default("10000.00"),
+  maxPositionPct: z
+    .string()
+    .regex(/^0(\.\d+)?$|^1(\.0+)?$/)
+    .default("0.10"),
+  maxPositions: z.number().int().min(1).max(10).default(3),
+  signalId: z.uuid().optional(),
+  riskDisclosureVersion: z.literal("risk-v1"),
+  riskAccepted: z.literal(true),
+});
+
+export const paperExecuteSignalSchema = z.object({
+  signalId: z.uuid(),
+  riskAccepted: z.literal(true),
+});
+
+export const paperAccountCopySchema = z.object({
+  name: z.string().min(1).max(80).optional(),
+  riskDisclosureVersion: z.literal("risk-v1"),
+  riskAccepted: z.literal(true),
+});
+
+export const paperOrderSchema = z.object({
+  id: z.uuid(),
+  signalId: z.uuid().nullable(),
+  side: z.enum(["buy", "sell"]),
+  type: z.literal("market"),
+  price: z.string().nullable(),
+  quantity: z.string(),
+  status: z.enum(["pending", "filled", "cancelled", "rejected"]),
+  rejectReason: z.string().nullable(),
+  createdAt: z.iso.datetime(),
+});
+
+export const paperPositionListResponseSchema = z.object({
+  data: z.array(paperPositionSchema),
+  pagination: paginationSchema,
+});
+
+export const paperOrderListResponseSchema = z.object({
+  data: z.array(paperOrderSchema),
+  pagination: paginationSchema,
+});
+
+export const paperTradeListResponseSchema = z.object({
+  data: z.array(paperTradeSchema),
+  pagination: paginationSchema,
+});
+
+export const paperPerformanceListResponseSchema = z.object({
+  data: z.array(paperPerformancePointSchema),
+  pagination: paginationSchema,
+});
+
+export const paperRiskEventListResponseSchema = z.object({
+  data: z.array(paperRiskEventSchema),
+  pagination: paginationSchema,
+});
+
+export const adminPaperAccountListItemSchema =
+  paperAccountListItemSchema.extend({
+    userId: z.uuid(),
+    userEmail: z.string(),
+  });
+
+export const adminPaperAccountListResponseSchema = z.object({
+  data: z.array(adminPaperAccountListItemSchema),
+  pagination: paginationSchema,
+});
+
+export const adminPaperAccountActionResponseSchema = z.object({
+  data: adminPaperAccountListItemSchema,
+});
+
+export const adminPaperAccountActionSchema = z.object({
+  reason: z.string().min(3),
+});
+
 export type EmailOtpRequest = z.infer<typeof emailOtpRequestSchema>;
 export type EmailOtpRequestResponse = z.infer<
   typeof emailOtpRequestResponseSchema
@@ -333,6 +499,50 @@ export type MembershipMockCheckout = z.infer<
 export type SecurityEvent = z.infer<typeof securityEventSchema>;
 export type SecurityEventListResponse = z.infer<
   typeof securityEventListResponseSchema
+>;
+export type PaperAccountStatus = z.infer<typeof paperAccountStatusSchema>;
+export type PaperAccountListItem = z.infer<typeof paperAccountListItemSchema>;
+export type PaperAccountListResponse = z.infer<
+  typeof paperAccountListResponseSchema
+>;
+export type PaperPosition = z.infer<typeof paperPositionSchema>;
+export type PaperTrade = z.infer<typeof paperTradeSchema>;
+export type PaperPerformancePoint = z.infer<typeof paperPerformancePointSchema>;
+export type PaperRiskEvent = z.infer<typeof paperRiskEventSchema>;
+export type PaperAccountDetail = z.infer<typeof paperAccountDetailSchema>;
+export type PaperAccountDetailResponse = z.infer<
+  typeof paperAccountDetailResponseSchema
+>;
+export type PaperAccountCreate = z.infer<typeof paperAccountCreateSchema>;
+export type PaperExecuteSignal = z.infer<typeof paperExecuteSignalSchema>;
+export type PaperAccountCopy = z.infer<typeof paperAccountCopySchema>;
+export type PaperOrder = z.infer<typeof paperOrderSchema>;
+export type PaperPositionListResponse = z.infer<
+  typeof paperPositionListResponseSchema
+>;
+export type PaperOrderListResponse = z.infer<
+  typeof paperOrderListResponseSchema
+>;
+export type PaperTradeListResponse = z.infer<
+  typeof paperTradeListResponseSchema
+>;
+export type PaperPerformanceListResponse = z.infer<
+  typeof paperPerformanceListResponseSchema
+>;
+export type PaperRiskEventListResponse = z.infer<
+  typeof paperRiskEventListResponseSchema
+>;
+export type AdminPaperAccountListItem = z.infer<
+  typeof adminPaperAccountListItemSchema
+>;
+export type AdminPaperAccountListResponse = z.infer<
+  typeof adminPaperAccountListResponseSchema
+>;
+export type AdminPaperAccountActionResponse = z.infer<
+  typeof adminPaperAccountActionResponseSchema
+>;
+export type AdminPaperAccountAction = z.infer<
+  typeof adminPaperAccountActionSchema
 >;
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
