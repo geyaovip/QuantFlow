@@ -38,7 +38,7 @@
   .strategy-detail-metrics {
     grid-template-columns: repeat(2, 1fr);
   }
-  .product-preview__grid {
+  .signal-principles {
     grid-template-columns: 1fr;
   }
   .app-kpi-grid {
@@ -99,7 +99,6 @@
     align-items: stretch;
     flex-direction: column;
   }
-  .product-preview__grid,
   .strategy-grid {
     grid-template-columns: 1fr;
   }
@@ -109,13 +108,11 @@
   .metric-bars__row {
     grid-template-columns: 1fr;
   }
-  .preview-row,
-  .preview-row--5 {
-    grid-template-columns: 1.5fr 1fr 1fr;
+  .preview-table {
+    overflow-x: auto;
   }
-  .preview-row > :nth-child(n + 4),
-  .preview-row--5 > :nth-child(n + 4) {
-    display: none;
+  .preview-row {
+    min-width: 680px;
   }
   .strategy-detail-metrics {
     grid-template-columns: 1fr;

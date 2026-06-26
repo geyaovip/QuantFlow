@@ -166,7 +166,7 @@ export default async function MarketingPage() {
         </section>
 
         <section className="section-block positioning-block" id="positioning">
-          <div className="section-heading section-heading--center">
+          <div className="section-heading">
             <h2>不是代客交易，而是帮你做策略判断</h2>
             <p>
               QuantFlow
@@ -242,20 +242,24 @@ export default async function MarketingPage() {
               信号不是单独一条买卖提示，而是附带策略、风险等级、样本规模和失效条件的可解释记录。
             </p>
           </div>
-          <div className="product-preview__grid">
-            <div className="feature-list" aria-label="信号能力说明">
+          <Card className="signal-preview-card">
+            <div className="signal-principles" aria-label="信号展示原则">
               {[
-                ["触发价格与当前快照并列展示，避免脱离市场语境。"],
-                ["每条信号标注有效期，过期后不再作为有效参考。"],
-                ["高风险策略要求额外确认，减少误读。"],
-              ].map(([copy]) => (
-                <Card className="feature-card feature-card--compact" key={copy}>
+                ["价格快照", "触发价与当前快照并列，避免脱离市场语境。"],
+                ["有效期限", "每条信号标注有效期，过期后不再作为有效参考。"],
+                ["风险确认", "高风险策略要求额外确认，减少误读。"],
+              ].map(([title, copy]) => (
+                <div key={title}>
+                  <span>{title}</span>
                   <p>{copy}</p>
-                </Card>
+                </div>
               ))}
             </div>
             <div className="preview-table" role="table" aria-label="策略示例">
-              <div className="preview-row preview-row--header" role="row">
+              <div
+                className="preview-row preview-row--header preview-row--5"
+                role="row"
+              >
                 <span>策略</span>
                 <span>近 90 天收益</span>
                 <span>最大回撤</span>
@@ -276,7 +280,7 @@ export default async function MarketingPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
           <p className="section-note">
             {featuredStrategy
               ? "上表展示当前已入库策略样本。登录应用后可查看完整策略列表与指标口径说明。"
@@ -347,7 +351,7 @@ export default async function MarketingPage() {
         </section>
 
         <section className="section-block section-block--muted" id="workflow">
-          <div className="section-heading section-heading--center">
+          <div className="section-heading">
             <h2>四步开始使用</h2>
             <p>从官网进入应用后，按这条路径完成第一次策略观察。</p>
           </div>
