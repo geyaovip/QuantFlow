@@ -24,6 +24,11 @@ export function PaperAccountCreateForm({
 }: PaperAccountCreateFormProps) {
   const router = useRouter();
   const [name, setName] = useState(defaults.name);
+  const [initialBalance, setInitialBalance] = useState(defaults.initialBalance);
+  const [maxPositionPct, setMaxPositionPct] = useState(defaults.maxPositionPct);
+  const [maxPositions, setMaxPositions] = useState(
+    String(defaults.maxPositions),
+  );
   const [riskAccepted, setRiskAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -47,6 +52,9 @@ export function PaperAccountCreateForm({
           body: JSON.stringify({
             ...defaults,
             name,
+            initialBalance,
+            maxPositionPct,
+            maxPositions: Number(maxPositions),
             riskDisclosureVersion: "risk-v1",
             riskAccepted: true,
           }),
@@ -82,7 +90,7 @@ export function PaperAccountCreateForm({
   return (
     <div className="paper-create-form">
       <p className="paper-create-form__note">
-        以下均为模拟对象，不连接交易所，不产生真实订单或资产变动。
+        以下均为模拟对象，不连接交易所，不产生真实订单或资产变动。止损止盈规则跟随策略信号字段执行。
       </p>
       <label className="paper-create-form__field">
         <span>模拟盘名称</span>
@@ -90,6 +98,30 @@ export function PaperAccountCreateForm({
           maxLength={80}
           onChange={(event) => setName(event.target.value)}
           value={name}
+        />
+      </label>
+      <label className="paper-create-form__field">
+        <span>初始资金（USDT，模拟）</span>
+        <input
+          onChange={(event) => setInitialBalance(event.target.value)}
+          value={initialBalance}
+        />
+      </label>
+      <label className="paper-create-form__field">
+        <span>单笔最大仓位比例（0-1）</span>
+        <input
+          onChange={(event) => setMaxPositionPct(event.target.value)}
+          value={maxPositionPct}
+        />
+      </label>
+      <label className="paper-create-form__field">
+        <span>最大持仓数量</span>
+        <input
+          max={10}
+          min={1}
+          onChange={(event) => setMaxPositions(event.target.value)}
+          type="number"
+          value={maxPositions}
         />
       </label>
       <label className="membership-risk-check">

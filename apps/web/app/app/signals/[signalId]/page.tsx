@@ -128,6 +128,12 @@ export default async function SignalDetailPage({
               <span>可执行能力</span>
               <strong>仅观察 / 模拟验证</strong>
             </li>
+            {signal.usedInPaperTrading ? (
+              <li>
+                <span>模拟使用</span>
+                <strong>已用于模拟成交</strong>
+              </li>
+            ) : null}
           </ul>
         </Card>
       </section>

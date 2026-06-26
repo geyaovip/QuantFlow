@@ -19,6 +19,7 @@ type StrategyExplorerProps = {
   strategies: StrategyCardRecord[];
   symbol?: string;
   type?: StrategyType;
+  paperEnabled?: boolean;
 };
 
 const riskOptions: Array<RiskLevel | undefined> = [
@@ -67,6 +68,12 @@ function buildHref(
   return search ? `/app/strategies?${search}` : "/app/strategies";
 }
 
+const paperOptions = [
+  { value: undefined, label: "全部策略" },
+  { value: "true", label: "支持模拟盘" },
+  { value: "false", label: "仅信号" },
+] as const;
+
 export function StrategyExplorer({
   pagination,
   query,
@@ -75,8 +82,15 @@ export function StrategyExplorer({
   strategies,
   symbol,
   type,
+  paperEnabled,
 }: StrategyExplorerProps) {
   const baseQuery = { ...query, risk: riskLevel, type, symbol, sortBy };
+  const paperValue =
+    paperEnabled === true
+      ? "true"
+      : paperEnabled === false
+        ? "false"
+        : undefined;
 
   return (
     <>
@@ -122,6 +136,24 @@ export function StrategyExplorer({
                 key={item ?? "all-symbol"}
               >
                 {strategySymbolLabel(item)}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="filter-group" role="group" aria-label="模拟盘支持">
+          {paperOptions.map((item) => {
+            const active = item.value === paperValue;
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "filter-chip is-active" : "filter-chip"}
+                href={buildHref(baseQuery, {
+                  paper: item.value,
+                  page: undefined,
+                })}
+                key={item.label}
+              >
+                {item.label}
               </Link>
             );
           })}

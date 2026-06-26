@@ -17,6 +17,7 @@ import {
   adminPaperAccountActionSchema,
   paperAccountCopySchema,
   paperAccountCreateSchema,
+  paperAccountResetSchema,
   paperExecuteSignalSchema,
 } from "@quantflow/contracts";
 
@@ -27,6 +28,7 @@ import {
   PaperAccountLimitError,
   PaperAccountNotFoundError,
   PaperExecutionRejectedError,
+  PaperMarketDataStaleError,
   PaperRiskNotAcceptedError,
 } from "../domain/paper-errors.js";
 
@@ -193,6 +195,29 @@ export class PaperController {
     }
   }
 
+  @Post("paper-accounts/:accountId/reset")
+  async resetAccount(
+    @Param("accountId") accountId: string,
+    @Req() request: RequestLike,
+    @Body() body: unknown,
+  ) {
+    const parsed = paperAccountResetSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    try {
+      const session = await this.requireUserSession(request);
+      return await this.paperService.resetAccount(
+        session.subjectId,
+        accountId,
+        parsed.data,
+      );
+    } catch (error) {
+      throw toHttpError(error);
+    }
+  }
+
   @Post("paper-accounts/:accountId/end")
   async endAccount(
     @Param("accountId") accountId: string,
@@ -277,6 +302,19 @@ export class PaperController {
       throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
     }
     return this.paperService.listAdminAccounts(parsed.data);
+  }
+
+  @Get("admin/paper-accounts/:accountId")
+  async getAdminAccount(
+    @Param("accountId") accountId: string,
+    @Req() request: RequestLike,
+  ) {
+    await this.requireAdminSession(request);
+    try {
+      return await this.paperService.getAdminAccount(accountId);
+    } catch (error) {
+      throw toHttpError(error);
+    }
   }
 
   @Post("admin/paper-accounts/:accountId/pause")
@@ -387,6 +425,9 @@ function toHttpError(error: unknown) {
   }
   if (error instanceof PaperRiskNotAcceptedError) {
     return new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+  if (error instanceof PaperMarketDataStaleError) {
+    return new HttpException(error.message, HttpStatus.SERVICE_UNAVAILABLE);
   }
 
   return new HttpException("服务暂时不可用", HttpStatus.INTERNAL_SERVER_ERROR);

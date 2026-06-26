@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
 
 import {
+  adminPaperAccountDetailResponseSchema,
   adminPaperAccountListResponseSchema,
+  type AdminPaperAccountDetailResponse,
   type AdminPaperAccountListResponse,
 } from "@quantflow/contracts";
 
@@ -12,6 +14,13 @@ export async function getAdminPaperAccounts(): Promise<AdminPaperAccountListResp
     "/api/v1/admin/paper-accounts?page=1&pageSize=50",
   );
   return adminPaperAccountListResponseSchema.parse(payload);
+}
+
+export async function getAdminPaperAccount(
+  accountId: string,
+): Promise<AdminPaperAccountDetailResponse> {
+  const payload = await getJson(`/api/v1/admin/paper-accounts/${accountId}`);
+  return adminPaperAccountDetailResponseSchema.parse(payload);
 }
 
 async function getJson(path: string) {

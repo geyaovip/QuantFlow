@@ -23,6 +23,7 @@ export type ListStrategiesInput = {
   sortOrder?: "asc" | "desc";
   period?: string;
   maxTier?: MembershipTier;
+  paperEnabled?: boolean;
 };
 
 export type ListSignalsInput = {

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Badge, Card, PageHeader } from "@quantflow/ui";
 
 import { PaperAccountActions } from "../../../../components/paper-account-actions";
+import { PaperPerformanceChart } from "../../../../components/paper-performance-chart";
 import { getPaperAccount } from "../../../../lib/paper-api";
 import {
   formatMoney,
@@ -112,23 +113,8 @@ export default async function PaperAccountDetailPage({
           )}
         </Card>
         <Card className="paper-detail-card">
-          <h2>权益曲线点</h2>
-          {account.performance.length ? (
-            <div className="paper-performance-list">
-              {account.performance.map((point) => (
-                <div className="paper-performance-item" key={point.recordedAt}>
-                  <strong>{formatMoney(point.equity)} USDT</strong>
-                  <p>
-                    收益 {formatRatio(point.returnRate, true)} · 回撤{" "}
-                    {formatRatio(point.drawdown, false)} ·{" "}
-                    {formatDateTime(point.recordedAt)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="paper-detail-empty">暂无权益记录。</p>
-          )}
+          <h2>权益与回撤曲线（模拟）</h2>
+          <PaperPerformanceChart points={account.performance} />
         </Card>
         <Card className="paper-detail-card">
           <h2>风险事件</h2>

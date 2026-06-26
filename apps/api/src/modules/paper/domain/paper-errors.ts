@@ -27,3 +27,9 @@ export class PaperRiskNotAcceptedError extends Error {
     super("请先确认风险提示");
   }
 }
+
+export class PaperMarketDataStaleError extends Error {
+  constructor(message = "行情数据不满足模拟条件") {
+    super(message);
+  }
+}

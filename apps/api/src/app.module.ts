@@ -3,12 +3,19 @@ import { Module } from "@nestjs/common";
 import { AuthModule } from "./modules/auth/auth.module.js";
 import { HealthController } from "./modules/health/health.controller.js";
 import { MembershipModule } from "./modules/membership/membership.module.js";
+import { MarketModule } from "./modules/market/market.module.js";
 import { PaperModule } from "./modules/paper/paper.module.js";
 import { StrategyModule } from "./modules/strategy/strategy.module.js";
 import { SystemController } from "./modules/system/system.controller.js";
 
 @Module({
-  imports: [AuthModule, MembershipModule, StrategyModule, PaperModule],
+  imports: [
+    AuthModule,
+    MembershipModule,
+    StrategyModule,
+    PaperModule,
+    MarketModule,
+  ],
   controllers: [HealthController, SystemController],
 })
 export class AppModule {}

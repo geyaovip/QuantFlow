@@ -89,6 +89,7 @@ export function AdminPaperConsole({
               <span>{account.status}</span>
               <span>{account.currentEquity} USDT</span>
               <span className="admin-table__actions">
+                <a href={`/admin/paper-accounts/${account.id}`}>查看详情</a>
                 {account.status === "running" ? (
                   <button
                     disabled={isSubmitting}

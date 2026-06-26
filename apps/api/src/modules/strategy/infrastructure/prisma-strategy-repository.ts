@@ -205,14 +205,43 @@ export class PrismaStrategyRepository implements StrategyRepository {
         include: { strategy: { select: { slug: true, name: true } } },
       }),
     ]);
+    const usedSignalIds = input.userId
+      ? await this.findUsedSignalIds(
+          input.userId,
+          signals.map((signal) => signal.id),
+        )
+      : new Set<string>();
 
     return {
       total,
       items: signals.map((signal) => ({
         ...mapSignalItem(signal as unknown as SignalRecord),
         isSubscribed: Boolean(input.userId),
+        usedInPaperTrading: usedSignalIds.has(signal.id),
       })),
     };
+  }
+
+  private async findUsedSignalIds(userId: string, signalIds: string[]) {
+    if (!signalIds.length) {
+      return new Set<string>();
+    }
+
+    const orders = await this.prisma.paperOrder.findMany({
+      where: {
+        signalId: { in: signalIds },
+        status: "filled",
+        account: { userId, deletedAt: null },
+      },
+      select: { signalId: true },
+      distinct: ["signalId"],
+    });
+
+    return new Set(
+      orders
+        .map((order) => order.signalId)
+        .filter((signalId): signalId is string => Boolean(signalId)),
+    );
   }
 
   async findVisibleSignal(
@@ -236,6 +265,9 @@ export class PrismaStrategyRepository implements StrategyRepository {
       ? {
           ...mapSignalItem(signal as unknown as SignalRecord),
           isSubscribed: Boolean(userId),
+          usedInPaperTrading: userId
+            ? (await this.findUsedSignalIds(userId, [signal.id])).has(signal.id)
+            : undefined,
           riskDisclosure: RISK_DISCLOSURE,
         }
       : null;
@@ -521,6 +553,21 @@ export class PrismaStrategyRepository implements StrategyRepository {
         { status: strategy.status },
         { status: updated.status },
       );
+
+      if (
+        status === "paused" ||
+        status === "delisted" ||
+        status === "risk_watch"
+      ) {
+        await tx.paperAccount.updateMany({
+          where: {
+            strategyId,
+            deletedAt: null,
+            status: { in: ["running", "paused"] },
+          },
+          data: { status: "strategy_paused" },
+        });
+      }
     });
 
     return this.getAdminStrategyResponse(strategyId);
@@ -599,12 +646,17 @@ const strategyDetailIncludes = {
 };
 
 function activeStrategyWhere(
-  input: Pick<ListStrategiesInput, "riskLevel" | "type" | "symbol" | "maxTier">,
+  input: Pick<
+    ListStrategiesInput,
+    "riskLevel" | "type" | "symbol" | "maxTier" | "paperEnabled"
+  >,
   period = "ninety_days",
 ) {
   return {
     status: "active" as const,
     deletedAt: null,
+    ...(input.paperEnabled === true ? { supportsPaperTrading: true } : {}),
+    ...(input.paperEnabled === false ? { supportsPaperTrading: false } : {}),
     ...(input.riskLevel
       ? { riskLevel: input.riskLevel as PrismaRiskLevel }
       : {}),

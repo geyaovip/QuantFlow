@@ -72,6 +72,7 @@ export class StrategyService {
         sortOrder: input.sortOrder,
         period: input.period,
         maxTier: entitlements.tier,
+        paperEnabled: input.paperEnabled,
       },
       userId,
     );

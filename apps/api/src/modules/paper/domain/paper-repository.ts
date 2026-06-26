@@ -1,4 +1,5 @@
 import type {
+  AdminPaperAccountDetail,
   AdminPaperAccountListItem,
   PaperAccountCopy,
   PaperAccountCreate,
@@ -59,6 +60,7 @@ export interface PaperRepository {
   ): Promise<PaperAccountDetail>;
   pauseAccount(userId: string, accountId: string): Promise<PaperAccountDetail>;
   resumeAccount(userId: string, accountId: string): Promise<PaperAccountDetail>;
+  resetAccount(userId: string, accountId: string): Promise<PaperAccountDetail>;
   endAccount(userId: string, accountId: string): Promise<PaperAccountDetail>;
   deleteAccount(userId: string, accountId: string): Promise<void>;
   executeSignal(
@@ -94,6 +96,7 @@ export interface PaperRepository {
   listAdminAccounts(
     input: ListPaperAccountsInput,
   ): Promise<Paginated<AdminPaperAccountListItem>>;
+  getAdminAccount(accountId: string): Promise<AdminPaperAccountDetail | null>;
   adminPauseAccount(
     accountId: string,
     context: AuditContext,

@@ -25,6 +25,7 @@ type StrategyListQuery = {
   symbol?: string;
   sortBy?: string;
   sortOrder?: string;
+  paperEnabled?: boolean;
 };
 
 type SignalListQuery = {
@@ -55,6 +56,9 @@ export async function getStrategies(
   }
   if (query.sortOrder) {
     params.set("sortOrder", query.sortOrder);
+  }
+  if (typeof query.paperEnabled === "boolean") {
+    params.set("paperEnabled", query.paperEnabled ? "true" : "false");
   }
   const payload = await getJson(`/api/v1/strategies?${params.toString()}`);
   return strategyListResponseSchema.parse(payload);

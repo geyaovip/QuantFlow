@@ -22,9 +22,10 @@ export function PaperAccountActions({
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const mutate = async (
-    action: "pause" | "resume" | "end" | "copies",
+    action: "pause" | "resume" | "end" | "copies" | "reset",
     options?: { method?: string; body?: unknown },
   ) => {
     setIsSubmitting(true);
@@ -40,7 +41,7 @@ export function PaperAccountActions({
           headers: { "content-type": "application/json" },
           body: JSON.stringify(
             options?.body ??
-              (action === "copies"
+              (action === "copies" || action === "reset"
                 ? {
                     riskDisclosureVersion: "risk-v1",
                     riskAccepted: true,
@@ -65,6 +66,9 @@ export function PaperAccountActions({
       } else if (action === "end") {
         setMessage("模拟盘已结束。");
         setConfirmEnd(false);
+      } else if (action === "reset") {
+        setMessage("模拟盘已重置。");
+        setConfirmReset(false);
       } else if (action === "copies" && payload?.data?.id) {
         router.push(`/app/paper-trading/${payload.data.id}`);
         return;
@@ -122,12 +126,51 @@ export function PaperAccountActions({
         </Button>
       ) : null}
       {status === "paused" ? (
+        <>
+          <Button
+            disabled={isSubmitting}
+            onClick={() => void mutate("resume")}
+            type="button"
+          >
+            恢复运行
+          </Button>
+          {confirmReset ? (
+            <>
+              <Button
+                disabled={isSubmitting}
+                onClick={() => void mutate("reset")}
+                type="button"
+              >
+                确认重置
+              </Button>
+              <Button
+                disabled={isSubmitting}
+                onClick={() => setConfirmReset(false)}
+                type="button"
+                variant="secondary"
+              >
+                取消
+              </Button>
+            </>
+          ) : (
+            <Button
+              disabled={isSubmitting}
+              onClick={() => setConfirmReset(true)}
+              type="button"
+              variant="secondary"
+            >
+              重置模拟盘
+            </Button>
+          )}
+        </>
+      ) : null}
+      {status === "strategy_paused" ? (
         <Button
           disabled={isSubmitting}
           onClick={() => void mutate("resume")}
           type="button"
         >
-          恢复运行
+          尝试恢复运行
         </Button>
       ) : null}
       {status === "running" || status === "paused" ? (

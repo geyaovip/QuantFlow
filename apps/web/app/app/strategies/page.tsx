@@ -23,6 +23,7 @@ type StrategiesPageProps = {
     sortBy?: string;
     sortOrder?: string;
     symbol?: string;
+    paper?: string;
   }>;
 };
 
@@ -33,6 +34,12 @@ export default async function StrategiesPage({
   const riskLevel = parseRiskLevel(params.risk);
   const type = parseStrategyType(params.type);
   const symbol = parseStrategySymbol(params.symbol);
+  const paperEnabled =
+    params.paper === "true"
+      ? true
+      : params.paper === "false"
+        ? false
+        : undefined;
   const strategies = await getStrategies({
     page: parsePage(params.page),
     pageSize: USER_PAGE_SIZE,
@@ -41,11 +48,16 @@ export default async function StrategiesPage({
     symbol,
     sortBy: params.sortBy,
     sortOrder: params.sortOrder,
+    paperEnabled,
   });
   const visibleCount = strategies.data.length;
-  const activeFilterCount = [riskLevel, type, symbol, params.sortBy].filter(
-    Boolean,
-  ).length;
+  const activeFilterCount = [
+    riskLevel,
+    type,
+    symbol,
+    params.sortBy,
+    params.paper,
+  ].filter(Boolean).length;
 
   return (
     <>
@@ -93,7 +105,9 @@ export default async function StrategiesPage({
           type,
           symbol,
           sortBy: params.sortBy,
+          paper: params.paper,
         }}
+        paperEnabled={paperEnabled}
         riskLevel={riskLevel}
         sortBy={params.sortBy}
         strategies={strategies.data.map(toStrategyCardRecord)}

@@ -12,6 +12,7 @@ import {
   PaperAccountInvalidStateError,
   PaperAccountNotFoundError,
   PaperExecutionRejectedError,
+  PaperMarketDataStaleError,
 } from "../domain/paper-errors.js";
 import {
   buildPaperFill,
@@ -23,6 +24,7 @@ import {
   quantizeRatio,
 } from "../domain/paper-engine.js";
 import {
+  isMarketSnapshotStale,
   MARKET_SNAPSHOT_SIGNAL_WINDOW_MS,
   resolveMarketPriceFromSnapshot,
 } from "../domain/paper-market.js";
@@ -144,13 +146,71 @@ export class PrismaPaperRepository implements PaperRepository {
 
   async resumeAccount(userId: string, accountId: string) {
     const account = await this.requireMutableAccount(userId, accountId);
-    if (account.status !== "paused") {
+    if (account.status !== "paused" && account.status !== "strategy_paused") {
       throw new PaperAccountInvalidStateError("仅已暂停的模拟盘可以恢复");
     }
+
+    await this.assertStrategyRunnable(
+      userId,
+      account.strategyId,
+      account.symbol,
+    );
 
     await this.prisma.paperAccount.update({
       where: { id: accountId },
       data: { status: "running", pausedAt: null },
+    });
+
+    return this.requireAccountDetail(userId, accountId);
+  }
+
+  async resetAccount(userId: string, accountId: string) {
+    const account = await this.requireMutableAccount(userId, accountId);
+    if (account.status !== "paused") {
+      throw new PaperAccountInvalidStateError("仅已暂停的模拟盘可以重置");
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.paperPosition.updateMany({
+        where: { accountId, status: "open" },
+        data: {
+          status: "closed",
+          quantity: new Prisma.Decimal(0),
+          unrealizedPnl: new Prisma.Decimal(0),
+          closedAt: new Date(),
+        },
+      });
+
+      await tx.paperAccount.update({
+        where: { id: accountId },
+        data: {
+          cashBalance: account.initialBalance,
+          currentEquity: account.initialBalance,
+          peakEquity: account.initialBalance,
+          maxDrawdown: new Prisma.Decimal(0),
+          status: "running",
+          pausedAt: null,
+        },
+      });
+
+      await tx.paperPerformancePoint.create({
+        data: {
+          accountId,
+          equity: account.initialBalance,
+          returnRate: new Prisma.Decimal(0),
+          drawdown: new Prisma.Decimal(0),
+          positionCount: 0,
+        },
+      });
+
+      await tx.paperRiskEvent.create({
+        data: {
+          accountId,
+          type: "account_reset",
+          riskLevel: "low",
+          message: "模拟盘已重置为初始资金，历史订单与成交记录保留。",
+        },
+      });
     });
 
     return this.requireAccountDetail(userId, accountId);
@@ -421,6 +481,25 @@ export class PrismaPaperRepository implements PaperRepository {
     };
   }
 
+  async getAdminAccount(accountId: string) {
+    const account = await this.prisma.paperAccount.findFirst({
+      where: { id: accountId, deletedAt: null },
+      include: {
+        ...accountIncludes,
+        user: { select: { email: true } },
+      },
+    });
+    if (!account) {
+      return null;
+    }
+
+    return {
+      ...mapDetail(account),
+      userId: account.userId,
+      userEmail: account.user.email,
+    };
+  }
+
   async adminPauseAccount(accountId: string, context: AuditContext) {
     return this.runAdminStatusChange(
       accountId,
@@ -497,6 +576,12 @@ export class PrismaPaperRepository implements PaperRepository {
         side,
         markPriceResult.reason,
       );
+      if (
+        markPriceResult.reason.includes("行情") ||
+        markPriceResult.reason.includes("快照")
+      ) {
+        throw new PaperMarketDataStaleError(markPriceResult.reason);
+      }
       throw new PaperExecutionRejectedError(markPriceResult.reason);
     }
 
@@ -755,6 +840,42 @@ export class PrismaPaperRepository implements PaperRepository {
         positionCount: metrics.positionCount,
       },
     });
+  }
+
+  private async assertStrategyRunnable(
+    userId: string,
+    strategyId: string,
+    symbol: string,
+  ) {
+    const subscription = await this.prisma.userStrategySubscription.findFirst({
+      where: { userId, strategyId, status: "active" },
+    });
+    if (!subscription) {
+      throw new PaperExecutionRejectedError("需要先订阅策略信号");
+    }
+
+    const strategy = await this.prisma.strategy.findFirst({
+      where: {
+        id: strategyId,
+        status: "active",
+        deletedAt: null,
+        supportsPaperTrading: true,
+      },
+    });
+    if (!strategy) {
+      throw new PaperExecutionRejectedError("策略已暂停或不可用于模拟盘");
+    }
+
+    const snapshot = await this.prisma.marketSymbol.findUnique({
+      where: { symbol },
+      include: {
+        priceSnapshots: { orderBy: { capturedAt: "desc" }, take: 1 },
+      },
+    });
+    const latest = snapshot?.priceSnapshots[0];
+    if (!latest || isMarketSnapshotStale(latest.capturedAt)) {
+      throw new PaperMarketDataStaleError();
+    }
   }
 
   private async assertAccountVisible(userId: string, accountId: string) {

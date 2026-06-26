@@ -2,11 +2,13 @@ import { Inject, Injectable } from "@nestjs/common";
 
 import type {
   AdminPaperAccountAction,
+  AdminPaperAccountDetailResponse,
   AdminPaperAccountListResponse,
   PaperAccountCopy,
   PaperAccountCreate,
   PaperAccountDetailResponse,
   PaperAccountListResponse,
+  PaperAccountReset,
   PaperExecuteSignal,
   PaperOrderListResponse,
   PaperPerformanceListResponse,
@@ -101,6 +103,19 @@ export class PaperService {
 
   async resumeAccount(userId: string, accountId: string) {
     const data = await this.repository.resumeAccount(userId, accountId);
+    return { data };
+  }
+
+  async resetAccount(
+    userId: string,
+    accountId: string,
+    input: PaperAccountReset,
+  ) {
+    if (!input.riskAccepted) {
+      throw new PaperRiskNotAcceptedError();
+    }
+
+    const data = await this.repository.resetAccount(userId, accountId);
     return { data };
   }
 
@@ -207,6 +222,16 @@ export class PaperService {
       data: result.items,
       pagination: buildPagination(page, pageSize, result.total),
     };
+  }
+
+  async getAdminAccount(
+    accountId: string,
+  ): Promise<AdminPaperAccountDetailResponse> {
+    const account = await this.repository.getAdminAccount(accountId);
+    if (!account) {
+      throw new PaperAccountNotFoundError();
+    }
+    return { data: account };
   }
 
   adminPauseAccount(

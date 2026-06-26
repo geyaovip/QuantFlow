@@ -43,6 +43,10 @@ const listStrategiesQuerySchema = z.object({
   period: z
     .enum(["seven_days", "thirty_days", "ninety_days", "all_time"])
     .optional(),
+  paperEnabled: z
+    .enum(["true", "false"])
+    .transform((value) => value === "true")
+    .optional(),
 });
 
 const listSignalsQuerySchema = z.object({

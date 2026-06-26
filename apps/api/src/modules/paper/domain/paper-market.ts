@@ -3,6 +3,10 @@ import { Prisma } from "@prisma/client";
 export const MARKET_SNAPSHOT_MAX_AGE_MS = 120_000;
 export const MARKET_SNAPSHOT_SIGNAL_WINDOW_MS = 60_000;
 
+export function isMarketSnapshotStale(capturedAt: Date, now = new Date()) {
+  return now.getTime() - capturedAt.getTime() > MARKET_SNAPSHOT_MAX_AGE_MS;
+}
+
 export type ResolvedMarketPrice =
   | {
       ok: true;
