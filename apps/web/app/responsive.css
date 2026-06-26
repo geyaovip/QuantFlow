@@ -23,8 +23,14 @@
     grid-template-columns: 1fr;
   }
   .strategy-detail-layout,
-  .strategy-detail-grid {
+  .strategy-detail-grid,
+  .signal-card__body {
     grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+  .signal-card__body dl {
+    width: 100%;
+    min-width: 0;
   }
   .strategy-detail-metrics {
     grid-template-columns: repeat(2, 1fr);
@@ -44,7 +50,7 @@
   .app-mobile-topbar {
     display: flex;
   }
-  .marketing-header nav {
+  .marketing-header__inner > nav {
     display: none;
   }
   .marketing-header__menu-toggle {

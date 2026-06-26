@@ -31,6 +31,36 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.3.0-dev.3` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Docs
+- 摘要：补齐 v0.3 体验收尾：策略广场与信号中心接入服务端筛选/分页；官网策略预览与首屏指标改为读取已入库策略；个人中心展示 Free 订阅配额使用情况。
+- MVP 边界影响：无；未增加在线支付、模拟盘创建、收藏/提醒或完整 RBAC。
+- API / 数据 / 权限 / 风控影响：`GET /api/v1/signals` 新增 `direction` 查询参数；策略列表继续使用既有 `riskLevel` 与分页参数。
+- 迁移与兼容：无新增 migration。
+- 验证：`pnpm --filter @quantflow/api test`、`pnpm --filter @quantflow/web typecheck`、`pnpm check`。
+- 监控与回滚：如筛选或分页链接异常，可回滚前端页面；API 变更向后兼容。
+
+### `v0.3.0-dev.2` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Admin / Docs
+- 摘要：补齐 v0.3 策略与信号闭环；新增用户策略订阅/取消订阅、Free 订阅配额、按订阅过滤信号列表和信号详情；管理端策略页接入最小创建、提审、批准、拒绝、暂停、下架能力，并写入策略审计日志。
+- MVP 边界影响：无；未增加交易所连接、真实下单、半自动/自动交易、自动执行、真实资产或在线支付入口。模拟盘入口仍为禁用待接入。
+- API / 数据 / 权限 / 风控影响：新增 `/me/strategy-subscriptions`、`/signals/{signalId}` 和 `/admin/strategies*` 最小治理 API；策略 mutation 要求管理员会话与 `reason`，并写入 `admin_audit_logs`；完整 RBAC 角色矩阵仍待后续切片。
+- 迁移与兼容：扩展 migration `202606260001_strategy_signal_read_slice`，包含 `user_strategy_subscriptions` 与 `admin_audit_logs`；生产发布通过 `prisma migrate deploy` 前滚。
+- 验证：待本切片完成时运行 `pnpm --filter @quantflow/api test`、`pnpm --filter @quantflow/web typecheck`、`pnpm --filter @quantflow/admin typecheck`、`pnpm check`。
+- 监控与回滚：如策略订阅或管理端 mutation 出现异常，可回滚 release 镜像；新增审计与订阅数据保留在数据库中，必要时通过后续前滚修正状态。
+
+### `v0.3.0-dev.1` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Docs
+- 摘要：新增策略与信号只读垂直切片；落地策略、策略版本、90 天指标和 active 信号 migration，并将 `/app/strategies`、策略详情和 `/app/signals` 接入真实 API 数据源。
+- MVP 边界影响：无；未增加交易所连接、真实下单、半自动/自动交易或在线支付入口。模拟盘入口保持禁用，信号仅用于观察和后续模拟验证。
+- API / 数据 / 权限 / 风控影响：新增 `GET /api/v1/strategies`、`GET /api/v1/strategies/{strategyId}`、`GET /api/v1/signals` 的只读实现；新增策略/信号 contracts schema；策略收益仍与同周期回撤、胜率与交易数/盈亏比并列展示。
+- 迁移与兼容：新增 migration `202606260001_strategy_signal_read_slice`，包含三条 active/free 示例策略、90 天指标和 active 信号 seed；生产发布通过 `prisma migrate deploy` 前滚。
+- 验证：待本切片完成时运行 `pnpm --filter @quantflow/api test`、`pnpm --filter @quantflow/web typecheck`、`pnpm check`。
+- 监控与回滚：如策略/信号页面或 API 出现异常，可回滚 release 镜像；数据库新增只读 seed 数据不影响认证与现有用户会话。
+
 ### `v0.2.0-dev.6` - 2026-06-26
 
 - 类型：Added / Frontend / Docs

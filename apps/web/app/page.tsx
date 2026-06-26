@@ -17,12 +17,36 @@ import { Badge, Card, RiskBadge } from "@quantflow/ui";
 
 import { MarketingFooter } from "../components/marketing-footer";
 import { MarketingHeader } from "../components/marketing-header";
+import { getStrategies } from "../lib/strategy-api";
+import {
+  formatPercent,
+  formatRiskLevel,
+  formatSignalDirection,
+} from "../lib/strategy-format";
 
-const strategyPreview = [
-  ["BTC 趋势过滤", "+12.8%", "-6.4%", "中", "67"],
-  ["ETH 波动突破", "+8.6%", "-4.9%", "中", "53"],
-  ["SOL 均值观察", "+5.1%", "-3.2%", "低", "41"],
-] as const;
+const fallbackPreview = [
+  {
+    name: "BTC 趋势过滤",
+    returnRate: "+12.8%",
+    drawdown: "-6.4%",
+    risk: "中" as const,
+    trades: "67",
+  },
+  {
+    name: "ETH 波动突破",
+    returnRate: "+8.6%",
+    drawdown: "-4.9%",
+    risk: "中" as const,
+    trades: "53",
+  },
+  {
+    name: "SOL 均值观察",
+    returnRate: "+5.1%",
+    drawdown: "-3.2%",
+    risk: "低" as const,
+    trades: "41",
+  },
+];
 
 const membershipPlans = [
   {
@@ -46,7 +70,23 @@ const membershipPlans = [
   },
 ] as const;
 
-export default function MarketingPage() {
+export const dynamic = "force-dynamic";
+
+export default async function MarketingPage() {
+  const strategies = await getStrategies({ page: 1, pageSize: 3 }).catch(
+    () => null,
+  );
+  const featuredStrategy = strategies?.data[0];
+  const previewRows = strategies?.data.length
+    ? strategies.data.map((strategy) => ({
+        name: strategy.name,
+        returnRate: formatPercent(strategy.metric.returnRate, true),
+        drawdown: formatPercent(strategy.metric.maxDrawdown, false),
+        risk: formatRiskLevel(strategy.riskLevel),
+        trades: String(strategy.metric.tradeCount),
+      }))
+    : fallbackPreview;
+
   return (
     <>
       <MarketingHeader />
@@ -80,31 +120,62 @@ export default function MarketingPage() {
           <Card className="hero-panel" aria-label="策略监控概览">
             <div className="hero-panel__header">
               <div>
-                <span>策略监控 · 示例数据</span>
-                <strong>BTC 趋势过滤 · 观察中</strong>
+                <span>
+                  策略监控
+                  {featuredStrategy ? " · 已入库策略" : " · 示例数据"}
+                </span>
+                <strong>
+                  {featuredStrategy
+                    ? `${featuredStrategy.name} · ${featuredStrategy.currentSignal ? formatSignalDirection(featuredStrategy.currentSignal.direction) : "暂无信号"}`
+                    : "BTC 趋势过滤 · 观察中"}
+                </strong>
               </div>
-              <RiskBadge level="中" />
+              <RiskBadge
+                level={
+                  featuredStrategy
+                    ? formatRiskLevel(featuredStrategy.riskLevel)
+                    : "中"
+                }
+              />
             </div>
             <div className="hero-snapshot" aria-label="策略关键指标">
               <div>
                 <span>近 90 天收益</span>
-                <strong className="positive">+12.8%</strong>
+                <strong className="positive">
+                  {featuredStrategy
+                    ? formatPercent(featuredStrategy.metric.returnRate, true)
+                    : "+12.8%"}
+                </strong>
               </div>
               <div>
                 <span>最大回撤</span>
-                <strong>-6.4%</strong>
+                <strong>
+                  {featuredStrategy
+                    ? formatPercent(featuredStrategy.metric.maxDrawdown, false)
+                    : "-6.4%"}
+                </strong>
               </div>
               <div>
                 <span>胜率 / 样本</span>
-                <strong>58.2% / 67</strong>
+                <strong>
+                  {featuredStrategy
+                    ? `${formatPercent(featuredStrategy.metric.winRate, false)} / ${featuredStrategy.metric.tradeCount}`
+                    : "58.2% / 67"}
+                </strong>
               </div>
               <div>
                 <span>盈亏比</span>
-                <strong>1.46</strong>
+                <strong>
+                  {featuredStrategy
+                    ? Number(featuredStrategy.metric.profitLossRatio).toFixed(2)
+                    : "1.46"}
+                </strong>
               </div>
             </div>
             <p className="hero-panel__note">
-              示例数据仅供展示界面结构，不代表真实或未来表现。
+              {featuredStrategy
+                ? "数据来自当前已发布策略，历史表现不代表未来收益。"
+                : "示例数据仅供展示界面结构，不代表真实或未来表现。"}
             </p>
           </Card>
         </section>
@@ -206,23 +277,25 @@ export default function MarketingPage() {
                 <span>风险</span>
                 <span>样本</span>
               </div>
-              {strategyPreview.map(([name, value, drawdown, risk, trades]) => (
+              {previewRows.map((row) => (
                 <div
                   className="preview-row preview-row--5"
                   role="row"
-                  key={name}
+                  key={row.name}
                 >
-                  <strong>{name}</strong>
-                  <span className="positive">{value}</span>
-                  <span>{drawdown}</span>
-                  <RiskBadge level={risk} />
-                  <span>{trades} 笔</span>
+                  <strong>{row.name}</strong>
+                  <span className="positive">{row.returnRate}</span>
+                  <span>{row.drawdown}</span>
+                  <RiskBadge level={row.risk} />
+                  <span>{row.trades} 笔</span>
                 </div>
               ))}
             </div>
           </div>
           <p className="section-note">
-            上表为官网示例数据。登录应用后可查看完整策略列表与指标口径说明。
+            {featuredStrategy
+              ? "上表展示当前已入库策略样本。登录应用后可查看完整策略列表与指标口径说明。"
+              : "上表为官网示例数据。登录应用后可查看完整策略列表与指标口径说明。"}
           </p>
         </section>
 

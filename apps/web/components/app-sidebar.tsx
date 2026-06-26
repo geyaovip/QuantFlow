@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartNoAxesCombined, Radio, WalletCards } from "lucide-react";
+import { ChartNoAxesCombined, Layers3, Radio, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -12,6 +12,7 @@ import { Brand } from "./brand";
 const routeIcons = {
   "/app/strategies": ChartNoAxesCombined,
   "/app/signals": Radio,
+  "/app/my-strategies": Layers3,
   "/app/paper-trading": WalletCards,
 } as const;
 

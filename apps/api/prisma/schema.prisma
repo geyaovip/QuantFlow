@@ -48,15 +48,88 @@ enum SecurityEventType {
   @@map("security_event_type")
 }
 
+enum MembershipTier {
+  free
+  pro
+  premium
+
+  @@map("membership_tier")
+}
+
+enum StrategyStatus {
+  draft
+  pending_review
+  active
+  paused
+  risk_watch
+  delisted
+
+  @@map("strategy_status")
+}
+
+enum StrategyType {
+  spot
+  grid
+  dca
+  trend
+  swing
+
+  @@map("strategy_type")
+}
+
+enum RiskLevel {
+  low
+  medium
+  high
+  critical
+
+  @@map("risk_level")
+}
+
+enum StrategyMetricPeriod {
+  seven_days
+  thirty_days
+  ninety_days
+  all_time
+
+  @@map("strategy_metric_period")
+}
+
+enum SignalDirection {
+  buy
+  sell
+  watch
+
+  @@map("signal_direction")
+}
+
+enum SignalStatus {
+  active
+  expired
+  cancelled
+  strategy_paused
+  risk_blocked
+
+  @@map("signal_status")
+}
+
+enum StrategySubscriptionStatus {
+  active
+  cancelled
+
+  @@map("strategy_subscription_status")
+}
+
 model User {
-  id              String              @id @default(uuid()) @db.Uuid
-  emailNormalized String              @unique @map("email_normalized")
+  id              String                     @id @default(uuid()) @db.Uuid
+  emailNormalized String                     @unique @map("email_normalized")
   email           String
-  status          UserStatus          @default(active)
-  lastLoginAt     DateTime?           @map("last_login_at") @db.Timestamptz(6)
-  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  status          UserStatus                 @default(active)
+  lastLoginAt     DateTime?                  @map("last_login_at") @db.Timestamptz(6)
+  createdAt       DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
   securityEvents  UserSecurityEvent[]
+  subscriptions   UserStrategySubscription[]
 
   @@map("users")
 }
@@ -69,6 +142,7 @@ model AdminUser {
   lastLoginAt     DateTime?       @map("last_login_at") @db.Timestamptz(6)
   createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  auditLogs       AdminAuditLog[] @relation("AdminAuditActor")
 
   @@map("admin_users")
 }
@@ -94,17 +168,17 @@ model AuthEmailChallenge {
 }
 
 model AuthSession {
-  id           String              @id @default(uuid()) @db.Uuid
-  subjectId    String              @map("subject_id") @db.Uuid
-  audience     AuthSessionAudience
-  tokenHash    String              @unique @map("token_hash")
-  expiresAt    DateTime            @map("expires_at") @db.Timestamptz(6)
-  revokedAt    DateTime?           @map("revoked_at") @db.Timestamptz(6)
-  lastSeenAt   DateTime?           @map("last_seen_at") @db.Timestamptz(6)
-  createdIp    String?             @map("created_ip")
-  createdUa    String?             @map("created_ua")
-  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id         String              @id @default(uuid()) @db.Uuid
+  subjectId  String              @map("subject_id") @db.Uuid
+  audience   AuthSessionAudience
+  tokenHash  String              @unique @map("token_hash")
+  expiresAt  DateTime            @map("expires_at") @db.Timestamptz(6)
+  revokedAt  DateTime?           @map("revoked_at") @db.Timestamptz(6)
+  lastSeenAt DateTime?           @map("last_seen_at") @db.Timestamptz(6)
+  createdIp  String?             @map("created_ip")
+  createdUa  String?             @map("created_ua")
+  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([subjectId, audience, revokedAt], map: "idx_auth_sessions_subject")
   @@index([expiresAt], map: "idx_auth_sessions_expires")
@@ -126,4 +200,137 @@ model UserSecurityEvent {
   @@index([userId, occurredAt(sort: Desc), id(sort: Desc)], map: "idx_user_security_events_user")
   @@index([emailNormalized, occurredAt(sort: Desc), id(sort: Desc)], map: "idx_user_security_events_email")
   @@map("user_security_events")
+}
+
+model Strategy {
+  id                   String                     @id @default(uuid()) @db.Uuid
+  slug                 String                     @unique
+  name                 String
+  summary              String
+  type                 StrategyType
+  riskLevel            RiskLevel                  @map("risk_level")
+  status               StrategyStatus             @default(draft)
+  requiredTier         MembershipTier             @default(free) @map("required_tier")
+  supportsPaperTrading Boolean                    @default(true) @map("supports_paper_trading")
+  publishedAt          DateTime?                  @map("published_at") @db.Timestamptz(6)
+  deletedAt            DateTime?                  @map("deleted_at") @db.Timestamptz(6)
+  createdAt            DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  versions             StrategyVersion[]
+  metrics              StrategyMetric[]
+  signals              StrategySignal[]
+  subscriptions        UserStrategySubscription[]
+  auditLogs            AdminAuditLog[]
+
+  @@index([status, riskLevel, publishedAt(sort: Desc), id], map: "idx_strategies_list")
+  @@map("strategies")
+}
+
+model StrategyVersion {
+  id               String           @id @default(uuid()) @db.Uuid
+  strategyId       String           @map("strategy_id") @db.Uuid
+  strategy         Strategy         @relation(fields: [strategyId], references: [id])
+  version          Int
+  symbols          String[]
+  logic            String
+  suitableMarket   String           @map("suitable_market")
+  unsuitableMarket String           @map("unsuitable_market")
+  positionSizing   String           @map("position_sizing")
+  stopLossLogic    String           @map("stop_loss_logic")
+  takeProfitLogic  String           @map("take_profit_logic")
+  failureModes     String           @map("failure_modes")
+  dataSource       String           @map("data_source")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  metrics          StrategyMetric[]
+  signals          StrategySignal[]
+
+  @@unique([strategyId, version], map: "uniq_strategy_versions_version")
+  @@index([strategyId, version(sort: Desc)], map: "idx_strategy_versions_latest")
+  @@map("strategy_versions")
+}
+
+model StrategyMetric {
+  id                String               @id @default(uuid()) @db.Uuid
+  strategyId        String               @map("strategy_id") @db.Uuid
+  strategy          Strategy             @relation(fields: [strategyId], references: [id])
+  strategyVersionId String               @map("strategy_version_id") @db.Uuid
+  strategyVersion   StrategyVersion      @relation(fields: [strategyVersionId], references: [id])
+  period            StrategyMetricPeriod
+  returnRate        Decimal              @map("return_rate") @db.Decimal(18, 8)
+  maxDrawdown       Decimal              @map("max_drawdown") @db.Decimal(18, 8)
+  winRate           Decimal              @map("win_rate") @db.Decimal(18, 8)
+  profitLossRatio   Decimal              @map("profit_loss_ratio") @db.Decimal(18, 8)
+  tradeCount        Int                  @map("trade_count")
+  sampleSize        Int                  @map("sample_size")
+  dataSource        String               @map("data_source")
+  calculatedAt      DateTime             @map("calculated_at") @db.Timestamptz(6)
+
+  @@unique([strategyVersionId, period, dataSource, calculatedAt], map: "uniq_strategy_metrics_snapshot")
+  @@index([strategyId, period, calculatedAt(sort: Desc)], map: "idx_strategy_metrics_latest")
+  @@map("strategy_metrics")
+}
+
+model StrategySignal {
+  id                   String          @id @default(uuid()) @db.Uuid
+  strategyId           String          @map("strategy_id") @db.Uuid
+  strategy             Strategy        @relation(fields: [strategyId], references: [id])
+  strategyVersionId    String          @map("strategy_version_id") @db.Uuid
+  strategyVersion      StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+  symbol               String
+  direction            SignalDirection
+  triggerPrice         Decimal         @map("trigger_price") @db.Decimal(28, 8)
+  currentPriceSnapshot Decimal         @map("current_price_snapshot") @db.Decimal(28, 8)
+  suggestedPositionPct Decimal         @map("suggested_position_pct") @db.Decimal(18, 8)
+  stopLossPrice        Decimal         @map("stop_loss_price") @db.Decimal(28, 8)
+  takeProfitPrice      Decimal         @map("take_profit_price") @db.Decimal(28, 8)
+  rationale            String
+  status               SignalStatus    @default(active)
+  riskLevel            RiskLevel       @map("risk_level")
+  generatedAt          DateTime        @map("generated_at") @db.Timestamptz(6)
+  validUntil           DateTime        @map("valid_until") @db.Timestamptz(6)
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status, generatedAt(sort: Desc), id], map: "idx_strategy_signals_list")
+  @@index([strategyId, status, generatedAt(sort: Desc), id], map: "idx_strategy_signals_strategy")
+  @@map("strategy_signals")
+}
+
+model UserStrategySubscription {
+  id           String                     @id @default(uuid()) @db.Uuid
+  userId       String                     @map("user_id") @db.Uuid
+  user         User                       @relation(fields: [userId], references: [id])
+  strategyId   String                     @map("strategy_id") @db.Uuid
+  strategy     Strategy                   @relation(fields: [strategyId], references: [id])
+  status       StrategySubscriptionStatus @default(active)
+  subscribedAt DateTime                   @default(now()) @map("subscribed_at") @db.Timestamptz(6)
+  cancelledAt  DateTime?                  @map("cancelled_at") @db.Timestamptz(6)
+  createdAt    DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, strategyId], map: "uniq_user_strategy_subscription")
+  @@index([userId, status, subscribedAt(sort: Desc), id], map: "idx_user_strategy_subscriptions_user")
+  @@index([strategyId, status], map: "idx_user_strategy_subscriptions_strategy")
+  @@map("user_strategy_subscriptions")
+}
+
+model AdminAuditLog {
+  id           String     @id @default(uuid()) @db.Uuid
+  actorAdminId String?    @map("actor_admin_id") @db.Uuid
+  actorAdmin   AdminUser? @relation("AdminAuditActor", fields: [actorAdminId], references: [id])
+  action       String
+  resourceType String     @map("resource_type")
+  resourceId   String?    @map("resource_id") @db.Uuid
+  strategyId   String?    @map("strategy_id") @db.Uuid
+  strategy     Strategy?  @relation(fields: [strategyId], references: [id])
+  reason       String
+  before       Json?
+  after        Json?
+  ip           String?
+  userAgent    String?    @map("user_agent")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([actorAdminId, createdAt(sort: Desc), id(sort: Desc)], map: "idx_admin_audit_actor")
+  @@index([resourceType, resourceId, createdAt(sort: Desc), id(sort: Desc)], map: "idx_admin_audit_resource")
+  @@map("admin_audit_logs")
 }

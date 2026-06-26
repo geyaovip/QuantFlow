@@ -2,10 +2,16 @@ import { notFound } from "next/navigation";
 
 import { Badge, Button, Card, PageHeader, RiskBadge } from "@quantflow/ui";
 
-import { strategies } from "../strategy-data";
-
-const riskDisclosure =
-  "QuantFlow 不提供投资建议，不承诺任何收益。所有策略信号仅供参考，加密资产价格波动较大，用户需自行承担交易风险。历史表现不代表未来收益。";
+import { StrategySubscriptionControls } from "../../../../components/strategy-subscription-controls";
+import { resolveApiBaseUrl } from "../../../../lib/auth-session";
+import { getStrategy } from "../../../../lib/strategy-api";
+import {
+  formatDateTime,
+  formatPercent,
+  formatRiskLevel,
+  formatSignalDirection,
+  formatSignalStatus,
+} from "../../../../lib/strategy-format";
 
 type StrategyDetailPageProps = {
   params: Promise<{
@@ -14,15 +20,14 @@ type StrategyDetailPageProps = {
 };
 
 export function generateStaticParams() {
-  return strategies.map((strategy) => ({ strategyId: strategy.id }));
+  return [];
 }
 
 export async function generateMetadata({ params }: StrategyDetailPageProps) {
   const { strategyId } = await params;
-  const strategy = strategies.find((item) => item.id === strategyId);
 
   return {
-    title: strategy ? `${strategy.name} · 策略详情` : "策略详情",
+    title: `${strategyId} · 策略详情`,
   };
 }
 
@@ -30,11 +35,16 @@ export default async function StrategyDetailPage({
   params,
 }: StrategyDetailPageProps) {
   const { strategyId } = await params;
-  const strategy = strategies.find((item) => item.id === strategyId);
+  const response = await getStrategy(strategyId).catch(() => null);
 
-  if (!strategy) {
+  if (!response) {
     notFound();
   }
+
+  const strategy = response.data;
+  const currentSignalLabel = strategy.currentSignal
+    ? formatSignalDirection(strategy.currentSignal.direction)
+    : "暂无信号";
 
   return (
     <>
@@ -42,40 +52,52 @@ export default async function StrategyDetailPage({
         eyebrow="策略详情"
         title={strategy.name}
         description={strategy.summary}
-        action={<Button disabled>创建模拟盘</Button>}
+        action={
+          <StrategySubscriptionControls
+            apiBaseUrl={resolveApiBaseUrl()}
+            isSubscribed={Boolean(strategy.isSubscribed)}
+            strategyId={strategy.id}
+          />
+        }
       />
 
       <section className="strategy-detail-layout">
         <Card className="strategy-detail-main">
           <div className="strategy-detail-topline">
-            <Badge>{strategy.market}</Badge>
-            <RiskBadge level={strategy.risk} />
+            <Badge>
+              {strategy.symbols.join(" / ")} · 版本 {strategy.version}
+            </Badge>
+            <RiskBadge level={formatRiskLevel(strategy.riskLevel)} />
           </div>
           <div className="strategy-detail-signal">
             <span>当前信号</span>
-            <strong>{strategy.signal}</strong>
+            <strong>{currentSignalLabel}</strong>
             <p>
-              {strategy.status} · 数据更新：{strategy.updatedAt}
+              {formatSignalStatus(strategy.currentSignal?.status)} · 数据更新：
+              {formatDateTime(strategy.metric.calculatedAt)}
             </p>
           </div>
           <dl className="strategy-detail-metrics">
             <div>
               <dt>近 90 天收益</dt>
-              <dd className="positive">{strategy.periodReturn}</dd>
+              <dd className="positive">
+                {formatPercent(strategy.metric.returnRate, true)}
+              </dd>
             </div>
             <div>
               <dt>最大回撤</dt>
-              <dd>{strategy.maxDrawdown}</dd>
+              <dd>{formatPercent(strategy.metric.maxDrawdown, false)}</dd>
             </div>
             <div>
               <dt>胜率 / 交易数</dt>
               <dd>
-                {strategy.winRate} / {strategy.trades}
+                {formatPercent(strategy.metric.winRate, false)} /{" "}
+                {strategy.metric.tradeCount}
               </dd>
             </div>
             <div>
               <dt>盈亏比</dt>
-              <dd>{strategy.profitLossRatio}</dd>
+              <dd>{Number(strategy.metric.profitLossRatio).toFixed(2)}</dd>
             </div>
           </dl>
         </Card>
@@ -84,6 +106,7 @@ export default async function StrategyDetailPage({
           <h2>模拟盘入口</h2>
           <p>
             创建模拟盘能力将在后续切片接入。MVP 仅使用模拟资金记录策略过程。
+            当前策略订阅状态：{strategy.isSubscribed ? "已订阅" : "未订阅"}。
           </p>
           <Button disabled>等待接入</Button>
         </Card>
@@ -98,9 +121,17 @@ export default async function StrategyDetailPage({
           <h2>不适合行情</h2>
           <p>{strategy.unsuitableMarket}</p>
         </Card>
+        <Card className="strategy-detail-note">
+          <h2>策略逻辑</h2>
+          <p>{strategy.logic}</p>
+        </Card>
+        <Card className="strategy-detail-note">
+          <h2>失效场景</h2>
+          <p>{strategy.failureModes}</p>
+        </Card>
       </section>
 
-      <aside className="disclaimer">{riskDisclosure}</aside>
+      <aside className="disclaimer">{strategy.riskDisclosure}</aside>
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 状态：逻辑模型基线｜认证基础已迁移｜实现后以迁移文件为结构事实来源
 
-当前已落地 migration：`apps/api/prisma/migrations/202606250001_auth_foundation/migration.sql`，覆盖用户、管理员、邮箱验证码、会话和安全事件。策略、信号、行情、模拟盘、会员、通知、RBAC、审计和 outbox 仍按后续业务切片逐步迁移。
+当前已落地 migration：`apps/api/prisma/migrations/202606250001_auth_foundation/migration.sql` 覆盖用户、管理员、邮箱验证码、会话和安全事件；`202606250002_seed_admin_user` 预授权初始管理员；`202606260001_strategy_signal_read_slice` 覆盖策略、策略版本、90 天指标、active 信号、用户策略订阅和策略管理审计。行情、模拟盘、会员、通知、完整 RBAC 和 outbox 仍按后续业务切片逐步迁移。
 
 ## 1. 全局约束
 
@@ -49,8 +49,8 @@
 | `strategy_versions`           | `strategy_id`、递增 `version`、逻辑、适合/不适合行情、仓位/止损/止盈/失效说明、创建人；unique(strategy, version)                                                                                                                  |
 | `strategy_metrics`            | `strategy_id`、`strategy_version_id`、`period`、return、max drawdown、win rate、P/L ratio、trade count、consecutive losses、sample size、data source、calculated_at；unique(strategy_version, period, data_source, calculated_at) |
 | `strategy_signals`            | `strategy_id`、`strategy_version_id`、symbol、direction、触发/快照/止损/止盈价格、建议仓位、原因、风险、状态、生成/失效时间                                                                                                       |
-| `strategy_signal_events`      | `signal_id`、event type、payload、occurred_at；追加式生命周期日志                                                                                                                                                                 |
-| `user_strategy_subscriptions` | `user_id`、`strategy_id`、状态、订阅/取消时间；一个用户每策略最多一个 active                                                                                                                                                      |
+| `strategy_signal_events`      | `signal_id`、event type、payload、occurred_at；追加式生命周期日志，后续风控切片接入                                                                                                                                               |
+| `user_strategy_subscriptions` | `user_id`、`strategy_id`、状态、订阅/取消时间；unique(user, strategy)，active 配额由服务端校验                                                                                                                                    |
 | `user_strategy_favorites`     | unique(user, strategy)，P1                                                                                                                                                                                                        |
 | `user_signal_favorites`       | unique(user, signal)，P1                                                                                                                                                                                                          |
 | `user_signal_reminders`       | unique(user, signal)、渠道、计划时间、发送状态，P1                                                                                                                                                                                |
@@ -93,16 +93,16 @@
 
 ## 8. 管理端、风险与可靠事件
 
-| 表                       | 关键字段与约束                                                                                          |
-| ------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `admin_users`            | `email_normalized` unique、email、status、last_login_at；仅预先授权账号可登录，不保存密码 hash          |
-| `admin_roles`            | name unique、description                                                                                |
-| `admin_permissions`      | `resource`、`action` unique pair                                                                        |
-| `admin_user_roles`       | unique(admin_user, role)                                                                                |
-| `admin_role_permissions` | unique(role, permission)                                                                                |
-| `admin_audit_logs`       | actor、action、resource type/id、reason、before/after、IP、UA、request id、created_at；追加式           |
-| `risk_events`            | type、level、关联 user/strategy/signal/paper account、status、message、assignee、handled_at、resolution |
-| `outbox_events`          | aggregate、event type、payload、occurred/published time、attempts；用于事务后可靠异步处理               |
+| 表                       | 关键字段与约束                                                                                                                |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `admin_users`            | `email_normalized` unique、email、status、last_login_at；仅预先授权账号可登录，不保存密码 hash                                |
+| `admin_roles`            | name unique、description                                                                                                      |
+| `admin_permissions`      | `resource`、`action` unique pair                                                                                              |
+| `admin_user_roles`       | unique(admin_user, role)                                                                                                      |
+| `admin_role_permissions` | unique(role, permission)                                                                                                      |
+| `admin_audit_logs`       | actor、action、resource type/id、reason、before/after、IP、UA、created_at；策略治理 mutation 已写入，完整 request id 后续接入 |
+| `risk_events`            | type、level、关联 user/strategy/signal/paper account、status、message、assignee、handled_at、resolution                       |
+| `outbox_events`          | aggregate、event type、payload、occurred/published time、attempts；用于事务后可靠异步处理                                     |
 
 ## 9. 索引与删除策略
 

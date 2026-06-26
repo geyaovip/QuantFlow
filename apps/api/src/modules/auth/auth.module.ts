@@ -50,5 +50,6 @@ import { AuthController } from "./interfaces/auth.controller.js";
       },
     },
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}
