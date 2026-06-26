@@ -1,10 +1,13 @@
 import Link from "next/link";
 
-import type { SignalDirection } from "@quantflow/contracts";
+import type { SignalDirection, SignalStatus } from "@quantflow/contracts";
 import { Badge, Button, Card, RiskBadge } from "@quantflow/ui";
 
 import { ListPagination } from "../../../components/list-pagination";
-import { signalDirectionLabel } from "../../../lib/list-query";
+import {
+  signalDirectionLabel,
+  signalStatusLabel,
+} from "../../../lib/list-query";
 import {
   formatDateTime,
   formatPositionPct,
@@ -18,6 +21,7 @@ import type { SignalListResponse } from "@quantflow/contracts";
 type SignalExplorerProps = {
   direction?: SignalDirection;
   signals: SignalListResponse;
+  status?: SignalStatus;
 };
 
 const directionOptions: Array<SignalDirection | undefined> = [
@@ -27,12 +31,36 @@ const directionOptions: Array<SignalDirection | undefined> = [
   "watch",
 ];
 
-function buildDirectionHref(direction: SignalDirection | undefined) {
-  return direction ? `/app/signals?direction=${direction}` : "/app/signals";
+const statusOptions: Array<SignalStatus | undefined> = [
+  undefined,
+  "active",
+  "expired",
+  "cancelled",
+];
+
+function buildHref(
+  base: Record<string, string | undefined>,
+  patch: Record<string, string | undefined>,
+) {
+  const params = new URLSearchParams();
+  const merged = { ...base, ...patch };
+
+  for (const [key, value] of Object.entries(merged)) {
+    if (value) {
+      params.set(key, value);
+    }
+  }
+
+  const search = params.toString();
+  return search ? `/app/signals?${search}` : "/app/signals";
 }
 
-export function SignalExplorer({ direction, signals }: SignalExplorerProps) {
-  const query = direction ? { direction } : {};
+export function SignalExplorer({
+  direction,
+  signals,
+  status,
+}: SignalExplorerProps) {
+  const baseQuery = { direction, status };
 
   return (
     <>
@@ -44,10 +72,28 @@ export function SignalExplorer({ direction, signals }: SignalExplorerProps) {
               <Link
                 aria-current={active ? "page" : undefined}
                 className={active ? "filter-chip is-active" : "filter-chip"}
-                href={buildDirectionHref(item)}
-                key={item ?? "all"}
+                href={buildHref(baseQuery, {
+                  direction: item,
+                  page: undefined,
+                })}
+                key={item ?? "all-direction"}
               >
                 {signalDirectionLabel(item)}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="filter-group" role="group" aria-label="信号状态">
+          {statusOptions.map((item) => {
+            const active = item === status;
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "filter-chip is-active" : "filter-chip"}
+                href={buildHref(baseQuery, { status: item, page: undefined })}
+                key={item ?? "all-status"}
+              >
+                {signalStatusLabel(item)}
               </Link>
             );
           })}
@@ -114,7 +160,9 @@ export function SignalExplorer({ direction, signals }: SignalExplorerProps) {
                 >
                   查看策略
                 </Link>
-                <Button disabled>加入模拟盘待接入</Button>
+                <Button disabled variant="secondary">
+                  加入模拟盘待接入
+                </Button>
               </div>
             </Card>
           ))}
@@ -131,7 +179,7 @@ export function SignalExplorer({ direction, signals }: SignalExplorerProps) {
         ariaLabel="信号分页"
         basePath="/app/signals"
         pagination={signals.pagination}
-        query={query}
+        query={baseQuery}
       />
     </>
   );

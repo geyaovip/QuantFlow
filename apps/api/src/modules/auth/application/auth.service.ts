@@ -1,6 +1,7 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, forwardRef } from "@nestjs/common";
 
 import { loadAppConfig } from "../../../config/app-config.js";
+import { MembershipService } from "../../membership/application/membership.service.js";
 import { AUTH_CRYPTO, type AuthCrypto } from "../domain/auth-crypto.js";
 import {
   AuthAccessDeniedError,
@@ -48,6 +49,8 @@ export class AuthService {
     @Inject(CLOCK) private readonly clock: Clock,
     @Inject(TURNSTILE_VERIFIER)
     private readonly turnstileVerifier: TurnstileVerifier,
+    @Inject(forwardRef(() => MembershipService))
+    private readonly membershipService: MembershipService,
   ) {}
 
   async requestEmailOtp(
@@ -272,12 +275,20 @@ export class AuthService {
       return session;
     }
 
+    const entitlements = await this.membershipService.getEntitlements(
+      session.subjectId,
+    );
+
     return {
       ...session,
       email: profile.email,
       displayName: profile.nickname ?? profile.email.split("@")[0] ?? "用户",
-      membershipPlan: "Free",
+      membershipPlan: entitlements.planName,
     };
+  }
+
+  async listSecurityEvents(userId: string, page: number, pageSize: number) {
+    return this.repository.listSecurityEvents(userId, page, pageSize);
   }
 
   private async recordOtpFailure(

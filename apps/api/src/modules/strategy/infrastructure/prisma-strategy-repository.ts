@@ -3,6 +3,7 @@ import {
   Prisma,
   RiskLevel as PrismaRiskLevel,
   StrategyStatus as PrismaStrategyStatus,
+  StrategyType as PrismaStrategyType,
 } from "@prisma/client";
 
 import type {
@@ -84,6 +85,8 @@ type StrategyRecord = {
   signals: StrategySignalSummaryRecord[];
 };
 
+type StrategyDetailRecord = StrategyRecord;
+
 type SignalRecord = {
   id: string;
   strategyId: string;
@@ -117,15 +120,27 @@ export class PrismaStrategyRepository implements StrategyRepository {
     input: ListStrategiesInput,
     userId?: string,
   ): Promise<PaginatedResult<StrategyListItem>> {
-    const where = activeStrategyWhere(input.riskLevel);
+    const period = (input.period ?? "ninety_days") as
+      | "seven_days"
+      | "thirty_days"
+      | "ninety_days"
+      | "all_time";
+    const where = activeStrategyWhere(input, period);
+    const sortOrder: Prisma.SortOrder =
+      input.sortOrder === "asc" ? "asc" : "desc";
+    const orderBy =
+      input.sortBy === "riskLevel"
+        ? [{ riskLevel: sortOrder }, { id: "desc" as const }]
+        : [{ publishedAt: sortOrder }, { id: "desc" as const }];
+
     const [total, strategies] = await this.prisma.$transaction([
       this.prisma.strategy.count({ where }),
       this.prisma.strategy.findMany({
         where,
-        orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
+        orderBy,
         skip: (input.page - 1) * input.pageSize,
         take: input.pageSize,
-        include: strategyIncludes,
+        include: strategyListIncludes(period),
       }),
     ]);
     const subscriptions = await this.findActiveSubscriptionSet(
@@ -153,9 +168,9 @@ export class PrismaStrategyRepository implements StrategyRepository {
         OR: isUuid(identifier)
           ? [{ id: identifier }, { slug: identifier }]
           : [{ slug: identifier }],
-        ...activeStrategyWhere(),
+        ...activeStrategyWhere({}, "ninety_days"),
       },
-      include: strategyIncludes,
+      include: strategyDetailIncludes,
     });
     if (!strategy) {
       return null;
@@ -171,7 +186,7 @@ export class PrismaStrategyRepository implements StrategyRepository {
   async listActiveSignals(
     input: ListSignalsInput,
   ): Promise<PaginatedResult<SignalListItem>> {
-    const where = signalWhere(input.userId, input.direction);
+    const where = signalWhere(input.userId, input.direction, input.status);
     const [total, signals] = await this.prisma.$transaction([
       this.prisma.strategySignal.count({ where }),
       this.prisma.strategySignal.findMany({
@@ -218,7 +233,7 @@ export class PrismaStrategyRepository implements StrategyRepository {
     strategyId: string,
   ): Promise<StrategySubscription> {
     const strategy = await this.prisma.strategy.findFirst({
-      where: { id: strategyId, ...activeStrategyWhere() },
+      where: { id: strategyId, ...activeStrategyWhere({}, "ninety_days") },
       select: { id: true },
     });
     if (!strategy) {
@@ -267,8 +282,13 @@ export class PrismaStrategyRepository implements StrategyRepository {
     input: ListStrategiesInput,
     userId: string,
   ): Promise<PaginatedResult<StrategyListItem>> {
+    const period = (input.period ?? "ninety_days") as
+      | "seven_days"
+      | "thirty_days"
+      | "ninety_days"
+      | "all_time";
     const where = {
-      ...activeStrategyWhere(input.riskLevel),
+      ...activeStrategyWhere(input, period),
       subscriptions: { some: { userId, status: "active" as const } },
     } satisfies Prisma.StrategyWhereInput;
     const [total, strategies] = await this.prisma.$transaction([
@@ -278,7 +298,7 @@ export class PrismaStrategyRepository implements StrategyRepository {
         orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
         skip: (input.page - 1) * input.pageSize,
         take: input.pageSize,
-        include: strategyIncludes,
+        include: strategyListIncludes(period),
       }),
     ]);
 
@@ -299,7 +319,7 @@ export class PrismaStrategyRepository implements StrategyRepository {
         orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
         skip: (input.page - 1) * input.pageSize,
         take: input.pageSize,
-        include: strategyIncludes,
+        include: strategyDetailIncludes,
       }),
     ]);
 
@@ -498,7 +518,7 @@ export class PrismaStrategyRepository implements StrategyRepository {
   ): Promise<AdminStrategyDetailResponse> {
     const strategy = await this.prisma.strategy.findFirst({
       where: { id: strategyId },
-      include: strategyIncludes,
+      include: strategyDetailIncludes,
     });
     if (!strategy) {
       throw new StrategyNotFoundError();
@@ -539,10 +559,10 @@ export class PrismaStrategyRepository implements StrategyRepository {
   }
 }
 
-const strategyIncludes = {
+const strategyListIncludes = (period: string) => ({
   versions: { orderBy: { version: "desc" as const }, take: 1 },
   metrics: {
-    where: { period: "ninety_days" as const },
+    where: { period: period as "ninety_days" },
     orderBy: { calculatedAt: "desc" as const },
     take: 1,
   },
@@ -551,21 +571,47 @@ const strategyIncludes = {
     orderBy: { generatedAt: "desc" as const },
     take: 1,
   },
+});
+
+const strategyDetailIncludes = {
+  versions: { orderBy: { version: "desc" as const }, take: 1 },
+  metrics: {
+    orderBy: [{ period: "asc" as const }, { calculatedAt: "desc" as const }],
+  },
+  signals: {
+    orderBy: { generatedAt: "desc" as const },
+    take: 10,
+    include: { strategy: { select: { slug: true, name: true } } },
+  },
 };
 
-function activeStrategyWhere(riskLevel?: string) {
+function activeStrategyWhere(
+  input: Pick<ListStrategiesInput, "riskLevel" | "type" | "symbol">,
+  period = "ninety_days",
+) {
   return {
     status: "active" as const,
     deletedAt: null,
-    ...(riskLevel ? { riskLevel: riskLevel as PrismaRiskLevel } : {}),
-    metrics: { some: { period: "ninety_days" as const } },
+    ...(input.riskLevel
+      ? { riskLevel: input.riskLevel as PrismaRiskLevel }
+      : {}),
+    ...(input.type ? { type: input.type as PrismaStrategyType } : {}),
+    ...(input.symbol
+      ? { versions: { some: { symbols: { has: input.symbol } } } }
+      : {}),
+    metrics: { some: { period: period as "ninety_days" } },
     versions: { some: {} },
   } satisfies Prisma.StrategyWhereInput;
 }
 
-function signalWhere(userId?: string, direction?: string) {
+function signalWhere(userId?: string, direction?: string, status?: string) {
   return {
-    status: "active" as const,
+    status: (status ?? "active") as
+      | "active"
+      | "expired"
+      | "cancelled"
+      | "strategy_paused"
+      | "risk_blocked",
     ...(direction ? { direction: direction as "buy" | "sell" | "watch" } : {}),
     strategy: {
       status: "active" as const,
@@ -609,7 +655,7 @@ function mapStrategyListItem(
 }
 
 function mapStrategyDetail(
-  strategy: StrategyRecord,
+  strategy: StrategyDetailRecord,
   isSubscribed: boolean,
 ): StrategyDetail {
   const version = strategy.versions[0];
@@ -617,8 +663,22 @@ function mapStrategyDetail(
     throw new Error(`strategy ${strategy.slug} is missing version`);
   }
 
-  return {
-    ...mapStrategyListItem(strategy, isSubscribed),
+  const primaryMetric =
+    strategy.metrics.find((metric) => metric.period === "ninety_days") ??
+    strategy.metrics[0];
+  const activeSignal = strategy.signals.find(
+    (signal) => signal.status === "active",
+  );
+
+  const listItem = {
+    ...mapStrategyListItem(
+      {
+        ...strategy,
+        metrics: primaryMetric ? [primaryMetric] : strategy.metrics.slice(0, 1),
+        signals: activeSignal ? [activeSignal] : [],
+      },
+      isSubscribed,
+    ),
     version: version.version,
     logic: version.logic,
     suitableMarket: version.suitableMarket,
@@ -630,7 +690,13 @@ function mapStrategyDetail(
     dataSource: version.dataSource,
     riskDisclosure: RISK_DISCLOSURE,
     canSubscribe: strategy.status === "active",
+    metrics: strategy.metrics.map((metric) => mapMetric(metric)),
+    recentSignals: strategy.signals.map((signal) =>
+      mapSignalItem(signal as unknown as SignalRecord),
+    ),
   };
+
+  return listItem;
 }
 
 function mapMetric(metric: StrategyMetricRecord): StrategyListItem["metric"] {

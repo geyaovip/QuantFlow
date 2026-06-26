@@ -35,12 +35,22 @@ const listStrategiesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(100).optional(),
   riskLevel: z.enum(["low", "medium", "high", "critical"]).optional(),
+  type: z.enum(["spot", "grid", "dca", "trend", "swing"]).optional(),
+  symbol: z.string().min(3).optional(),
+  sortBy: z.enum(["publishedAt", "riskLevel"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+  period: z
+    .enum(["seven_days", "thirty_days", "ninety_days", "all_time"])
+    .optional(),
 });
 
 const listSignalsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional(),
   pageSize: z.coerce.number().int().min(1).max(100).optional(),
   direction: z.enum(["buy", "sell", "watch"]).optional(),
+  status: z
+    .enum(["active", "expired", "cancelled", "strategy_paused", "risk_blocked"])
+    .optional(),
 });
 
 @Controller()

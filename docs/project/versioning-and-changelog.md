@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.3.0-dev.4` - 2026-06-26
+
+- 类型：Added / Backend / Frontend / Docs
+- 摘要：完成 v0.3 打磨：会员计划/权益/模拟开通（非真实扣款）、策略筛选排序与详情多周期指标/历史信号、信号状态筛选、个人中心安全事件与权益展示。
+- MVP 边界影响：无；`enableProductionPayments` 仍为 `false`；模拟盘创建、收藏/提醒与完整 RBAC 未接入。
+- API / 数据 / 权限 / 风控影响：新增 `GET /api/v1/membership/*`、`POST /api/v1/membership/mock-checkout`、`GET /api/v1/me/security-events`；策略列表新增 `type`/`sortBy`/`sortOrder`；信号列表新增 `status`；会话 `membershipPlan` 与订阅配额改读会员权益。
+- 迁移与兼容：新增 migration `202606260002_membership_foundation`（会员计划/权益/订阅表与 Free/Pro/Premium seed）；生产发布通过 `prisma migrate deploy` 前滚。
+- 验证：`pnpm check`。
+- 监控与回滚：如模拟开通或权益计算异常，可回滚 release 镜像；会员数据保留在数据库中，必要时通过管理端人工修正。
+
 ### `v0.3.0-dev.3` - 2026-06-26
 
 - 类型：Added / Backend / Frontend / Docs

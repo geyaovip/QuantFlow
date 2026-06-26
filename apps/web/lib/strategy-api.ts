@@ -1,9 +1,11 @@
 import {
+  securityEventListResponseSchema,
   signalListResponseSchema,
   signalDetailResponseSchema,
   strategyDetailResponseSchema,
   strategyListResponseSchema,
   strategySubscriptionListResponseSchema,
+  type SecurityEventListResponse,
   type SignalDetailResponse,
   type SignalListResponse,
   type StrategySubscriptionListResponse,
@@ -18,12 +20,17 @@ type StrategyListQuery = {
   page?: number;
   pageSize?: number;
   riskLevel?: string;
+  type?: string;
+  symbol?: string;
+  sortBy?: string;
+  sortOrder?: string;
 };
 
 type SignalListQuery = {
   page?: number;
   pageSize?: number;
   direction?: string;
+  status?: string;
 };
 
 export async function getStrategies(
@@ -35,6 +42,18 @@ export async function getStrategies(
   });
   if (query.riskLevel) {
     params.set("riskLevel", query.riskLevel);
+  }
+  if (query.type) {
+    params.set("type", query.type);
+  }
+  if (query.symbol) {
+    params.set("symbol", query.symbol);
+  }
+  if (query.sortBy) {
+    params.set("sortBy", query.sortBy);
+  }
+  if (query.sortOrder) {
+    params.set("sortOrder", query.sortOrder);
   }
   const payload = await getJson(`/api/v1/strategies?${params.toString()}`);
   return strategyListResponseSchema.parse(payload);
@@ -57,6 +76,9 @@ export async function getSignals(
   if (query.direction) {
     params.set("direction", query.direction);
   }
+  if (query.status) {
+    params.set("status", query.status);
+  }
   const payload = await getJson(`/api/v1/signals?${params.toString()}`);
   return signalListResponseSchema.parse(payload);
 }
@@ -75,10 +97,38 @@ export async function getMyStrategies(): Promise<StrategySubscriptionListRespons
   return strategySubscriptionListResponseSchema.parse(payload);
 }
 
-async function getJson(path: string) {
+export async function getSecurityEvents(
+  page = 1,
+): Promise<SecurityEventListResponse> {
+  const payload = await getJson(
+    `/api/v1/me/security-events?page=${page}&pageSize=20`,
+  );
+  return securityEventListResponseSchema.parse(payload);
+}
+
+export async function getJson(path: string) {
   const cookieHeader = await getCookieHeader();
   const response = await fetch(`${resolveApiBaseUrl()}${path}`, {
     headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`QuantFlow API request failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function postJson(path: string, body: unknown) {
+  const cookieHeader = await getCookieHeader();
+  const response = await fetch(`${resolveApiBaseUrl()}${path}`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      ...(cookieHeader ? { cookie: cookieHeader } : {}),
+    },
+    body: JSON.stringify(body),
     cache: "no-store",
   });
 

@@ -1,8 +1,11 @@
-import { PageHeader } from "@quantflow/ui";
+import Link from "next/link";
+
+import { Card, PageHeader } from "@quantflow/ui";
 
 import {
   parsePage,
   parseRiskLevel,
+  parseStrategyType,
   USER_PAGE_SIZE,
 } from "../../../lib/list-query";
 import { getStrategies } from "../../../lib/strategy-api";
@@ -15,6 +18,9 @@ type StrategiesPageProps = {
   searchParams: Promise<{
     page?: string;
     risk?: string;
+    type?: string;
+    sortBy?: string;
+    sortOrder?: string;
   }>;
 };
 
@@ -23,27 +29,74 @@ export default async function StrategiesPage({
 }: StrategiesPageProps) {
   const params = await searchParams;
   const riskLevel = parseRiskLevel(params.risk);
+  const type = parseStrategyType(params.type);
   const strategies = await getStrategies({
     page: parsePage(params.page),
     pageSize: USER_PAGE_SIZE,
     riskLevel,
+    type,
+    sortBy: params.sortBy,
+    sortOrder: params.sortOrder,
   });
+  const visibleCount = strategies.data.length;
+  const activeFilterCount = [riskLevel, type, params.sortBy].filter(
+    Boolean,
+  ).length;
 
   return (
     <>
       <PageHeader
         eyebrow="策略广场"
-        title="浏览已入库策略"
-        description="按风险等级查看可观察策略。收益、最大回撤、样本量和盈亏比以同一周期并列展示，避免只看单一收益排序。"
+        title="发现可跟踪的策略"
+        description="先看策略逻辑、风险等级和样本，再决定是否订阅信号或进入模拟验证。收益、最大回撤和交易样本始终并列展示。"
       />
+      <section className="app-hero-panel" aria-label="策略广场概览">
+        <Card className="app-hero-card">
+          <h2>筛选策略前，先确认风险边界</h2>
+          <p>
+            当前列表仅展示已发布策略。高风险策略不会被隐藏，但会在卡片和详情页持续标记风险等级、回撤和失效场景。
+          </p>
+          <div className="app-hero-actions">
+            <Link className="secondary-link" href="/app/signals">
+              查看信号中心
+            </Link>
+            <Link className="secondary-link" href="/app/my-strategies">
+              我的订阅
+            </Link>
+          </div>
+        </Card>
+        <div className="app-kpi-grid" aria-label="策略列表统计">
+          <div>
+            <span>当前筛选</span>
+            <strong>
+              {activeFilterCount ? `${activeFilterCount} 项` : "全部"}
+            </strong>
+          </div>
+          <div>
+            <span>本页展示</span>
+            <strong>{visibleCount} 个</strong>
+          </div>
+          <div>
+            <span>已入库策略</span>
+            <strong>{strategies.pagination.total} 个</strong>
+          </div>
+        </div>
+      </section>
       <StrategyExplorer
         pagination={strategies.pagination}
+        query={{
+          risk: riskLevel,
+          type,
+          sortBy: params.sortBy,
+        }}
         riskLevel={riskLevel}
+        sortBy={params.sortBy}
         strategies={strategies.data.map(toStrategyCardRecord)}
+        type={type}
       />
       <aside className="disclaimer">
-        QuantFlow
-        不提供投资建议，不承诺任何收益。所有策略信号仅供参考，加密资产价格波动较大，用户需自行承担交易风险。历史表现不代表未来收益。
+        <strong>风险提示：</strong>QuantFlow
+        不提供投资建议，不承诺任何收益。所有策略信号仅供参考，历史表现不代表未来收益。
       </aside>
     </>
   );

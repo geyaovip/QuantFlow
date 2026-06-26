@@ -1,4 +1,9 @@
-import type { RiskLevel, SignalDirection } from "@quantflow/contracts";
+import type {
+  RiskLevel,
+  SignalDirection,
+  SignalStatus,
+  StrategyType,
+} from "@quantflow/contracts";
 
 export const USER_PAGE_SIZE = 20;
 
@@ -23,6 +28,60 @@ export function parseSignalDirection(
     return value;
   }
   return undefined;
+}
+
+export function parseSignalStatus(
+  value: string | undefined,
+): SignalStatus | undefined {
+  if (
+    value === "active" ||
+    value === "expired" ||
+    value === "cancelled" ||
+    value === "strategy_paused" ||
+    value === "risk_blocked"
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+export function parseStrategyType(
+  value: string | undefined,
+): StrategyType | undefined {
+  if (
+    value === "spot" ||
+    value === "grid" ||
+    value === "dca" ||
+    value === "trend" ||
+    value === "swing"
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+export function strategyTypeLabel(type: StrategyType | undefined) {
+  const labels: Record<StrategyType, string> = {
+    spot: "现货",
+    grid: "网格",
+    dca: "定投",
+    trend: "趋势",
+    swing: "波段",
+  };
+  return type ? labels[type] : "全部类型";
+}
+
+export function signalStatusLabel(status: SignalStatus | undefined) {
+  if (status === "active") {
+    return "有效";
+  }
+  if (status === "expired") {
+    return "过期";
+  }
+  if (status === "cancelled") {
+    return "已取消";
+  }
+  return "全部";
 }
 
 export function riskLevelLabel(level: RiskLevel | undefined) {

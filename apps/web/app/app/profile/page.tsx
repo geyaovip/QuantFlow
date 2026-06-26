@@ -4,11 +4,11 @@ import { PageHeader } from "@quantflow/ui";
 
 import { LogoutButton } from "../../../components/auth/logout-button";
 import { getUserSession, resolveApiBaseUrl } from "../../../lib/auth-session";
-import { getMyStrategies } from "../../../lib/strategy-api";
+import { getMembershipEntitlements } from "../../../lib/membership-api";
+import { getMyStrategies, getSecurityEvents } from "../../../lib/strategy-api";
+import { formatSecurityEvent } from "../../../lib/security-format";
 
 export const dynamic = "force-dynamic";
-
-const FREE_STRATEGY_SUBSCRIPTION_LIMIT = 3;
 
 function formatSessionExpiry(expiresAt: string) {
   return new Intl.DateTimeFormat("zh-CN", {
@@ -22,7 +22,14 @@ export default async function ProfilePage() {
   const subscriptions = session
     ? await getMyStrategies().catch(() => null)
     : null;
+  const entitlements = session
+    ? await getMembershipEntitlements().catch(() => null)
+    : null;
+  const securityEvents = session
+    ? await getSecurityEvents().catch(() => null)
+    : null;
   const activeCount = subscriptions?.pagination.total ?? 0;
+  const subscriptionLimit = entitlements?.strategySubscriptionsMax ?? 3;
 
   return (
     <div>
@@ -50,18 +57,41 @@ export default async function ProfilePage() {
           <section className="profile-panel__section">
             <h2>策略订阅配额</h2>
             <p>
-              Free 计划最多订阅 {FREE_STRATEGY_SUBSCRIPTION_LIMIT}{" "}
-              个活跃策略。你已订阅 {activeCount} 个，剩余{" "}
-              {Math.max(FREE_STRATEGY_SUBSCRIPTION_LIMIT - activeCount, 0)} 个。
+              {entitlements?.planName ?? "Free"} 计划最多订阅{" "}
+              {subscriptionLimit} 个活跃策略。你已订阅 {activeCount} 个，剩余{" "}
+              {Math.max(subscriptionLimit - activeCount, 0)} 个。
             </p>
-            <Link className="secondary-link" href="/app/my-strategies">
-              查看我的策略
-            </Link>
+            <div className="profile-panel__links">
+              <Link className="secondary-link" href="/app/my-strategies">
+                查看我的策略
+              </Link>
+              <Link className="secondary-link" href="/app/membership">
+                管理会员权益
+              </Link>
+            </div>
+          </section>
+          <section className="profile-panel__section">
+            <h2>最近安全记录</h2>
+            {securityEvents?.data.length ? (
+              <ul className="security-event-list">
+                {securityEvents.data.map((event) => (
+                  <li key={event.id}>
+                    <strong>{formatSecurityEvent(event.eventType)}</strong>
+                    <span>
+                      {new Date(event.occurredAt).toLocaleString("zh-CN")}
+                      {event.ip ? ` · ${event.ip}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>登录、验证码和会话相关事件会显示在这里。</p>
+            )}
           </section>
           <section className="profile-panel__section">
             <h2>待接入能力</h2>
             <p>
-              模拟盘容量、通知偏好和安全事件记录将在后续版本接入。当前版本不包含在线购买或自动续费。
+              通知偏好将在后续版本接入。当前模拟开通不产生真实扣款或自动续费。
             </p>
           </section>
         </div>

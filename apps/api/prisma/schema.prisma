@@ -120,6 +120,29 @@ enum StrategySubscriptionStatus {
   @@map("strategy_subscription_status")
 }
 
+enum MembershipPlanStatus {
+  active
+  inactive
+
+  @@map("membership_plan_status")
+}
+
+enum UserSubscriptionStatus {
+  active
+  expired
+  cancelled
+
+  @@map("user_subscription_status")
+}
+
+enum UserSubscriptionSource {
+  manual
+  invite
+  test
+
+  @@map("user_subscription_source")
+}
+
 model User {
   id              String                     @id @default(uuid()) @db.Uuid
   emailNormalized String                     @unique @map("email_normalized")
@@ -130,6 +153,7 @@ model User {
   updatedAt       DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
   securityEvents  UserSecurityEvent[]
   subscriptions   UserStrategySubscription[]
+  membershipSubs  UserSubscription[]
 
   @@map("users")
 }
@@ -333,4 +357,53 @@ model AdminAuditLog {
   @@index([actorAdminId, createdAt(sort: Desc), id(sort: Desc)], map: "idx_admin_audit_actor")
   @@index([resourceType, resourceId, createdAt(sort: Desc), id(sort: Desc)], map: "idx_admin_audit_resource")
   @@map("admin_audit_logs")
+}
+
+model MembershipPlan {
+  id              String                 @id @default(uuid()) @db.Uuid
+  tier            MembershipTier         @unique
+  name            String
+  monthlyPriceCny Decimal                @map("monthly_price_cny") @db.Decimal(10, 2)
+  yearlyPriceCny  Decimal                @map("yearly_price_cny") @db.Decimal(10, 2)
+  displayOrder    Int                    @map("display_order")
+  status          MembershipPlanStatus     @default(active)
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  entitlements    MembershipEntitlement[]
+  subscriptions   UserSubscription[]
+
+  @@map("membership_plans")
+}
+
+model MembershipEntitlement {
+  id        String         @id @default(uuid()) @db.Uuid
+  planId    String         @map("plan_id") @db.Uuid
+  plan      MembershipPlan @relation(fields: [planId], references: [id])
+  key       String
+  valueType String         @map("value_type")
+  value     String
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([planId, key], map: "uniq_membership_entitlements_plan_key")
+  @@map("membership_entitlements")
+}
+
+model UserSubscription {
+  id        String                 @id @default(uuid()) @db.Uuid
+  userId    String                 @map("user_id") @db.Uuid
+  user      User                   @relation(fields: [userId], references: [id])
+  planId    String                 @map("plan_id") @db.Uuid
+  plan      MembershipPlan         @relation(fields: [planId], references: [id])
+  status    UserSubscriptionStatus @default(active)
+  source    UserSubscriptionSource
+  startsAt  DateTime               @map("starts_at") @db.Timestamptz(6)
+  endsAt    DateTime               @map("ends_at") @db.Timestamptz(6)
+  cancelledAt DateTime?            @map("cancelled_at") @db.Timestamptz(6)
+  reason    String?
+  createdAt DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([userId, status, endsAt(sort: Desc), id(sort: Desc)], map: "idx_user_subscriptions_user")
+  @@map("user_subscriptions")
 }

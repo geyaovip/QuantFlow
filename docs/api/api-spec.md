@@ -133,13 +133,17 @@ MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件
 
 ## 5. 会员
 
-| 方法 | 路径                                 | 用途                                                         |
-| ---- | ------------------------------------ | ------------------------------------------------------------ |
-| GET  | `/membership/plans`                  | 计划与功能权益；用户端分页，不包含收益承诺                   |
-| GET  | `/membership/subscription`           | 当前订阅与有效权益                                           |
-| POST | `/integrations/email/resend/webhook` | 可选投递事件回调；验签、幂等，只更新投递监控，不改变认证结果 |
+| 方法 | 路径                                 | 用途                                                           |
+| ---- | ------------------------------------ | -------------------------------------------------------------- |
+| GET  | `/membership/plans`                  | 计划与功能权益；用户端分页，不包含收益承诺                     |
+| GET  | `/membership/subscription`           | 当前订阅与有效权益                                             |
+| GET  | `/membership/entitlements`           | 当前用户有效权益（含 Free 默认）                               |
+| POST | `/membership/mock-checkout`          | 开发/测试用模拟开通；要求 `riskAccepted: true`；不产生真实扣款 |
+| POST | `/integrations/email/resend/webhook` | 可选投递事件回调；验签、幂等，只更新投递监控，不改变认证结果   |
 
-MVP 不注册用户购买、支付状态或支付 webhook 路由。会员由管理端人工/邀请码/测试开通；未来支付必须新增 ADR 和独立契约。
+`mock-checkout` 请求体：`{ tier: "pro"|"premium", billingCycle: "monthly"|"yearly", riskAccepted: true }`。订阅来源记为 `test`；UI 必须标注「模拟开通，非真实扣款」。
+
+MVP 不注册用户购买、支付状态或支付 webhook 路由。生产在线支付由 `enableProductionPayments=false` 关闭；会员亦可由管理端人工/邀请码开通；未来支付必须新增 ADR 和独立契约。
 
 ## 6. 通知与行情
 

@@ -4,6 +4,7 @@ import { Badge, RiskBadge } from "./badge";
 import { Card } from "./card";
 
 export type StrategyCardProps = {
+  currentSignalLabel?: string;
   href?: string;
   name: string;
   summary: string;
@@ -14,6 +15,8 @@ export type StrategyCardProps = {
   trades: number;
   profitLossRatio: string;
   risk: "低" | "中" | "高";
+  statusLabel?: string;
+  updatedAt?: string;
 };
 
 export function StrategyCard(props: StrategyCardProps) {
@@ -47,6 +50,24 @@ export function StrategyCard(props: StrategyCardProps) {
           <dd>{props.profitLossRatio}</dd>
         </div>
       </dl>
+      {props.currentSignalLabel || props.statusLabel || props.updatedAt ? (
+        <div className="qf-strategy-card__signal" aria-label="当前信号状态">
+          <span>
+            当前信号
+            <strong>{props.currentSignalLabel ?? "暂无信号"}</strong>
+          </span>
+          <span>
+            状态
+            <strong>{props.statusLabel ?? "待更新"}</strong>
+          </span>
+          {props.updatedAt ? (
+            <span>
+              更新
+              <strong>{props.updatedAt}</strong>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       {props.href ? (
         <a className="qf-card-link" href={props.href}>
           查看策略与风险 <ArrowRight aria-hidden="true" size={16} />

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, forwardRef } from "@nestjs/common";
 
 import type {
   AdminStrategyAction,
@@ -18,6 +18,7 @@ import {
   StrategyNotFoundError,
   StrategySubscriptionLimitError,
 } from "../domain/strategy-errors.js";
+import { MembershipService } from "../../membership/application/membership.service.js";
 import {
   STRATEGY_REPOSITORY,
   type AuditContext,
@@ -28,13 +29,14 @@ import {
 
 export const USER_DEFAULT_PAGE_SIZE = 20;
 export const API_MAX_PAGE_SIZE = 100;
-export const FREE_STRATEGY_SUBSCRIPTION_LIMIT = 3;
 
 @Injectable()
 export class StrategyService {
   constructor(
     @Inject(STRATEGY_REPOSITORY)
     private readonly repository: StrategyRepository,
+    @Inject(forwardRef(() => MembershipService))
+    private readonly membershipService: MembershipService,
   ) {}
 
   async listStrategies(
@@ -48,6 +50,11 @@ export class StrategyService {
         page,
         pageSize,
         riskLevel: input.riskLevel,
+        type: input.type,
+        symbol: input.symbol,
+        sortBy: input.sortBy,
+        sortOrder: input.sortOrder,
+        period: input.period,
       },
       userId,
     );
@@ -84,6 +91,7 @@ export class StrategyService {
       pageSize,
       userId,
       direction: input.direction,
+      status: input.status,
     });
 
     return {
@@ -108,9 +116,10 @@ export class StrategyService {
     userId: string,
     strategyId: string,
   ): Promise<StrategySubscriptionResponse> {
+    const entitlements = await this.membershipService.getEntitlements(userId);
     const activeCount = await this.repository.countActiveSubscriptions(userId);
 
-    if (activeCount >= FREE_STRATEGY_SUBSCRIPTION_LIMIT) {
+    if (activeCount >= entitlements.strategySubscriptionsMax) {
       const strategy = await this.repository.findActiveStrategy(
         strategyId,
         userId,

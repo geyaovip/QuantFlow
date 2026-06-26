@@ -39,49 +39,77 @@ export default async function SignalDetailPage({
         eyebrow="信号详情"
         title={`${signal.strategyName} · ${formatSignalDirection(signal.direction)}`}
         description="信号仅用于观察和模拟验证，不提供真实下单、半自动或自动交易入口。"
-        action={<Button disabled>加入模拟盘待接入</Button>}
+        action={
+          <Button disabled variant="secondary">
+            加入模拟盘待接入
+          </Button>
+        }
       />
-      <Card className="signal-card">
-        <div className="signal-card__topline">
-          <div>
-            <Badge>{signal.symbol}</Badge>
-            <RiskBadge level={formatRiskLevel(signal.riskLevel)} />
+      <section className="signal-detail-grid">
+        <Card className="signal-card">
+          <div className="signal-card__topline">
+            <div>
+              <Badge>{signal.symbol}</Badge>
+              <RiskBadge level={formatRiskLevel(signal.riskLevel)} />
+            </div>
+            <span>{formatSignalStatus(signal.status)}</span>
           </div>
-          <span>{formatSignalStatus(signal.status)}</span>
-        </div>
-        <div className="signal-card__body">
-          <div>
-            <p>{signal.strategyName}</p>
-            <h2>{formatSignalDirection(signal.direction)}</h2>
-            <span>
-              生成：{formatDateTime(signal.generatedAt)} · 有效至：
-              {formatDateTime(signal.validUntil)}
-            </span>
+          <div className="signal-card__body">
+            <div>
+              <p>{signal.strategyName}</p>
+              <h2>{formatSignalDirection(signal.direction)}</h2>
+              <span>
+                生成：{formatDateTime(signal.generatedAt)} · 有效至：
+                {formatDateTime(signal.validUntil)}
+              </span>
+            </div>
+            <dl>
+              <div>
+                <dt>触发价格</dt>
+                <dd>{formatPrice(signal.triggerPrice)}</dd>
+              </div>
+              <div>
+                <dt>当前快照</dt>
+                <dd>{formatPrice(signal.currentPriceSnapshot)}</dd>
+              </div>
+              <div>
+                <dt>建议仓位</dt>
+                <dd>{formatPositionPct(signal.suggestedPositionPct)}</dd>
+              </div>
+              <div>
+                <dt>止损 / 止盈</dt>
+                <dd>
+                  {formatPrice(signal.stopLossPrice)} /{" "}
+                  {formatPrice(signal.takeProfitPrice)}
+                </dd>
+              </div>
+            </dl>
           </div>
-          <dl>
+          <p className="signal-card__rationale">{signal.rationale}</p>
+        </Card>
+        <Card className="app-section-card">
+          <div className="app-section-card__header">
             <div>
-              <dt>触发价格</dt>
-              <dd>{formatPrice(signal.triggerPrice)}</dd>
+              <h2>使用前确认</h2>
+              <p>信号有效性受行情延迟、策略状态和风控规则影响。</p>
             </div>
-            <div>
-              <dt>当前快照</dt>
-              <dd>{formatPrice(signal.currentPriceSnapshot)}</dd>
-            </div>
-            <div>
-              <dt>建议仓位</dt>
-              <dd>{formatPositionPct(signal.suggestedPositionPct)}</dd>
-            </div>
-            <div>
-              <dt>止损 / 止盈</dt>
-              <dd>
-                {formatPrice(signal.stopLossPrice)} /{" "}
-                {formatPrice(signal.takeProfitPrice)}
-              </dd>
-            </div>
-          </dl>
-        </div>
-        <p className="signal-card__rationale">{signal.rationale}</p>
-      </Card>
+          </div>
+          <ul className="app-muted-list">
+            <li>
+              <span>状态</span>
+              <strong>{formatSignalStatus(signal.status)}</strong>
+            </li>
+            <li>
+              <span>风险等级</span>
+              <strong>{formatRiskLevel(signal.riskLevel)}风险</strong>
+            </li>
+            <li>
+              <span>可执行能力</span>
+              <strong>仅观察 / 模拟验证</strong>
+            </li>
+          </ul>
+        </Card>
+      </section>
       <aside className="disclaimer">{signal.riskDisclosure}</aside>
     </>
   );

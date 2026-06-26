@@ -19,7 +19,10 @@
   .paper-grid,
   .pricing-grid,
   .workflow-steps,
-  .risk-panel {
+  .risk-panel,
+  .app-hero-panel,
+  .signal-detail-grid,
+  .paper-status-grid {
     grid-template-columns: 1fr;
   }
   .strategy-detail-layout,
@@ -37,6 +40,9 @@
   }
   .product-preview__grid {
     grid-template-columns: 1fr;
+  }
+  .app-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
   .strategy-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -97,6 +103,12 @@
   .strategy-grid {
     grid-template-columns: 1fr;
   }
+  .membership-grid {
+    grid-template-columns: 1fr;
+  }
+  .metric-bars__row {
+    grid-template-columns: 1fr;
+  }
   .preview-row,
   .preview-row--5 {
     grid-template-columns: 1.5fr 1fr 1fr;
@@ -107,6 +119,18 @@
   }
   .strategy-detail-metrics {
     grid-template-columns: 1fr;
+  }
+  .app-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .app-section-card__header,
+  .app-muted-list li {
+    flex-direction: column;
+  }
+  .signal-card__actions .primary-link,
+  .signal-card__actions .secondary-link,
+  .signal-card__actions .qf-button {
+    width: 100%;
   }
   .landing-cta {
     align-items: stretch;

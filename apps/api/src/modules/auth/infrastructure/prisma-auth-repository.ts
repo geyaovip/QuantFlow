@@ -224,4 +224,25 @@ export class PrismaAuthRepository implements AuthRepository {
       },
     });
   }
+
+  async listSecurityEvents(userId: string, page: number, pageSize: number) {
+    const where = { userId };
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.userSecurityEvent.count({ where }),
+      this.prisma.userSecurityEvent.findMany({
+        where,
+        orderBy: [{ occurredAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: {
+          id: true,
+          eventType: true,
+          occurredAt: true,
+          ip: true,
+        },
+      }),
+    ]);
+
+    return { total, items };
+  }
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Badge, Button, Card, PageHeader, RiskBadge } from "@quantflow/ui";
@@ -7,6 +8,7 @@ import { resolveApiBaseUrl } from "../../../../lib/auth-session";
 import { getStrategy } from "../../../../lib/strategy-api";
 import {
   formatDateTime,
+  formatMetricPeriod,
   formatPercent,
   formatRiskLevel,
   formatSignalDirection,
@@ -45,6 +47,14 @@ export default async function StrategyDetailPage({
   const currentSignalLabel = strategy.currentSignal
     ? formatSignalDirection(strategy.currentSignal.direction)
     : "暂无信号";
+  const maxReturn = Math.max(
+    ...strategy.metrics.map((metric) => Math.abs(Number(metric.returnRate))),
+    0.01,
+  );
+  const maxDrawdown = Math.max(
+    ...strategy.metrics.map((metric) => Math.abs(Number(metric.maxDrawdown))),
+    0.01,
+  );
 
   return (
     <>
@@ -99,16 +109,45 @@ export default async function StrategyDetailPage({
               <dt>盈亏比</dt>
               <dd>{Number(strategy.metric.profitLossRatio).toFixed(2)}</dd>
             </div>
+            <div>
+              <dt>样本量</dt>
+              <dd>{strategy.metric.sampleSize}</dd>
+            </div>
+            <div>
+              <dt>数据来源</dt>
+              <dd>{strategy.metric.dataSource}</dd>
+            </div>
           </dl>
         </Card>
 
         <Card className="strategy-detail-side">
-          <h2>模拟盘入口</h2>
-          <p>
-            创建模拟盘能力将在后续切片接入。MVP 仅使用模拟资金记录策略过程。
-            当前策略订阅状态：{strategy.isSubscribed ? "已订阅" : "未订阅"}。
-          </p>
-          <Button disabled>等待接入</Button>
+          <h2>多周期表现</h2>
+          <p>收益与最大回撤按同一周期并列展示，避免只看单一收益。</p>
+          <div className="metric-bars" aria-label="多周期收益与回撤">
+            {strategy.metrics.map((metric) => (
+              <div className="metric-bars__row" key={metric.period}>
+                <span>{formatMetricPeriod(metric.period)}</span>
+                <div className="metric-bars__track">
+                  <div
+                    className="metric-bars__return"
+                    style={{
+                      width: `${(Math.abs(Number(metric.returnRate)) / maxReturn) * 100}%`,
+                    }}
+                  />
+                  <div
+                    className="metric-bars__drawdown"
+                    style={{
+                      width: `${(Math.abs(Number(metric.maxDrawdown)) / maxDrawdown) * 100}%`,
+                    }}
+                  />
+                </div>
+                <strong>
+                  {formatPercent(metric.returnRate, true)} /{" "}
+                  {formatPercent(metric.maxDrawdown, false)}
+                </strong>
+              </div>
+            ))}
+          </div>
         </Card>
       </section>
 
@@ -128,6 +167,79 @@ export default async function StrategyDetailPage({
         <Card className="strategy-detail-note">
           <h2>失效场景</h2>
           <p>{strategy.failureModes}</p>
+        </Card>
+        <Card className="strategy-detail-note">
+          <h2>仓位与止损</h2>
+          <p>
+            {strategy.positionSizing} {strategy.stopLossLogic}
+          </p>
+        </Card>
+        <Card className="strategy-detail-note">
+          <h2>止盈逻辑</h2>
+          <p>{strategy.takeProfitLogic}</p>
+        </Card>
+      </section>
+
+      <section className="strategy-signal-history" aria-label="历史信号">
+        <div className="strategy-detail-section-heading">
+          <h2>历史信号</h2>
+          <p>展示最近信号记录，包含状态、方向和有效期。</p>
+        </div>
+        {strategy.recentSignals.length ? (
+          <div className="signal-history-list">
+            {strategy.recentSignals.map((signal) => (
+              <Card className="signal-history-item" key={signal.id}>
+                <div>
+                  <strong>{formatSignalDirection(signal.direction)}</strong>
+                  <span>{formatSignalStatus(signal.status)}</span>
+                </div>
+                <p>
+                  生成：{formatDateTime(signal.generatedAt)} · 有效至：
+                  {formatDateTime(signal.validUntil)}
+                </p>
+                <Link
+                  className="secondary-link"
+                  href={`/app/signals/${signal.id}`}
+                >
+                  查看详情
+                </Link>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <strong>暂无历史信号</strong>
+          </div>
+        )}
+      </section>
+
+      <section className="strategy-detail-layout">
+        <Card className="strategy-detail-side">
+          <h2>模拟盘入口</h2>
+          <p>
+            当前策略订阅状态：{strategy.isSubscribed ? "已订阅" : "未订阅"}。
+            模拟盘创建正在接入中，后续仅使用模拟资金记录策略过程，不连接交易所或真实资产。
+          </p>
+          <Button disabled variant="secondary">
+            创建模拟盘待接入
+          </Button>
+        </Card>
+        <Card className="strategy-detail-side">
+          <h2>阅读顺序</h2>
+          <ul className="app-muted-list">
+            <li>
+              <span>先看</span>
+              <strong>收益 / 回撤 / 样本量</strong>
+            </li>
+            <li>
+              <span>再看</span>
+              <strong>适合与失效场景</strong>
+            </li>
+            <li>
+              <span>最后</span>
+              <strong>订阅信号或等待模拟验证</strong>
+            </li>
+          </ul>
         </Card>
       </section>
 

@@ -68,6 +68,14 @@ export function AppUserMenu({ apiBaseUrl, session }: AppUserMenuProps) {
           </div>
           <Link
             className="app-user-menu__item"
+            href="/app/membership"
+            onClick={() => setOpen(false)}
+            role="menuitem"
+          >
+            会员权益
+          </Link>
+          <Link
+            className="app-user-menu__item"
             href="/app/profile"
             onClick={() => setOpen(false)}
             role="menuitem"

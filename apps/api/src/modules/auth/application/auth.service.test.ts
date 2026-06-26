@@ -21,6 +21,19 @@ import {
   InvalidOtpError,
 } from "../domain/auth-errors.js";
 import { AuthService } from "./auth.service.js";
+import { MembershipService } from "../../membership/application/membership.service.js";
+
+class MemoryMembershipService {
+  async getEntitlements() {
+    return {
+      tier: "free" as const,
+      planName: "Free",
+      strategySubscriptionsMax: 3,
+      paperAccountsMax: 1,
+      historyDays: 30,
+    };
+  }
+}
 
 class MutableClock implements Clock {
   constructor(private current: Date) {}
@@ -163,6 +176,22 @@ class MemoryAuthRepository implements AuthRepository {
   async recordSecurityEvent(input: SecurityEventInput) {
     this.events.push(input);
   }
+
+  async listSecurityEvents(userId: string, page: number, pageSize: number) {
+    const items = this.events
+      .filter((event) => event.userId === userId)
+      .map((event, index) => ({
+        id: `event-${index}`,
+        eventType: event.eventType,
+        occurredAt: this.clock.now(),
+        ip: event.ip ?? null,
+      }));
+
+    return {
+      total: items.length,
+      items: items.slice((page - 1) * pageSize, page * pageSize),
+    };
+  }
 }
 
 describe("AuthService", () => {
@@ -182,6 +211,7 @@ describe("AuthService", () => {
       new NodeAuthCrypto("test-pepper"),
       clock,
       new NoopTurnstileVerifier(),
+      new MemoryMembershipService() as unknown as MembershipService,
     );
   });
 

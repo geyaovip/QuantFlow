@@ -16,6 +16,11 @@ export type ListStrategiesInput = {
   page: number;
   pageSize: number;
   riskLevel?: string;
+  type?: string;
+  symbol?: string;
+  sortBy?: "publishedAt" | "riskLevel";
+  sortOrder?: "asc" | "desc";
+  period?: string;
 };
 
 export type ListSignalsInput = {
@@ -23,6 +28,7 @@ export type ListSignalsInput = {
   pageSize: number;
   userId?: string;
   direction?: string;
+  status?: string;
 };
 
 export type AuditContext = {

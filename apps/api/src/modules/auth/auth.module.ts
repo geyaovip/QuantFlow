@@ -1,6 +1,7 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 
 import { loadAppConfig } from "../../config/app-config.js";
+import { MembershipModule } from "../membership/membership.module.js";
 import { PrismaModule } from "../prisma/prisma.module.js";
 import { AuthService } from "./application/auth.service.js";
 import { AUTH_CRYPTO } from "./domain/auth-crypto.js";
@@ -15,10 +16,11 @@ import { NoopTurnstileVerifier } from "./infrastructure/noop-turnstile-verifier.
 import { PrismaAuthRepository } from "./infrastructure/prisma-auth-repository.js";
 import { ResendAuthMailer } from "./infrastructure/resend-auth-mailer.js";
 import { AuthController } from "./interfaces/auth.controller.js";
+import { MeController } from "./interfaces/me.controller.js";
 
 @Module({
-  imports: [PrismaModule],
-  controllers: [AuthController],
+  imports: [PrismaModule, forwardRef(() => MembershipModule)],
+  controllers: [AuthController, MeController],
   providers: [
     AuthService,
     PrismaAuthRepository,

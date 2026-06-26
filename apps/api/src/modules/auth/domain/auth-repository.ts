@@ -60,4 +60,17 @@ export interface AuthRepository {
   findUserProfileById(userId: string): Promise<AuthUserProfile | null>;
   touchSession(tokenHash: string, at: Date): Promise<void>;
   recordSecurityEvent(input: SecurityEventInput): Promise<void>;
+  listSecurityEvents(
+    userId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<{
+    items: Array<{
+      id: string;
+      eventType: string;
+      occurredAt: Date;
+      ip: string | null;
+    }>;
+    total: number;
+  }>;
 }

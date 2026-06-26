@@ -3,6 +3,7 @@ import type {
   SignalDirection,
   SignalStatus,
   StrategyListItem,
+  StrategyMetric,
   StrategyType,
 } from "@quantflow/contracts";
 import type { StrategyCardProps } from "@quantflow/ui";
@@ -119,11 +120,21 @@ function formatStrategyType(type: StrategyType) {
   return labels[type];
 }
 
-function formatTier(tier: StrategyListItem["requiredTier"]) {
+export function formatTier(tier: StrategyListItem["requiredTier"]) {
   const labels: Record<StrategyListItem["requiredTier"], string> = {
     free: "Free",
     pro: "Pro",
     premium: "Premium",
   };
   return labels[tier];
+}
+
+export function formatMetricPeriod(period: StrategyMetric["period"]) {
+  const labels: Record<StrategyMetric["period"], string> = {
+    seven_days: "近 7 天",
+    thirty_days: "近 30 天",
+    ninety_days: "近 90 天",
+    all_time: "全部历史",
+  };
+  return labels[period];
 }

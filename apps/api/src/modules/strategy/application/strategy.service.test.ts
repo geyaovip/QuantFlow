@@ -6,6 +6,7 @@ import type {
   StrategyDetail,
   StrategyListItem,
   StrategySubscription,
+  UserEntitlements,
 } from "@quantflow/contracts";
 
 import { StrategyNotFoundError } from "../domain/strategy-errors.js";
@@ -14,7 +15,22 @@ import type {
   ListStrategiesInput,
   StrategyRepository,
 } from "../domain/strategy-repository.js";
+import { MembershipService } from "../../membership/application/membership.service.js";
 import { StrategyService } from "./strategy.service.js";
+
+const defaultEntitlements: UserEntitlements = {
+  tier: "free",
+  planName: "Free",
+  strategySubscriptionsMax: 3,
+  paperAccountsMax: 1,
+  historyDays: 30,
+};
+
+class MemoryMembershipService {
+  async getEntitlements(): Promise<UserEntitlements> {
+    return defaultEntitlements;
+  }
+}
 
 class MemoryStrategyRepository implements StrategyRepository {
   constructor(
@@ -154,21 +170,6 @@ const strategy: StrategyListItem = {
   publishedAt: "2026-06-26T02:40:00.000Z",
 };
 
-const detail: StrategyDetail = {
-  ...strategy,
-  version: 1,
-  logic: "趋势过滤逻辑",
-  suitableMarket: "趋势清晰",
-  unsuitableMarket: "震荡反复",
-  positionSizing: "单信号不超过 10%",
-  stopLossLogic: "跌破阈值",
-  takeProfitLogic: "动能衰减",
-  failureModes: "突发行情可能失效",
-  dataSource: "test",
-  riskDisclosure: "QuantFlow 不提供投资建议，不承诺任何收益。",
-  canSubscribe: true,
-};
-
 const signal: SignalListItem = {
   id: "11111111-1111-4111-8111-111111111114",
   strategyId: strategy.id,
@@ -188,9 +189,33 @@ const signal: SignalListItem = {
   validUntil: "2026-06-27T02:40:00.000Z",
 };
 
+const detail: StrategyDetail = {
+  ...strategy,
+  version: 1,
+  logic: "趋势过滤逻辑",
+  suitableMarket: "趋势清晰",
+  unsuitableMarket: "震荡反复",
+  positionSizing: "单信号不超过 10%",
+  stopLossLogic: "跌破阈值",
+  takeProfitLogic: "动能衰减",
+  failureModes: "突发行情可能失效",
+  dataSource: "test",
+  riskDisclosure: "QuantFlow 不提供投资建议，不承诺任何收益。",
+  canSubscribe: true,
+  metrics: [strategy.metric],
+  recentSignals: [signal],
+};
+
 describe("StrategyService", () => {
+  const membershipService =
+    new MemoryMembershipService() as unknown as MembershipService;
+
+  function createService(repository: MemoryStrategyRepository) {
+    return new StrategyService(repository, membershipService);
+  }
+
   it("lists active strategies with normalized pagination", async () => {
-    const service = new StrategyService(
+    const service = createService(
       new MemoryStrategyRepository([strategy], detail, [signal]),
     );
 
@@ -203,10 +228,10 @@ describe("StrategyService", () => {
   });
 
   it("returns strategy details or a not found error", async () => {
-    const service = new StrategyService(
+    const service = createService(
       new MemoryStrategyRepository([strategy], detail, [signal]),
     );
-    const missingService = new StrategyService(
+    const missingService = createService(
       new MemoryStrategyRepository([], null, []),
     );
 
@@ -219,7 +244,7 @@ describe("StrategyService", () => {
   });
 
   it("lists active signals without trading actions", async () => {
-    const service = new StrategyService(
+    const service = createService(
       new MemoryStrategyRepository([strategy], detail, [signal]),
     );
 
@@ -231,7 +256,7 @@ describe("StrategyService", () => {
 
   it("filters signals by direction", async () => {
     const sellSignal = { ...signal, id: "222", direction: "sell" as const };
-    const service = new StrategyService(
+    const service = createService(
       new MemoryStrategyRepository([strategy], detail, [signal, sellSignal]),
     );
 

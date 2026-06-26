@@ -119,24 +119,6 @@ export const strategyListResponseSchema = z.object({
   pagination: paginationSchema,
 });
 
-export const strategyDetailSchema = strategyListItemSchema.extend({
-  version: z.number().int().min(1),
-  logic: z.string(),
-  suitableMarket: z.string(),
-  unsuitableMarket: z.string(),
-  positionSizing: z.string(),
-  stopLossLogic: z.string(),
-  takeProfitLogic: z.string(),
-  failureModes: z.string(),
-  dataSource: z.string(),
-  riskDisclosure: z.string(),
-  canSubscribe: z.boolean(),
-});
-
-export const strategyDetailResponseSchema = z.object({
-  data: strategyDetailSchema,
-});
-
 export const signalListItemSchema = z.object({
   id: z.uuid(),
   strategyId: z.uuid(),
@@ -155,6 +137,26 @@ export const signalListItemSchema = z.object({
   generatedAt: z.iso.datetime(),
   validUntil: z.iso.datetime(),
   isSubscribed: z.boolean().optional(),
+});
+
+export const strategyDetailSchema = strategyListItemSchema.extend({
+  version: z.number().int().min(1),
+  logic: z.string(),
+  suitableMarket: z.string(),
+  unsuitableMarket: z.string(),
+  positionSizing: z.string(),
+  stopLossLogic: z.string(),
+  takeProfitLogic: z.string(),
+  failureModes: z.string(),
+  dataSource: z.string(),
+  riskDisclosure: z.string(),
+  canSubscribe: z.boolean(),
+  metrics: z.array(strategyMetricSchema),
+  recentSignals: z.array(signalListItemSchema),
+});
+
+export const strategyDetailResponseSchema = z.object({
+  data: strategyDetailSchema,
 });
 
 export const signalListResponseSchema = z.object({
@@ -211,6 +213,64 @@ export const adminStrategyActionSchema = z.object({
 export const adminStrategyListResponseSchema = strategyListResponseSchema;
 export const adminStrategyDetailResponseSchema = strategyDetailResponseSchema;
 
+export const membershipEntitlementSchema = z.object({
+  key: z.string(),
+  valueType: z.enum(["int", "bool", "string"]),
+  value: z.string(),
+});
+
+export const membershipPlanSchema = z.object({
+  tier: membershipTierSchema,
+  name: z.string(),
+  monthlyPriceCny: z.string(),
+  yearlyPriceCny: z.string(),
+  entitlements: z.array(membershipEntitlementSchema),
+});
+
+export const membershipPlanListResponseSchema = z.object({
+  data: z.array(membershipPlanSchema),
+});
+
+export const membershipSubscriptionSchema = z.object({
+  tier: membershipTierSchema,
+  planName: z.string(),
+  status: z.enum(["active", "expired", "cancelled"]),
+  source: z.enum(["manual", "invite", "test"]),
+  startsAt: z.iso.datetime(),
+  endsAt: z.iso.datetime(),
+  cancelledAt: z.iso.datetime().nullable(),
+});
+
+export const membershipSubscriptionResponseSchema = z.object({
+  data: membershipSubscriptionSchema,
+});
+
+export const userEntitlementsSchema = z.object({
+  tier: membershipTierSchema,
+  planName: z.string(),
+  strategySubscriptionsMax: z.number().int().min(0),
+  paperAccountsMax: z.number().int().min(0),
+  historyDays: z.number().int().min(0),
+});
+
+export const membershipMockCheckoutSchema = z.object({
+  tier: z.enum(["pro", "premium"]),
+  billingCycle: z.enum(["monthly", "yearly"]),
+  riskAccepted: z.literal(true),
+});
+
+export const securityEventSchema = z.object({
+  id: z.uuid(),
+  eventType: z.string(),
+  occurredAt: z.iso.datetime(),
+  ip: z.string().nullable(),
+});
+
+export const securityEventListResponseSchema = z.object({
+  data: z.array(securityEventSchema),
+  pagination: paginationSchema,
+});
+
 export type EmailOtpRequest = z.infer<typeof emailOtpRequestSchema>;
 export type EmailOtpRequestResponse = z.infer<
   typeof emailOtpRequestResponseSchema
@@ -255,6 +315,24 @@ export type AdminStrategyListResponse = z.infer<
 >;
 export type AdminStrategyDetailResponse = z.infer<
   typeof adminStrategyDetailResponseSchema
+>;
+export type MembershipPlan = z.infer<typeof membershipPlanSchema>;
+export type MembershipPlanListResponse = z.infer<
+  typeof membershipPlanListResponseSchema
+>;
+export type MembershipSubscription = z.infer<
+  typeof membershipSubscriptionSchema
+>;
+export type MembershipSubscriptionResponse = z.infer<
+  typeof membershipSubscriptionResponseSchema
+>;
+export type UserEntitlements = z.infer<typeof userEntitlementsSchema>;
+export type MembershipMockCheckout = z.infer<
+  typeof membershipMockCheckoutSchema
+>;
+export type SecurityEvent = z.infer<typeof securityEventSchema>;
+export type SecurityEventListResponse = z.infer<
+  typeof securityEventListResponseSchema
 >;
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
