@@ -1,7 +1,7 @@
 FROM node:24-alpine AS build
 
 WORKDIR /app
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@11.2.2 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps/admin/package.json ./apps/admin/package.json
@@ -23,7 +23,7 @@ FROM node:24-alpine AS runtime
 
 ENV NODE_ENV=production
 WORKDIR /app
-RUN corepack enable
+RUN corepack enable && corepack prepare pnpm@11.2.2 --activate
 
 COPY --from=build /app /app
 
