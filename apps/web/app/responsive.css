@@ -6,8 +6,15 @@
   .hero-panel {
     max-width: 680px;
   }
-  .feature-grid {
+  .strategy-detail-layout,
+  .strategy-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .strategy-detail-metrics {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .product-preview__grid {
+    grid-template-columns: 1fr;
   }
   .strategy-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -40,12 +47,7 @@
     align-items: stretch;
     flex-direction: column;
   }
-  .section-heading,
-  .landing-cta {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .feature-grid,
+  .product-preview__grid,
   .strategy-grid {
     grid-template-columns: 1fr;
   }
@@ -54,6 +56,9 @@
   }
   .preview-row > :last-child {
     display: none;
+  }
+  .strategy-detail-metrics {
+    grid-template-columns: 1fr;
   }
   .landing-cta {
     align-items: stretch;

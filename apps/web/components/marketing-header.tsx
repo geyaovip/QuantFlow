@@ -10,8 +10,7 @@ export function MarketingHeader() {
           <Brand />
         </Link>
         <nav aria-label="官网导航">
-          <a href="#features">能力</a>
-          <a href="#strategies">策略库</a>
+          <a href="#strategies">产品预览</a>
         </nav>
         <Link className="header-cta" href="/login?next=/app/strategies">
           进入应用

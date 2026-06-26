@@ -86,53 +86,54 @@ export default function MarketingPage() {
           </Card>
         </section>
 
-        <section id="features" className="section-block">
+        <section id="strategies" className="section-block product-preview">
           <div className="section-heading">
-            <p>能力</p>
-            <h2>少一点噪音，多一点判断依据</h2>
+            <h2>表现和风险，一起看</h2>
+            <p>
+              把策略筛选、模拟跟踪和风险状态放在同一个视图里，减少来回切换。
+            </p>
           </div>
-          <div className="feature-grid">
-            {[
-              [ChartSpline, "策略库", "按市场、风险和表现筛选策略。"],
-              [WalletCards, "模拟盘", "用模拟资金跟踪策略过程。"],
-              [ShieldCheck, "风险并列", "收益和回撤始终一起看。"],
-            ].map(([Icon, title, copy]) => {
-              const FeatureIcon = Icon as typeof ChartSpline;
-              return (
-                <Card className="feature-card" key={String(title)}>
-                  <FeatureIcon aria-hidden="true" />
-                  <h3>{String(title)}</h3>
-                  <p>{String(copy)}</p>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-
-        <section id="strategies" className="section-block strategy-preview">
-          <div className="section-heading">
-            <p>策略库</p>
-            <h2>表现和风险放在同一张表里</h2>
-          </div>
-          <div className="preview-table" role="table" aria-label="策略预览">
-            <div className="preview-row preview-row--header" role="row">
-              <span>策略</span>
-              <span>近 90 天收益</span>
-              <span>最大回撤</span>
-              <span>风险</span>
+          <div className="product-preview__grid">
+            <div className="feature-list" aria-label="核心能力">
+              {[
+                [ChartSpline, "策略筛选", "按市场、风险和表现查看策略。"],
+                [WalletCards, "模拟跟踪", "用模拟资金观察策略过程。"],
+                [ShieldCheck, "风险并列", "收益和回撤始终一起展示。"],
+              ].map(([Icon, title, copy]) => {
+                const FeatureIcon = Icon as typeof ChartSpline;
+                return (
+                  <Card className="feature-card" key={String(title)}>
+                    <span className="feature-card__icon">
+                      <FeatureIcon aria-hidden="true" />
+                    </span>
+                    <span>
+                      <h3>{String(title)}</h3>
+                      <p>{String(copy)}</p>
+                    </span>
+                  </Card>
+                );
+              })}
             </div>
-            {[
-              ["BTC 趋势过滤", "+12.8%", "-6.4%", "中"],
-              ["ETH 波动突破", "+8.6%", "-4.9%", "中"],
-              ["SOL 均值观察", "+5.1%", "-3.2%", "低"],
-            ].map(([name, value, drawdown, risk]) => (
-              <div className="preview-row" role="row" key={name}>
-                <strong>{name}</strong>
-                <span className="positive">{value}</span>
-                <span>{drawdown}</span>
-                <RiskBadge level={risk as "低" | "中" | "高"} />
+            <div className="preview-table" role="table" aria-label="策略预览">
+              <div className="preview-row preview-row--header" role="row">
+                <span>策略</span>
+                <span>近 90 天收益</span>
+                <span>最大回撤</span>
+                <span>风险</span>
               </div>
-            ))}
+              {[
+                ["BTC 趋势过滤", "+12.8%", "-6.4%", "中"],
+                ["ETH 波动突破", "+8.6%", "-4.9%", "中"],
+                ["SOL 均值观察", "+5.1%", "-3.2%", "低"],
+              ].map(([name, value, drawdown, risk]) => (
+                <div className="preview-row" role="row" key={name}>
+                  <strong>{name}</strong>
+                  <span className="positive">{value}</span>
+                  <span>{drawdown}</span>
+                  <RiskBadge level={risk as "低" | "中" | "高"} />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
