@@ -5,9 +5,8 @@ import { loginWithEmailOtp } from "../helpers/auth.js";
 test.describe("User journey web", () => {
   test("authenticated user can open strategy and paper trading workspaces", async ({
     page,
-    request,
   }) => {
-    await loginWithEmailOtp(request);
+    await loginWithEmailOtp(page.request);
 
     const startedAt = Date.now();
     await page.goto("/app/strategies");

@@ -29,11 +29,9 @@ test.describe("API smoke", () => {
   test("feature flags keep live trading disabled", async ({ request }) => {
     const response = await request.get(`${apiURL}/api/v1/system/feature-flags`);
     expect(response.ok()).toBeTruthy();
-    const body = (await response.json()) as {
-      data: Record<string, boolean>;
-    };
-    expect(body.data.enableExchangeConnection).toBe(false);
-    expect(body.data.enableSemiAutoTrading).toBe(false);
-    expect(body.data.enableAutoTrading).toBe(false);
+    const body = (await response.json()) as Record<string, boolean>;
+    expect(body.enableExchangeConnection).toBe(false);
+    expect(body.enableSemiAutoTrading).toBe(false);
+    expect(body.enableAutoTrading).toBe(false);
   });
 });

@@ -7,7 +7,9 @@ test.describe("Marketing website", () => {
     await page.waitForLoadState("domcontentloaded");
     expect(Date.now() - startedAt).toBeLessThan(3000);
     await expect(page).toHaveTitle(/QuantFlow/i);
-    await expect(page.getByRole("link", { name: "进入应用" })).toBeVisible();
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "进入应用" }),
+    ).toBeVisible();
     await expect(
       page.getByText("QuantFlow 不提供投资建议", { exact: false }),
     ).toBeVisible();

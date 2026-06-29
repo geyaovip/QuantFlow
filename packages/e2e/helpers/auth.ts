@@ -13,9 +13,6 @@ export function resolveE2eDirectApiUrl() {
   return process.env.E2E_API_URL ?? "http://127.0.0.1:3002";
 }
 
-export const e2eEmail =
-  process.env.E2E_USER_EMAIL ?? `e2e.user.${Date.now()}@quantflow.test`;
-
 export async function loginWithEmailOtp(request: {
   post: (
     url: string,
@@ -27,11 +24,14 @@ export async function loginWithEmailOtp(request: {
 }) {
   const authBaseUrl = resolveE2eAuthBaseUrl();
   const directApiUrl = resolveE2eDirectApiUrl();
+  const email =
+    process.env.E2E_USER_EMAIL ??
+    `e2e.user.${Date.now()}.${Math.random().toString(36).slice(2)}@quantflow.test`;
 
   const requestResponse = await request.post(
     `${authBaseUrl}/api/v1/auth/email-otp/request`,
     {
-      data: { email: e2eEmail, portal: "user" },
+      data: { email, portal: "user" },
     },
   );
   if (!requestResponse.ok()) {
@@ -39,7 +39,7 @@ export async function loginWithEmailOtp(request: {
   }
 
   const otpResponse = await request.get(
-    `${directApiUrl}/api/v1/test/e2e/last-otp?email=${encodeURIComponent(e2eEmail)}`,
+    `${directApiUrl}/api/v1/test/e2e/last-otp?email=${encodeURIComponent(email)}`,
   );
   if (!otpResponse.ok()) {
     throw new Error("E2E OTP helper unavailable; set ENABLE_E2E_AUTH=true");
@@ -52,7 +52,7 @@ export async function loginWithEmailOtp(request: {
     `${authBaseUrl}/api/v1/auth/email-otp/verify`,
     {
       data: {
-        email: e2eEmail,
+        email,
         portal: "user",
         code: otpPayload.data.code,
       },
@@ -62,5 +62,5 @@ export async function loginWithEmailOtp(request: {
     throw new Error("OTP verify failed");
   }
 
-  return { email: e2eEmail, authBaseUrl, directApiUrl };
+  return { email, authBaseUrl, directApiUrl };
 }

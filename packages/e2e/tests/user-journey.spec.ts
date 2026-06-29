@@ -29,7 +29,7 @@ test.describe("User journey API", () => {
     expect(plans.data.some((plan) => plan.tier === "free")).toBeTruthy();
 
     const sessionResponse = await request.get(
-      `${authBaseUrl}/api/v1/auth/session`,
+      `${authBaseUrl}/api/v1/auth/session?audience=user`,
     );
     expect(sessionResponse.ok()).toBeTruthy();
     const session = (await sessionResponse.json()) as {
