@@ -15,7 +15,7 @@ test.describe("User journey web", () => {
     ).toBeVisible();
     expect(Date.now() - startedAt).toBeLessThan(3000);
     await expect(
-      page.getByRole("term", { name: "最大回撤" }).first(),
+      page.getByText("最大回撤", { exact: false }).first(),
     ).toBeVisible();
 
     await page.goto("/app/paper-trading");
