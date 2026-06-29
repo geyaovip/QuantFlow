@@ -235,6 +235,7 @@ body {
   max-width: var(--qf-content);
   margin: 0 auto;
   padding: 64px 32px;
+  border-top: 1px solid var(--qf-border);
 }
 .section-heading {
   max-width: 760px;
@@ -261,13 +262,11 @@ body {
   text-align: left;
 }
 .section-block--muted {
-  border: 1px solid var(--qf-border);
-  border-radius: 18px;
-  background: var(--qf-background);
+  background: transparent;
 }
 .section-note {
   margin: 18px 0 0;
-  color: var(--qf-text-muted);
+  color: var(--qf-text-secondary);
   font-size: 13px;
   line-height: 1.65;
 }
@@ -368,9 +367,6 @@ body {
   font-size: 14px;
   line-height: 1.6;
 }
-.preview-row--5 {
-  grid-template-columns: 2fr repeat(4, 1fr);
-}
 .paper-card__label,
 .pricing-card__header span {
   color: var(--qf-text-muted);
@@ -379,9 +375,7 @@ body {
 }
 .risk-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  gap: 20px;
-  align-items: start;
+  gap: 22px;
 }
 .risk-panel h2 {
   margin: 14px 0 10px;
@@ -390,27 +384,42 @@ body {
 }
 .risk-panel > div > p {
   margin: 0;
+  max-width: 760px;
   color: var(--qf-text-secondary);
   line-height: 1.7;
 }
 .risk-list {
   display: grid;
-  gap: 10px;
-  margin: 18px 0 0;
-  padding-left: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--qf-border);
+  border-radius: 12px;
+  background: var(--qf-border);
   color: var(--qf-text-secondary);
   line-height: 1.65;
+  list-style: none;
+}
+.risk-list li {
+  min-height: 92px;
+  padding: 18px;
+  background: var(--qf-surface);
 }
 .risk-metrics-card {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  padding: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  padding: 0;
+  background: var(--qf-border);
 }
 .risk-metrics-card div {
-  padding: 14px;
-  border: 1px solid var(--qf-border);
-  border-radius: 10px;
+  min-height: 112px;
+  padding: 18px;
+  border: 0;
+  border-radius: 0;
   background: var(--qf-surface-muted);
 }
 .risk-metrics-card span {
@@ -549,9 +558,6 @@ body {
   max-width: 720px;
   text-align: right;
 }
-.product-preview {
-  border-top: 1px solid var(--qf-border);
-}
 .feature-list {
   display: grid;
   gap: 12px;
@@ -595,11 +601,27 @@ body {
   display: grid;
   grid-template-columns: 2fr repeat(3, 1fr);
   align-items: center;
-  gap: 16px;
-  min-height: 68px;
-  padding: 0 20px;
+  gap: 20px;
+  min-height: 58px;
+  padding: 0 22px;
   border-bottom: 1px solid var(--qf-border);
   font-size: 14px;
+}
+.preview-row.preview-row--5 {
+  grid-template-columns:
+    minmax(220px, 1.8fr) minmax(116px, 0.95fr) minmax(116px, 0.95fr)
+    minmax(92px, 0.75fr) minmax(92px, 0.75fr);
+}
+.preview-row > * {
+  min-width: 0;
+}
+.preview-row > span:not(:first-child),
+.preview-row > strong:not(:first-child) {
+  justify-self: start;
+}
+.preview-row strong,
+.preview-row span {
+  white-space: nowrap;
 }
 .preview-row:last-child {
   border-bottom: 0;

@@ -319,13 +319,8 @@ export default async function MarketingPage() {
               <h2>把风险放在收益前面</h2>
               <p>
                 QuantFlow
-                不承诺收益，也不提供保本或稳赚表述。平台默认要求关键页面同时展示收益、回撤、样本和盈亏比。
+                不承诺收益，也不提供保本或稳赚表述。关键页面默认同时展示收益、回撤、样本和盈亏比。
               </p>
-              <ul className="risk-list">
-                <li>策略详情、信号详情和模拟盘创建前必须完成风险披露确认。</li>
-                <li>行情延迟或数据异常时，相关模拟盘可自动暂停新成交。</li>
-                <li>不提供交易所 API 连接、半自动或全自动交易入口。</li>
-              </ul>
             </div>
             <Card className="risk-metrics-card" aria-label="风险指标示例">
               <div>
@@ -345,6 +340,11 @@ export default async function MarketingPage() {
                 <RiskBadge level="中" />
               </div>
             </Card>
+            <ul className="risk-list">
+              <li>策略详情、信号详情和模拟盘创建前必须完成风险披露确认。</li>
+              <li>行情延迟或数据异常时，相关模拟盘可自动暂停新成交。</li>
+              <li>不提供交易所 API 连接、半自动或全自动交易入口。</li>
+            </ul>
           </div>
         </section>
 
