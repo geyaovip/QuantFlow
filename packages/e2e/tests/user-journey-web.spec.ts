@@ -10,9 +10,7 @@ test.describe("User journey web", () => {
 
     const startedAt = Date.now();
     await page.goto("/app/strategies");
-    await expect(
-      page.getByRole("heading", { name: "发现可跟踪的策略" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "策略广场" })).toBeVisible();
     expect(Date.now() - startedAt).toBeLessThan(3000);
     await expect(
       page.getByText("最大回撤", { exact: false }).first(),
