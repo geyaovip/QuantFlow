@@ -33,7 +33,7 @@ export default async function MembershipsPage() {
       <PageHeader
         eyebrow="会员与订阅"
         title="会员管理"
-        description="分页查看会员订阅记录、管理邀请码，支持取消有效订阅。人工开通请前往用户管理。"
+        description="管理会员订阅、邀请码和生产支付核查。人工开通在用户管理中处理。"
       />
       <AdminInviteCodesConsole
         apiBaseUrl={resolveApiBaseUrl()}

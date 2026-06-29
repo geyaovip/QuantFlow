@@ -14,7 +14,7 @@ export function RecentRiskTable({ events = [] }: RecentRiskTableProps) {
       <div className="admin-section-title">
         <div>
           <h2>最近风险事件</h2>
-          <p>按事件时间倒序展示，默认每页 50 条，处理动作会写入审计日志。</p>
+          <p>按事件时间倒序展示，优先处理未关闭事件。</p>
         </div>
         <Link href="/admin/risk">查看全部</Link>
       </div>

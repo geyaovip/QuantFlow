@@ -60,8 +60,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <div className="admin-main">
         <header className="admin-topbar">
           <div>
-            <span>生产状态</span>
-            <strong>开发环境</strong>
+            <span>运行状态</span>
+            <strong>后台在线</strong>
           </div>
           <Link href="/login">管理员登录</Link>
         </header>

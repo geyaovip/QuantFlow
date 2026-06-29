@@ -17,7 +17,7 @@ export default async function AuditPage() {
       <PageHeader
         eyebrow="可追溯操作"
         title="审计日志"
-        description="管理员敏感操作必须记录操作者、对象、原因、前后状态和请求信息。"
+        description="查看后台关键操作的操作者、对象、原因和时间记录。"
       />
       {logs.data.length ? (
         <div className="admin-table">

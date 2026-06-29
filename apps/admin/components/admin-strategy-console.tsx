@@ -28,7 +28,7 @@ const defaultDraft: AdminStrategyCreate = {
   stopLossLogic: "",
   takeProfitLogic: "",
   failureModes: "",
-  reason: "v0.3 管理端创建策略草稿",
+  reason: "管理端创建策略草稿",
 };
 
 export function AdminStrategyConsole({
@@ -107,7 +107,7 @@ export function AdminStrategyConsole({
         <div className="admin-section-title">
           <div>
             <h2>创建策略草稿</h2>
-            <p>第一版表单覆盖最小字段，审核通过后才会在用户端展示。</p>
+            <p>填写策略基础信息，审核通过后进入用户端展示。</p>
           </div>
           <button
             disabled={isSubmitting}
@@ -237,7 +237,7 @@ export function AdminStrategyConsole({
         <div className="admin-section-title">
           <div>
             <h2>策略列表</h2>
-            <p>状态流：草稿 → 待审核 → 上线；上线策略可暂停或下架。</p>
+            <p>处理提审、批准、拒绝、暂停和下架。</p>
           </div>
         </div>
         <div className="table-scroll">

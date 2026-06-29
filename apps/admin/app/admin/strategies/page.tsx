@@ -14,7 +14,7 @@ export default async function StrategiesPage() {
       <PageHeader
         eyebrow="策略治理"
         title="策略管理"
-        description="创建、审核、暂停与版本记录必须经过权限校验并写入审计日志。"
+        description="创建策略草稿，处理审核、暂停、下架和版本状态。"
       />
       <AdminStrategyConsole
         apiBaseUrl={resolveApiBaseUrl()}

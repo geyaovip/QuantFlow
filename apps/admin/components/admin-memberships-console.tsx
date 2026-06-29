@@ -98,7 +98,7 @@ export function AdminMembershipsConsole({
       ) : (
         <div className="admin-empty">
           <strong>暂无会员订阅</strong>
-          <span>人工开通、测试开通或 Plisio 支付成功后会出现在这里。</span>
+          <span>人工开通、测试开通或生产支付成功后会出现在这里。</span>
         </div>
       )}
     </div>

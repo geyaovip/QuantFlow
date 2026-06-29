@@ -33,7 +33,7 @@ export default async function AdminDashboardPage() {
       <PageHeader
         eyebrow="运营总览"
         title="数据看板"
-        description="聚合用户、策略、模拟盘与风险状态。敏感操作需要管理员权限并写入审计日志。"
+        description="查看用户、策略、信号、模拟盘和风险事件的关键状态。"
         action={
           <Link className="admin-header-link" href="/admin/strategies">
             查看策略
@@ -57,7 +57,7 @@ export default async function AdminDashboardPage() {
           label="模拟盘"
           value={String(metrics.paperAccountCount)}
           supportingLabel="数据来源"
-          supportingValue="实时 API"
+          supportingValue="运营接口"
         />
         <MetricCard
           label="注册用户"

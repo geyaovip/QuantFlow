@@ -15,7 +15,7 @@ export default async function SignalsPage() {
       <PageHeader
         eyebrow="信号治理"
         title="信号管理"
-        description="信号发布、取消和异常标记必须经过权限校验并写入审计日志。"
+        description="查看信号状态，处理取消、异常标记和重新推送。"
       />
       {signals.data.length ? (
         <AdminSignalsConsole

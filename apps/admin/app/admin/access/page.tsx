@@ -15,7 +15,7 @@ export default async function AccessPage() {
       <PageHeader
         eyebrow="权限治理"
         title="角色与授权"
-        description="仅超级管理员可变更管理员角色。所有授权操作写入审计日志。"
+        description="查看角色定义，并为管理员账号分配后台权限。"
       />
       <AdminAccessConsole
         accounts={accounts.data}

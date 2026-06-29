@@ -12,10 +12,8 @@ export function AdminPaymentAuditTable({
   if (!payments.length) {
     return (
       <div className="admin-empty">
-        <strong>暂无 Plisio 支付记录</strong>
-        <span>
-          用户创建生产支付 invoice 后，会在这里显示支付状态和核查入口。
-        </span>
+        <strong>暂无生产支付记录</strong>
+        <span>用户创建生产支付订单后，会在这里显示支付状态和核查入口。</span>
       </div>
     );
   }
@@ -25,7 +23,7 @@ export function AdminPaymentAuditTable({
       <div className="admin-section-title">
         <div>
           <h2>生产支付核查</h2>
-          <p>只读查看 Plisio invoice 状态；MVP 不提供退款或手动确认支付。</p>
+          <p>只读查看支付订单状态；MVP 不提供退款或手动确认支付。</p>
         </div>
       </div>
       <div className="table-scroll">

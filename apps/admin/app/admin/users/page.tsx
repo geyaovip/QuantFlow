@@ -15,7 +15,7 @@ export default async function UsersPage() {
       <PageHeader
         eyebrow="用户与会员"
         title="用户管理"
-        description="查看用户登录邮箱、访问权益、模拟盘容量和安全状态。列表默认每页 50 条。"
+        description="查看用户状态、会员权益、订阅数量和模拟盘使用情况。"
       />
       {users.data.length ? (
         <AdminUsersConsole
