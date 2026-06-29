@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Install documentation tooling
-        run: sudo apt-get update && sudo apt-get install --yes ripgrep
+        run: apt-get update && apt-get install --yes ripgrep
       - uses: pnpm/action-setup@v4
         with:
           version: 11.2.2
