@@ -11,6 +11,7 @@ permissions:
 jobs:
   api-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:18
@@ -34,6 +35,11 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @quantflow/api build
       - run: pnpm --filter @quantflow/web build
@@ -69,12 +75,14 @@ jobs:
       - run: ./scripts/check-acceptance-p0.sh
         env:
           ACCEPTANCE_API_URL: http://127.0.0.1:3002
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm exec playwright install chromium
+        timeout-minutes: 6
         working-directory: packages/e2e
       - run: >-
           pnpm exec playwright test
           api-smoke user-journey user-journey-web paper-journey marketing
           mvp-acceptance invite-journey
+        timeout-minutes: 8
         working-directory: packages/e2e
         env:
           E2E_API_URL: http://127.0.0.1:3002
