@@ -429,6 +429,12 @@
   color: var(--qf-text-secondary);
   line-height: 1.65;
 }
+.empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
 .profile-panel {
   display: grid;
   gap: 16px;
@@ -759,6 +765,34 @@
   color: var(--qf-text-secondary);
   font-size: 13px;
 }
+.strategy-performance-chart {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.strategy-performance-chart__points {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--qf-border);
+  border-radius: 10px;
+  background: var(--qf-border);
+}
+.strategy-performance-chart__points div {
+  padding: 12px;
+  background: #fff;
+}
+.strategy-performance-chart__points dt {
+  color: var(--qf-text-muted);
+  font-size: 12px;
+}
+.strategy-performance-chart__points dd {
+  margin: 6px 0 0;
+  color: var(--qf-text);
+  font-weight: 750;
+}
 .paper-create-form {
   display: grid;
   gap: 12px;
@@ -771,6 +805,30 @@
   margin: 0;
   color: var(--qf-text-secondary);
   font-size: 14px;
+}
+.paper-rule-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--qf-border);
+  border-radius: 12px;
+  background: var(--qf-border);
+}
+.paper-rule-summary div {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: var(--qf-surface-muted);
+}
+.paper-rule-summary span {
+  color: var(--qf-text-muted);
+  font-size: 12px;
+}
+.paper-rule-summary strong {
+  color: var(--qf-text);
+  font-size: 13px;
+  line-height: 1.45;
 }
 .membership-checkout-panel {
   display: grid;
@@ -950,6 +1008,9 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 16px;
   margin-top: 16px;
+}
+.strategy-detail-note--wide {
+  grid-column: 1 / -1;
 }
 .signal-list {
   display: grid;

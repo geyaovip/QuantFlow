@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 
 import { Badge, Card, PageHeader, RiskBadge } from "@quantflow/ui";
 
-import { StrategySubscriptionControls } from "../../../../components/strategy-subscription-controls";
 import { PaperAccountCreateForm } from "../../../../components/paper-account-create-form";
+import { StrategyPerformanceChart } from "../../../../components/strategy-performance-chart";
+import { StrategySubscriptionControls } from "../../../../components/strategy-subscription-controls";
 import { ApiError } from "../../../../lib/api-error";
 import { resolveApiBaseUrl } from "../../../../lib/api-base-url";
 import { getStrategy } from "../../../../lib/strategy-api";
@@ -179,6 +180,13 @@ export default async function StrategyDetailPage({
       </section>
 
       <section className="strategy-detail-grid" aria-label="策略说明">
+        <Card className="strategy-detail-note strategy-detail-note--wide">
+          <h2>收益与回撤曲线</h2>
+          <p>
+            基于当前策略多周期指标绘制。曲线用于观察收益与风险是否同步变化，不代表未来表现。
+          </p>
+          <StrategyPerformanceChart metrics={strategy.metrics} />
+        </Card>
         <Card className="strategy-detail-note">
           <h2>适合行情</h2>
           <p>{strategy.suitableMarket}</p>

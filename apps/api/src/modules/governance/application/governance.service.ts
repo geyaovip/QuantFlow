@@ -20,6 +20,11 @@ export class GovernanceService {
     return this.repository.listUsers(page, pageSize);
   }
 
+  async getUserDetail(userId: string) {
+    const data = await this.repository.getUserDetail(userId);
+    return { data };
+  }
+
   updateUserStatus(
     userId: string,
     status: "active" | "disabled" | "risk_watch",
@@ -30,6 +35,10 @@ export class GovernanceService {
 
   listSubscriptions(page: number, pageSize: number) {
     return this.repository.listSubscriptions(page, pageSize);
+  }
+
+  listMembershipPayments(page: number, pageSize: number) {
+    return this.repository.listMembershipPayments(page, pageSize);
   }
 
   async manualGrantMembership(input: ManualGrantInput, context: AuditContext) {

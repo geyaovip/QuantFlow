@@ -76,6 +76,25 @@ export class GovernanceController {
     }
   }
 
+  @Get("admin/users/:userId")
+  async getUserDetail(
+    @Param("userId") userId: string,
+    @Req() request: RequestLike,
+  ) {
+    try {
+      await this.adminSession.requirePermission(
+        request,
+        ADMIN_PERMISSIONS.usersRead,
+      );
+      return this.governanceService.getUserDetail(userId);
+    } catch (error) {
+      if (error instanceof Error && error.message === "用户不存在") {
+        throw new HttpException("用户不存在", HttpStatus.NOT_FOUND);
+      }
+      throw this.adminSession.toHttpError(error);
+    }
+  }
+
   @Post("admin/users/:userId/status")
   async updateUserStatus(
     @Param("userId") userId: string,
@@ -121,6 +140,29 @@ export class GovernanceController {
         ADMIN_PERMISSIONS.membershipRead,
       );
       return this.governanceService.listSubscriptions(
+        parsed.data.page ?? 1,
+        parsed.data.pageSize ?? 50,
+      );
+    } catch (error) {
+      throw this.adminSession.toHttpError(error);
+    }
+  }
+
+  @Get("admin/membership-payments")
+  async listMembershipPayments(
+    @Query() query: unknown,
+    @Req() request: RequestLike,
+  ) {
+    const parsed = listQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+    try {
+      await this.adminSession.requirePermission(
+        request,
+        ADMIN_PERMISSIONS.membershipRead,
+      );
+      return this.governanceService.listMembershipPayments(
         parsed.data.page ?? 1,
         parsed.data.pageSize ?? 50,
       );

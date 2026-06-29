@@ -5,16 +5,20 @@ import {
   adminAnnouncementListResponseSchema,
   adminDashboardSummaryResponseSchema,
   adminMembershipInviteListResponseSchema,
+  adminMembershipPaymentListResponseSchema,
   adminRiskEventListResponseSchema,
   adminRoleListResponseSchema,
   adminSubscriptionListResponseSchema,
+  adminUserDetailResponseSchema,
   adminUserListResponseSchema,
   type AdminAccountListResponse,
   type AdminAnnouncementListResponse,
   type AdminDashboardSummaryResponse,
+  type AdminMembershipPaymentListResponse,
   type AdminRiskEventListResponse,
   type AdminRoleListResponse,
   type AdminSubscriptionListResponse,
+  type AdminUserDetailResponse,
   type AdminUserListResponse,
 } from "@quantflow/contracts";
 
@@ -50,6 +54,14 @@ export async function getAdminUsers(
   );
 }
 
+export async function getAdminUserDetail(
+  userId: string,
+): Promise<AdminUserDetailResponse> {
+  return adminUserDetailResponseSchema.parse(
+    await getJson(`/api/v1/admin/users/${userId}`),
+  );
+}
+
 export async function getAdminSubscriptions(
   page = 1,
   pageSize = 50,
@@ -57,6 +69,17 @@ export async function getAdminSubscriptions(
   return adminSubscriptionListResponseSchema.parse(
     await getJson(
       `/api/v1/admin/subscriptions?page=${page}&pageSize=${pageSize}`,
+    ),
+  );
+}
+
+export async function getAdminMembershipPayments(
+  page = 1,
+  pageSize = 50,
+): Promise<AdminMembershipPaymentListResponse> {
+  return adminMembershipPaymentListResponseSchema.parse(
+    await getJson(
+      `/api/v1/admin/membership-payments?page=${page}&pageSize=${pageSize}`,
     ),
   );
 }

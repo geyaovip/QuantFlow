@@ -7,6 +7,7 @@ import { ListPagination } from "../../../components/list-pagination";
 import type { StrategyCardRecord } from "../../../lib/strategy-format";
 import {
   riskLevelLabel,
+  maxDrawdownLabel,
   strategyPeriodLabel,
   strategySymbolLabel,
   strategyTypeLabel,
@@ -24,6 +25,7 @@ type StrategyExplorerProps = {
   symbol?: string;
   type?: StrategyType;
   paperEnabled?: boolean;
+  maxDrawdownLte?: string;
 };
 
 const riskOptions: Array<RiskLevel | undefined> = [
@@ -73,6 +75,13 @@ const accessOptions = [
   { value: "free", label: "免费策略" },
 ] as const;
 
+const maxDrawdownOptions = [
+  { value: undefined, label: "全部回撤" },
+  { value: "0.05", label: "≤ 5%" },
+  { value: "0.10", label: "≤ 10%" },
+  { value: "0.20", label: "≤ 20%" },
+] as const;
+
 function buildHref(
   base: Record<string, string | undefined>,
   patch: Record<string, string | undefined>,
@@ -107,6 +116,7 @@ export function StrategyExplorer({
   symbol,
   type,
   paperEnabled,
+  maxDrawdownLte,
 }: StrategyExplorerProps) {
   const baseQuery = {
     ...query,
@@ -116,6 +126,7 @@ export function StrategyExplorer({
     sortBy,
     access,
     period,
+    maxDrawdownLte,
   };
   const paperValue =
     paperEnabled === true
@@ -201,6 +212,25 @@ export function StrategyExplorer({
                 key={item ?? "default-period"}
               >
                 {strategyPeriodLabel(item)}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="filter-group" role="group" aria-label="最大回撤">
+          {maxDrawdownOptions.map((item) => {
+            const active = item.value === maxDrawdownLte;
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "filter-chip is-active" : "filter-chip"}
+                href={buildHref(baseQuery, {
+                  maxDrawdownLte: item.value,
+                  page: undefined,
+                })}
+                key={item.label}
+                title={maxDrawdownLabel(item.value)}
+              >
+                {item.label}
               </Link>
             );
           })}

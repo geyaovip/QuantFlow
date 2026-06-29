@@ -2,8 +2,10 @@ import { PageHeader } from "@quantflow/ui";
 
 import { AdminInviteCodesConsole } from "../../../components/admin-invite-codes-console";
 import { AdminMembershipsConsole } from "../../../components/admin-memberships-console";
+import { AdminPaymentAuditTable } from "../../../components/admin-payment-audit-table";
 import {
   getAdminInviteCodes,
+  getAdminMembershipPayments,
   getAdminSubscriptions,
 } from "../../../lib/governance-api";
 import { resolveApiBaseUrl } from "../../../lib/strategy-api";
@@ -11,12 +13,16 @@ import { resolveApiBaseUrl } from "../../../lib/strategy-api";
 export const metadata = { title: "会员管理" };
 
 export default async function MembershipsPage() {
-  const [subscriptions, inviteCodes] = await Promise.all([
+  const [subscriptions, inviteCodes, payments] = await Promise.all([
     getAdminSubscriptions().catch(() => ({
       data: [],
       pagination: { page: 1, pageSize: 50, total: 0, totalPages: 1 },
     })),
     getAdminInviteCodes().catch(() => ({
+      data: [],
+      pagination: { page: 1, pageSize: 50, total: 0, totalPages: 1 },
+    })),
+    getAdminMembershipPayments().catch(() => ({
       data: [],
       pagination: { page: 1, pageSize: 50, total: 0, totalPages: 1 },
     })),
@@ -33,6 +39,7 @@ export default async function MembershipsPage() {
         apiBaseUrl={resolveApiBaseUrl()}
         inviteCodes={inviteCodes.data}
       />
+      <AdminPaymentAuditTable payments={payments.data} />
       <AdminMembershipsConsole
         apiBaseUrl={resolveApiBaseUrl()}
         subscriptions={subscriptions.data}

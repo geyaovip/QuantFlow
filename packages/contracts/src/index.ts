@@ -610,6 +610,93 @@ export const adminSubscriptionListResponseSchema = z.object({
   pagination: paginationSchema,
 });
 
+export const adminMembershipPaymentSchema = z.object({
+  id: z.uuid(),
+  userId: z.uuid(),
+  userEmail: z.string(),
+  tier: membershipTierSchema,
+  planName: z.string(),
+  billingCycle: z.string(),
+  status: z.string(),
+  amountCny: z.string(),
+  providerInvoiceId: z.string().nullable(),
+  invoiceUrl: z.string().nullable(),
+  createdAt: z.iso.datetime(),
+  expiresAt: z.iso.datetime().nullable(),
+  paidAt: z.iso.datetime().nullable(),
+});
+
+export const adminMembershipPaymentListResponseSchema = z.object({
+  data: z.array(adminMembershipPaymentSchema),
+  pagination: paginationSchema,
+});
+
+export const adminUserDetailSchema = adminUserListItemSchema.extend({
+  subscriptions: z.array(adminSubscriptionListItemSchema),
+  strategySubscriptions: z.array(
+    z.object({
+      id: z.uuid(),
+      strategyId: z.uuid(),
+      strategyName: z.string(),
+      strategySlug: z.string(),
+      status: z.enum(["active", "cancelled"]),
+      subscribedAt: z.iso.datetime(),
+      cancelledAt: z.iso.datetime().nullable(),
+    }),
+  ),
+  paperAccounts: z.array(
+    z.object({
+      id: z.uuid(),
+      name: z.string(),
+      strategyName: z.string(),
+      symbol: z.string(),
+      status: paperAccountStatusSchema,
+      currentEquity: z.string(),
+      maxDrawdown: z.string(),
+      createdAt: z.iso.datetime(),
+    }),
+  ),
+  inviteRedemptions: z.array(
+    z.object({
+      id: z.uuid(),
+      codeLabel: z.string(),
+      tier: membershipTierSchema,
+      billingCycle: z.string(),
+      redeemedAt: z.iso.datetime(),
+    }),
+  ),
+  riskAcceptances: z.array(
+    z.object({
+      id: z.uuid(),
+      disclosureVersion: z.string(),
+      context: z.enum([
+        "strategy_subscribe",
+        "paper_account_create",
+        "membership_checkout",
+        "membership_invite_redeem",
+      ]),
+      acceptedAt: z.iso.datetime(),
+    }),
+  ),
+  payments: z.array(
+    z.object({
+      id: z.uuid(),
+      tier: membershipTierSchema,
+      billingCycle: z.string(),
+      status: z.string(),
+      amountCny: z.string(),
+      providerInvoiceId: z.string().nullable(),
+      createdAt: z.iso.datetime(),
+      paidAt: z.iso.datetime().nullable(),
+    }),
+  ),
+  auditLogs: z.array(adminAuditLogSchema),
+});
+
+export const adminUserDetailResponseSchema = z.object({
+  data: adminUserDetailSchema,
+});
+
 export const adminMembershipManualGrantSchema = z.object({
   userId: z.uuid(),
   tier: z.enum(["pro", "premium"]),
@@ -887,12 +974,22 @@ export type AdminDashboardSummaryResponse = z.infer<
 >;
 export type AdminUserListItem = z.infer<typeof adminUserListItemSchema>;
 export type AdminUserListResponse = z.infer<typeof adminUserListResponseSchema>;
+export type AdminUserDetail = z.infer<typeof adminUserDetailSchema>;
+export type AdminUserDetailResponse = z.infer<
+  typeof adminUserDetailResponseSchema
+>;
 export type AdminUserStatusUpdate = z.infer<typeof adminUserStatusSchema>;
 export type AdminSubscriptionListItem = z.infer<
   typeof adminSubscriptionListItemSchema
 >;
 export type AdminSubscriptionListResponse = z.infer<
   typeof adminSubscriptionListResponseSchema
+>;
+export type AdminMembershipPayment = z.infer<
+  typeof adminMembershipPaymentSchema
+>;
+export type AdminMembershipPaymentListResponse = z.infer<
+  typeof adminMembershipPaymentListResponseSchema
 >;
 export type AdminMembershipManualGrant = z.infer<
   typeof adminMembershipManualGrantSchema

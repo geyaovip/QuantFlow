@@ -22,6 +22,66 @@ export type AdminUserListItem = {
   createdAt: string;
 };
 
+export type AdminUserDetail = AdminUserListItem & {
+  subscriptions: AdminSubscriptionListItem[];
+  strategySubscriptions: Array<{
+    id: string;
+    strategyId: string;
+    strategyName: string;
+    strategySlug: string;
+    status: "active" | "cancelled";
+    subscribedAt: string;
+    cancelledAt: string | null;
+  }>;
+  paperAccounts: Array<{
+    id: string;
+    name: string;
+    strategyName: string;
+    symbol: string;
+    status: string;
+    currentEquity: string;
+    maxDrawdown: string;
+    createdAt: string;
+  }>;
+  inviteRedemptions: Array<{
+    id: string;
+    codeLabel: string;
+    tier: "free" | "pro" | "premium";
+    billingCycle: string;
+    redeemedAt: string;
+  }>;
+  riskAcceptances: Array<{
+    id: string;
+    disclosureVersion: string;
+    context: string;
+    acceptedAt: string;
+  }>;
+  payments: Array<{
+    id: string;
+    tier: "free" | "pro" | "premium";
+    billingCycle: string;
+    status: string;
+    amountCny: string;
+    providerInvoiceId: string | null;
+    createdAt: string;
+    paidAt: string | null;
+  }>;
+  auditLogs: Array<{
+    id: string;
+    actorAdminId: string | null;
+    actorEmail: string | null;
+    action: string;
+    resourceType: string;
+    resourceId: string | null;
+    reason: string;
+    before: unknown | null;
+    after: unknown | null;
+    ip: string | null;
+    userAgent: string | null;
+    createdAt: string;
+  }>;
+};
+
 export type AdminSubscriptionListItem = {
   id: string;
   userId: string;
@@ -33,6 +93,22 @@ export type AdminSubscriptionListItem = {
   startsAt: string;
   endsAt: string;
   cancelledAt: string | null;
+};
+
+export type AdminMembershipPaymentListItem = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  tier: "free" | "pro" | "premium";
+  planName: string;
+  billingCycle: string;
+  status: string;
+  amountCny: string;
+  providerInvoiceId: string | null;
+  invoiceUrl: string | null;
+  createdAt: string;
+  expiresAt: string | null;
+  paidAt: string | null;
 };
 
 export type RiskEventListItem = {
@@ -120,6 +196,7 @@ export interface GovernanceRepository {
     page: number,
     pageSize: number,
   ): Promise<Paginated<AdminUserListItem>>;
+  getUserDetail(userId: string): Promise<AdminUserDetail>;
   updateUserStatus(
     userId: string,
     status: "active" | "disabled" | "risk_watch",
@@ -129,6 +206,10 @@ export interface GovernanceRepository {
     page: number,
     pageSize: number,
   ): Promise<Paginated<AdminSubscriptionListItem>>;
+  listMembershipPayments(
+    page: number,
+    pageSize: number,
+  ): Promise<Paginated<AdminMembershipPaymentListItem>>;
   manualGrantMembership(
     input: ManualGrantInput,
     context: AuditContext,

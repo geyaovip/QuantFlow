@@ -4,6 +4,7 @@ import { Card, PageHeader } from "@quantflow/ui";
 
 import {
   parsePage,
+  parseMaxDrawdownLte,
   parseRiskLevel,
   parseStrategyPeriod,
   parseStrategySymbol,
@@ -27,6 +28,7 @@ type StrategiesPageProps = {
     paper?: string;
     access?: string;
     period?: string;
+    maxDrawdownLte?: string;
   }>;
 };
 
@@ -38,6 +40,7 @@ export default async function StrategiesPage({
   const type = parseStrategyType(params.type);
   const symbol = parseStrategySymbol(params.symbol);
   const period = parseStrategyPeriod(params.period);
+  const maxDrawdownLte = parseMaxDrawdownLte(params.maxDrawdownLte);
   const paperEnabled =
     params.paper === "true"
       ? true
@@ -54,6 +57,7 @@ export default async function StrategiesPage({
     sortOrder: params.sortOrder,
     paperEnabled,
     access: params.access === "free" ? "free" : undefined,
+    maxDrawdownLte,
     period:
       period ?? (params.sortBy === "returnRate" ? "thirty_days" : undefined),
   });
@@ -66,6 +70,7 @@ export default async function StrategiesPage({
     params.paper,
     params.access,
     period,
+    maxDrawdownLte,
   ].filter(Boolean).length;
 
   return (
@@ -119,7 +124,9 @@ export default async function StrategiesPage({
           paper: params.paper,
           access: params.access,
           period: params.period,
+          maxDrawdownLte,
         }}
+        maxDrawdownLte={maxDrawdownLte}
         paperEnabled={paperEnabled}
         riskLevel={riskLevel}
         sortBy={params.sortBy}

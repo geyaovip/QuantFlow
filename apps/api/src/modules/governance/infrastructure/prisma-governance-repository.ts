@@ -6,8 +6,10 @@ import type { AuditContext } from "../../strategy/domain/strategy-repository.js"
 import type {
   AdminAccountListItem,
   AdminDashboardSummary,
+  AdminMembershipPaymentListItem,
   AdminRoleListItem,
   AdminSubscriptionListItem,
+  AdminUserDetail,
   AdminUserListItem,
   GovernanceRepository,
   InviteCodeCreateInput,
@@ -52,18 +54,133 @@ export class PrismaGovernanceRepository implements GovernanceRepository {
     ]);
 
     return {
-      data: rows.map((row) => ({
-        id: row.id,
-        email: row.email,
-        status: row.status,
-        membershipTier: row.membershipSubs[0]?.plan.tier ?? "free",
-        membershipPlanName: row.membershipSubs[0]?.plan.name ?? "Free",
-        paperAccountCount: row._count.paperAccounts,
-        strategySubscriptionCount: row._count.subscriptions,
-        lastLoginAt: row.lastLoginAt?.toISOString() ?? null,
-        createdAt: row.createdAt.toISOString(),
-      })),
+      data: rows.map(mapAdminUserSummary),
       pagination: paginate(page, pageSize, total),
+    };
+  }
+
+  async getUserDetail(userId: string): Promise<AdminUserDetail> {
+    const row = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        membershipSubs: {
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: 10,
+          include: { user: true, plan: true },
+        },
+        subscriptions: {
+          orderBy: [{ subscribedAt: "desc" }, { id: "desc" }],
+          take: 20,
+          include: {
+            strategy: { select: { id: true, name: true, slug: true } },
+          },
+        },
+        paperAccounts: {
+          where: { deletedAt: null },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: 20,
+          include: { strategy: { select: { name: true } } },
+        },
+        inviteRedemptions: {
+          orderBy: [{ redeemedAt: "desc" }, { id: "desc" }],
+          take: 10,
+          include: { inviteCode: true },
+        },
+        riskAcceptances: {
+          orderBy: [{ acceptedAt: "desc" }, { id: "desc" }],
+          take: 20,
+        },
+        membershipPayments: {
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          take: 20,
+        },
+        _count: {
+          select: {
+            paperAccounts: { where: { deletedAt: null } },
+            subscriptions: { where: { status: "active" } },
+          },
+        },
+      },
+    });
+
+    if (!row) {
+      throw new Error("用户不存在");
+    }
+
+    const auditLogs = await this.prisma.adminAuditLog.findMany({
+      where: {
+        OR: [
+          { resourceType: "user", resourceId: userId },
+          {
+            resourceType: "user_subscription",
+            resourceId: { in: row.membershipSubs.map((item) => item.id) },
+          },
+        ],
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: 20,
+      include: { actorAdmin: { select: { email: true } } },
+    });
+
+    return {
+      ...mapAdminUserSummary(row),
+      subscriptions: row.membershipSubs.map(mapSubscription),
+      strategySubscriptions: row.subscriptions.map((item) => ({
+        id: item.id,
+        strategyId: item.strategyId,
+        strategyName: item.strategy.name,
+        strategySlug: item.strategy.slug,
+        status: item.status,
+        subscribedAt: item.subscribedAt.toISOString(),
+        cancelledAt: item.cancelledAt?.toISOString() ?? null,
+      })),
+      paperAccounts: row.paperAccounts.map((item) => ({
+        id: item.id,
+        name: item.name,
+        strategyName: item.strategy.name,
+        symbol: item.symbol,
+        status: item.status,
+        currentEquity: item.currentEquity.toString(),
+        maxDrawdown: item.maxDrawdown.toString(),
+        createdAt: item.createdAt.toISOString(),
+      })),
+      inviteRedemptions: row.inviteRedemptions.map((item) => ({
+        id: item.id,
+        codeLabel: item.inviteCode.codeLabel,
+        tier: item.inviteCode.tier,
+        billingCycle: item.inviteCode.billingCycle,
+        redeemedAt: item.redeemedAt.toISOString(),
+      })),
+      riskAcceptances: row.riskAcceptances.map((item) => ({
+        id: item.id,
+        disclosureVersion: item.disclosureVersion,
+        context: item.context,
+        acceptedAt: item.acceptedAt.toISOString(),
+      })),
+      payments: row.membershipPayments.map((item) => ({
+        id: item.id,
+        tier: item.tier,
+        billingCycle: item.billingCycle,
+        status: item.status,
+        amountCny: item.amountCny.toString(),
+        providerInvoiceId: item.providerInvoiceId,
+        createdAt: item.createdAt.toISOString(),
+        paidAt: item.paidAt?.toISOString() ?? null,
+      })),
+      auditLogs: auditLogs.map((item) => ({
+        id: item.id,
+        actorAdminId: item.actorAdminId,
+        actorEmail: item.actorAdmin?.email ?? null,
+        action: item.action,
+        resourceType: item.resourceType,
+        resourceId: item.resourceId,
+        reason: item.reason,
+        before: item.before,
+        after: item.after,
+        ip: item.ip,
+        userAgent: item.userAgent,
+        createdAt: item.createdAt.toISOString(),
+      })),
     };
   }
 
@@ -139,6 +256,27 @@ export class PrismaGovernanceRepository implements GovernanceRepository {
 
     return {
       data: rows.map(mapSubscription),
+      pagination: paginate(page, pageSize, total),
+    };
+  }
+
+  async listMembershipPayments(
+    page: number,
+    pageSize: number,
+  ): Promise<Paginated<AdminMembershipPaymentListItem>> {
+    const skip = (page - 1) * pageSize;
+    const [total, rows] = await this.prisma.$transaction([
+      this.prisma.membershipPayment.count(),
+      this.prisma.membershipPayment.findMany({
+        skip,
+        take: pageSize,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: { user: true, plan: true },
+      }),
+    ]);
+
+    return {
+      data: rows.map(mapMembershipPayment),
       pagination: paginate(page, pageSize, total),
     };
   }
@@ -612,6 +750,31 @@ function paginate(page: number, pageSize: number, total: number) {
   };
 }
 
+function mapAdminUserSummary(row: {
+  id: string;
+  email: string;
+  status: string;
+  lastLoginAt: Date | null;
+  createdAt: Date;
+  membershipSubs: Array<{ plan: { tier: string; name: string } }>;
+  _count: {
+    paperAccounts: number;
+    subscriptions: number;
+  };
+}): AdminUserListItem {
+  return {
+    id: row.id,
+    email: row.email,
+    status: row.status,
+    membershipTier: row.membershipSubs[0]?.plan.tier ?? "free",
+    membershipPlanName: row.membershipSubs[0]?.plan.name ?? "Free",
+    paperAccountCount: row._count.paperAccounts,
+    strategySubscriptionCount: row._count.subscriptions,
+    lastLoginAt: row.lastLoginAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
 function mapSubscription(row: {
   id: string;
   userId: string;
@@ -634,6 +797,38 @@ function mapSubscription(row: {
     startsAt: row.startsAt.toISOString(),
     endsAt: row.endsAt.toISOString(),
     cancelledAt: row.cancelledAt?.toISOString() ?? null,
+  };
+}
+
+function mapMembershipPayment(row: {
+  id: string;
+  userId: string;
+  tier: "free" | "pro" | "premium";
+  billingCycle: string;
+  status: string;
+  amountCny: Prisma.Decimal;
+  providerInvoiceId: string | null;
+  invoiceUrl: string | null;
+  createdAt: Date;
+  expiresAt: Date | null;
+  paidAt: Date | null;
+  user: { email: string };
+  plan: { name: string };
+}): AdminMembershipPaymentListItem {
+  return {
+    id: row.id,
+    userId: row.userId,
+    userEmail: row.user.email,
+    tier: row.tier,
+    planName: row.plan.name,
+    billingCycle: row.billingCycle,
+    status: row.status,
+    amountCny: row.amountCny.toString(),
+    providerInvoiceId: row.providerInvoiceId,
+    invoiceUrl: row.invoiceUrl,
+    createdAt: row.createdAt.toISOString(),
+    expiresAt: row.expiresAt?.toISOString() ?? null,
+    paidAt: row.paidAt?.toISOString() ?? null,
   };
 }
 

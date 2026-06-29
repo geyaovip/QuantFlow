@@ -174,17 +174,17 @@ MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件
 
 管理端路径统一为 `/api/v1/admin`。所有接口要求管理员会话、资源级 RBAC；mutation 必须包含 `reason`，并在同一事务或可靠 outbox 中写审计记录。
 
-| 资源           | 查询                                         | 允许的 mutation                                               |
-| -------------- | -------------------------------------------- | ------------------------------------------------------------- |
-| Dashboard      | `/dashboard`                                 | 无                                                            |
-| Users          | `/users`, `/users/{id}`                      | status、membership                                            |
-| Strategies     | `/strategies`, `/{id}`                       | create、update、submit-review、approve、reject、pause、delist |
-| Signals        | `/signals`, `/{id}`                          | cancel、mark-abnormal、repush                                 |
-| Paper accounts | `/paper-accounts`, `/{id}`                   | pause、resume、mark-abnormal                                  |
-| Membership     | `/subscriptions`、`/membership-invite-codes` | manual-grant、cancel；邀请码 create/disable；不包含支付和退款 |
-| Risk           | `/risk-events`, `/{id}`                      | assign、resolve、ignore、escalate                             |
-| Access         | `/roles`, `/permissions`, `/admin-users`     | 角色与授权变更                                                |
-| Audit          | `/audit-logs`                                | 只读                                                          |
+| 资源           | 查询                                                                 | 允许的 mutation                                                                          |
+| -------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Dashboard      | `/dashboard`                                                         | 无                                                                                       |
+| Users          | `/users`, `/users/{id}`                                              | status、membership；详情返回会员、策略订阅、模拟盘、支付、邀请码、风险确认和最近审计记录 |
+| Strategies     | `/strategies`, `/{id}`                                               | create、update、submit-review、approve、reject、pause、delist                            |
+| Signals        | `/signals`, `/{id}`                                                  | cancel、mark-abnormal、repush                                                            |
+| Paper accounts | `/paper-accounts`, `/{id}`                                           | pause、resume、mark-abnormal                                                             |
+| Membership     | `/subscriptions`、`/membership-payments`、`/membership-invite-codes` | manual-grant、cancel；支付只读核查；邀请码 create/disable；不包含退款                    |
+| Risk           | `/risk-events`, `/{id}`                                              | assign、resolve、ignore、escalate                                                        |
+| Access         | `/roles`, `/permissions`, `/admin-users`                             | 角色与授权变更                                                                           |
+| Audit          | `/audit-logs`                                                        | 只读                                                                                     |
 
 具体角色权限以 `../security/roles-and-permissions.md` 为准。
 

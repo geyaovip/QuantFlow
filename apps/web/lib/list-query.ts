@@ -92,6 +92,26 @@ export function parseStrategyPeriod(
   return undefined;
 }
 
+export function parseMaxDrawdownLte(value: string | undefined) {
+  if (value === "0.05" || value === "0.10" || value === "0.20") {
+    return value;
+  }
+  return undefined;
+}
+
+export function maxDrawdownLabel(value: string | undefined) {
+  if (value === "0.05") {
+    return "回撤 ≤ 5%";
+  }
+  if (value === "0.10") {
+    return "回撤 ≤ 10%";
+  }
+  if (value === "0.20") {
+    return "回撤 ≤ 20%";
+  }
+  return "全部回撤";
+}
+
 export function strategyPeriodLabel(period: StrategyMetricPeriod | undefined) {
   if (period === "seven_days") {
     return "近 7 日";

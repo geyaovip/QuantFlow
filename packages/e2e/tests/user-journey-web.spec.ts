@@ -23,5 +23,9 @@ test.describe("User journey web", () => {
     await expect(
       page.getByText("模拟", { exact: false }).first(),
     ).toBeVisible();
+
+    await page.goto("/app/signals");
+    await expect(page.getByRole("heading", { name: "信号中心" })).toBeVisible();
+    await expect(page.getByText("待接入", { exact: false })).toHaveCount(0);
   });
 });

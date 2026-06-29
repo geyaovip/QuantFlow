@@ -190,9 +190,18 @@ export function SignalExplorer({
                 >
                   查看策略
                 </Link>
-                <Button disabled variant="secondary">
-                  加入模拟盘待接入
-                </Button>
+                {signal.status === "active" ? (
+                  <Link
+                    className="secondary-link"
+                    href={`/app/signals/${signal.id}#paper-create`}
+                  >
+                    加入模拟盘
+                  </Link>
+                ) : (
+                  <Button disabled variant="secondary">
+                    当前状态不可模拟
+                  </Button>
+                )}
               </div>
             </Card>
           ))}
@@ -201,8 +210,16 @@ export function SignalExplorer({
         <div className="empty-state">
           <strong>当前没有可展示的信号</strong>
           <p>
-            当已关注策略产生有效信号后，会在这里显示方向、价格区间、有效期和风险等级。
+            当已订阅策略产生可见信号后，会在这里显示方向、价格区间、有效期和风险等级。
           </p>
+          <div className="empty-state__actions">
+            <Link className="primary-link" href="/app/strategies">
+              去订阅策略
+            </Link>
+            <Link className="secondary-link" href="/app/membership">
+              查看会员权限
+            </Link>
+          </div>
         </div>
       )}
       <ListPagination

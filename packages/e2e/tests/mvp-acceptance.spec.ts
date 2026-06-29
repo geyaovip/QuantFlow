@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { loginAsAdmin } from "../helpers/admin-auth.js";
 import { loginWithEmailOtp } from "../helpers/auth.js";
 
 const apiURL = process.env.E2E_API_URL ?? "http://127.0.0.1:3002";
@@ -23,6 +24,11 @@ test.describe("MVP acceptance API", () => {
       `${apiURL}/api/v1/strategies?page=1&pageSize=20&access=free`,
     );
     expect(freeResponse.ok()).toBeTruthy();
+
+    const drawdownResponse = await request.get(
+      `${apiURL}/api/v1/strategies?page=1&pageSize=20&period=thirty_days&maxDrawdownLte=0.10`,
+    );
+    expect(drawdownResponse.ok()).toBeTruthy();
   });
 
   test("signal list allows all statuses when status is omitted", async ({
@@ -37,6 +43,43 @@ test.describe("MVP acceptance API", () => {
       pagination: { total: number };
     };
     expect(body.pagination.total).toBeGreaterThanOrEqual(0);
+  });
+
+  test("admin can inspect user detail for operational support", async ({
+    request,
+  }) => {
+    const userSession = await loginWithEmailOtp(request);
+    const adminSession = await loginAsAdmin(request);
+    const listResponse = await request.get(
+      `${adminSession.authBaseUrl}/api/v1/admin/users?page=1&pageSize=50`,
+    );
+    expect(listResponse.ok()).toBeTruthy();
+    const listBody = (await listResponse.json()) as {
+      data: Array<{ id: string; email: string }>;
+    };
+    const user = listBody.data.find((item) => item.email === userSession.email);
+    expect(user?.id).toBeTruthy();
+
+    const detailResponse = await request.get(
+      `${adminSession.authBaseUrl}/api/v1/admin/users/${user?.id}`,
+    );
+    expect(detailResponse.ok()).toBeTruthy();
+    const detailBody = (await detailResponse.json()) as {
+      data: {
+        email: string;
+        subscriptions: unknown[];
+        strategySubscriptions: unknown[];
+        paperAccounts: unknown[];
+        riskAcceptances: unknown[];
+      };
+    };
+    expect(detailBody.data.email).toBe(userSession.email);
+    expect(Array.isArray(detailBody.data.riskAcceptances)).toBeTruthy();
+
+    const paymentsResponse = await request.get(
+      `${adminSession.authBaseUrl}/api/v1/admin/membership-payments?page=1&pageSize=50`,
+    );
+    expect(paymentsResponse.ok()).toBeTruthy();
   });
 
   test("invite redeem rejects invalid unauthenticated requests", async ({

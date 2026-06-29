@@ -90,8 +90,22 @@ export function PaperAccountCreateForm({
   return (
     <div className="paper-create-form">
       <p className="paper-create-form__note">
-        以下均为模拟对象，不连接交易所，不产生真实订单或资产变动。止损止盈规则跟随策略信号字段执行。
+        以下均为模拟对象，不连接交易所，不产生真实订单或资产变动。
       </p>
+      <div className="paper-rule-summary" aria-label="模拟风控规则">
+        <div>
+          <span>止损规则</span>
+          <strong>跟随策略信号 stopLossPrice</strong>
+        </div>
+        <div>
+          <span>止盈规则</span>
+          <strong>跟随策略信号 takeProfitPrice</strong>
+        </div>
+        <div>
+          <span>执行规则</span>
+          <strong>paper-engine-v1，现货 1x</strong>
+        </div>
+      </div>
       <label className="paper-create-form__field">
         <span>模拟盘名称</span>
         <input

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -203,6 +204,12 @@ export function AdminUsersConsole({
                   风险观察
                 </button>
               ) : null}
+              <Link
+                className="admin-table-link"
+                href={`/admin/users/${user.id}`}
+              >
+                查看详情
+              </Link>
             </span>
           </div>
         ))}
