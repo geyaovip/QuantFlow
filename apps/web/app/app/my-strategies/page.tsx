@@ -16,13 +16,13 @@ export default async function MyStrategiesPage() {
       <PageHeader
         eyebrow="我的策略"
         title="已订阅策略"
-        description="这里展示你正在跟踪的策略。订阅只代表接收策略信号和查看记录，不代表收益承诺。"
+        description="查看正在跟踪的策略、订阅容量和可进入的信号记录。"
       />
       <section className="app-hero-panel" aria-label="我的策略概览">
         <Card className="app-hero-card">
-          <h2>把关注范围控制在可复核的数量内</h2>
+          <h2>保留可复核的订阅范围</h2>
           <p>
-            建议优先跟踪你理解逻辑、能接受回撤、且有足够样本的策略。未订阅策略可回到策略广场继续筛选。
+            优先跟踪逻辑清晰、回撤可接受、样本量足够的策略。需要更多选择时回到策略广场筛选。
           </p>
           <div className="app-hero-actions">
             <Link className="secondary-link" href="/app/strategies">
@@ -43,8 +43,8 @@ export default async function MyStrategiesPage() {
             <strong>已同步</strong>
           </div>
           <div>
-            <span>模拟盘</span>
-            <strong>待接入</strong>
+            <span>模拟验证</span>
+            <strong>可从信号创建</strong>
           </div>
         </div>
       </section>

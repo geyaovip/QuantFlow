@@ -139,6 +139,7 @@ export function StrategyExplorer({
     <>
       <div className="filter-bar" aria-label="策略筛选">
         <div className="filter-group" role="group" aria-label="风险等级">
+          <span className="filter-label">风险</span>
           {riskOptions.map((level) => {
             const active = level === riskLevel;
             return (
@@ -154,6 +155,7 @@ export function StrategyExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="策略类型">
+          <span className="filter-label">类型</span>
           {typeOptions.map((item) => {
             const active = item === type;
             return (
@@ -169,6 +171,7 @@ export function StrategyExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="交易币种">
+          <span className="filter-label">币种</span>
           {symbolOptions.map((item) => {
             const active = item === symbol;
             return (
@@ -184,6 +187,7 @@ export function StrategyExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="模拟盘支持">
+          <span className="filter-label">模拟</span>
           {paperOptions.map((item) => {
             const active = item.value === paperValue;
             return (
@@ -202,6 +206,7 @@ export function StrategyExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="收益周期">
+          <span className="filter-label">周期</span>
           {periodOptions.map((item) => {
             const active = item === period;
             return (
@@ -217,6 +222,7 @@ export function StrategyExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="最大回撤">
+          <span className="filter-label">回撤</span>
           {maxDrawdownOptions.map((item) => {
             const active = item.value === maxDrawdownLte;
             return (
@@ -236,6 +242,7 @@ export function StrategyExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="访问权限">
+          <span className="filter-label">权限</span>
           {accessOptions.map((item) => {
             const active = item.value === access;
             return (
@@ -254,6 +261,7 @@ export function StrategyExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="排序">
+          <span className="filter-label">排序</span>
           {sortOptions.map((item) => {
             const active =
               item.sortBy === sortBy &&

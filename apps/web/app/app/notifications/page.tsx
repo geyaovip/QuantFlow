@@ -16,7 +16,7 @@ export default async function NotificationsPage() {
       <PageHeader
         eyebrow="通知中心"
         title="站内通知"
-        description="这里展示策略、风险、会员和系统相关的站内提醒。QuantFlow 不提供投资建议，不承诺任何收益。"
+        description="查看策略、风险、会员和系统相关提醒。"
       />
       <Card className="paper-detail-card">
         <NotificationList notifications={notifications.data} />

@@ -80,13 +80,13 @@ export default async function MarketingPage() {
           <div className="hero__copy">
             <Badge tone="info">策略信号 · 模拟验证</Badge>
             <h1>
-              更冷静地
+              策略信号
               <br />
-              看策略
+              模拟验证
             </h1>
             <p>
               QuantFlow
-              把策略信号、风险指标和模拟表现放在同一工作台里。先看懂风险，再决定是否跟踪或模拟验证。
+              把策略表现、风险指标、信号记录和模拟盘放在同一工作台。先看清风险，再决定是否跟踪。
             </p>
             <div className="hero__actions">
               <Link className="primary-link" href="/login?next=/app/strategies">
@@ -167,28 +167,28 @@ export default async function MarketingPage() {
 
         <section className="section-block positioning-block" id="positioning">
           <div className="section-heading">
-            <h2>不是代客交易，而是帮你做策略判断</h2>
+            <h2>先判断，再验证</h2>
             <p>
               QuantFlow
-              聚焦策略理解、信号跟踪和模拟验证，不提供交易所连接，也不执行真实下单。
+              聚焦策略研究、信号跟踪和模拟验证，不连接交易所，不执行真实下单。
             </p>
           </div>
           <div className="positioning-grid">
             {[
               [
                 ChartNoAxesCombined,
-                "先看策略，再看信号",
-                "从策略逻辑、历史表现和风险特征出发，再决定是否跟踪信号。",
+                "策略先行",
+                "从策略逻辑、历史表现和风险特征出发，再决定是否跟踪。",
               ],
               [
                 ShieldCheck,
                 "收益与风险并列",
-                "任何收益展示都同屏附带回撤、样本和盈亏比，避免只看涨幅。",
+                "收益展示同屏附带回撤、样本和盈亏比，避免只看涨幅。",
               ],
               [
                 WalletCards,
                 "用模拟盘验证想法",
-                "在模拟环境中观察策略过程，所有余额与成交均标注为模拟。",
+                "在模拟环境中观察策略过程，余额与成交均标注为模拟。",
               ],
             ].map(([Icon, title, copy]) => {
               const PositionIcon = Icon as typeof ChartNoAxesCombined;
@@ -207,10 +207,8 @@ export default async function MarketingPage() {
 
         <section className="section-block" id="features">
           <div className="section-heading">
-            <h2>一个工作台，覆盖策略研究链路</h2>
-            <p>
-              从发现策略到跟踪信号，再到模拟验证，减少在多个工具之间来回切换。
-            </p>
+            <h2>策略研究工作台</h2>
+            <p>发现策略、跟踪信号、创建模拟盘，在一个产品里完成。</p>
           </div>
           <div className="capabilities-grid">
             {[
@@ -237,17 +235,17 @@ export default async function MarketingPage() {
 
         <section className="section-block product-preview" id="signals">
           <div className="section-heading">
-            <h2>策略信号，带来源与风险上下文</h2>
+            <h2>信号有来源，也有边界</h2>
             <p>
-              信号不是单独一条买卖提示，而是附带策略、风险等级、样本规模和失效条件的可解释记录。
+              每条信号都关联策略、风险等级、样本规模和有效期限，避免孤立解读。
             </p>
           </div>
           <Card className="signal-preview-card">
             <div className="signal-principles" aria-label="信号展示原则">
               {[
-                ["价格快照", "触发价与当前快照并列，避免脱离市场语境。"],
-                ["有效期限", "每条信号标注有效期，过期后不再作为有效参考。"],
-                ["风险确认", "高风险策略要求额外确认，减少误读。"],
+                ["价格快照", "触发价与当前价并列。"],
+                ["有效期限", "过期信号自动降级展示。"],
+                ["风险确认", "高风险策略需要额外确认。"],
               ].map(([title, copy]) => (
                 <div key={title}>
                   <span>{title}</span>
@@ -290,7 +288,7 @@ export default async function MarketingPage() {
 
         <section className="section-block section-block--muted" id="paper">
           <div className="section-heading">
-            <h2>模拟盘：在投入真实资金前先观察过程</h2>
+            <h2>模拟盘只做过程验证</h2>
             <p>
               所有模拟余额、持仓、订单和成交均明确标注“模拟”，与真实账户完全隔离。
             </p>
@@ -298,7 +296,7 @@ export default async function MarketingPage() {
           <div className="paper-grid">
             <Card className="paper-card">
               <span className="paper-card__label">模拟账户</span>
-              <strong>初始资金 ¥10,000</strong>
+              <strong>独立模拟余额</strong>
               <p>按策略信号在模拟环境中跟踪仓位变化，不涉及真实资产。</p>
             </Card>
             <Card className="paper-card">
@@ -308,7 +306,7 @@ export default async function MarketingPage() {
             </Card>
             <Card className="paper-card">
               <span className="paper-card__label">行情依赖</span>
-              <strong>快照撮合 · 非实时成交价</strong>
+              <strong>快照撮合</strong>
               <p>模拟成交基于有效行情快照，不承诺与交易所实时盘口一致。</p>
             </Card>
           </div>
@@ -352,12 +350,12 @@ export default async function MarketingPage() {
 
         <section className="section-block section-block--muted" id="workflow">
           <div className="section-heading">
-            <h2>四步开始使用</h2>
-            <p>从官网进入应用后，按这条路径完成第一次策略观察。</p>
+            <h2>使用路径</h2>
+            <p>从策略筛选到模拟验证，按固定顺序完成第一次观察。</p>
           </div>
           <ol className="workflow-steps">
             {[
-              ["登录应用", "使用邮箱验证码登录，无需绑定交易所。"],
+              ["登录应用", "进入策略工作台，无需绑定交易所。"],
               ["浏览策略广场", "按风险、市场和表现筛选策略，查看回撤与样本。"],
               ["跟踪信号", "在信号中心查看触发记录、有效期和风险说明。"],
               ["创建模拟盘", "用模拟资金验证策略过程，所有对象均标注模拟。"],
@@ -381,10 +379,8 @@ export default async function MarketingPage() {
 
         <section className="section-block" id="pricing">
           <div className="section-heading">
-            <h2>会员权益按容量开放，不售卖预期收益</h2>
-            <p>
-              会员只决定你能订阅多少策略、创建多少模拟盘，以及信号和历史数据的访问容量。支付只开通功能容量，不售卖预期收益。
-            </p>
+            <h2>会员权益</h2>
+            <p>会员只决定策略订阅、模拟盘和历史数据容量，不承诺策略收益。</p>
           </div>
           <div className="pricing-grid">
             {membershipPlans.length ? (
@@ -416,8 +412,7 @@ export default async function MarketingPage() {
             )}
           </div>
           <p className="section-note">
-            支付通过 Plisio 完成，当前支持 Tether BEP-20 与 Tether
-            ERC-20。会员不承诺策略收益或交易结果。
+            当前支持 USDT BEP-20 与 USDT ERC-20。会员不承诺策略收益或交易结果。
           </p>
         </section>
 
@@ -439,10 +434,8 @@ export default async function MarketingPage() {
 
         <section className="landing-cta" aria-label="进入应用">
           <div>
-            <h2>准备好查看你的策略工作台了吗？</h2>
-            <p>
-              登录后即可浏览策略广场、信号中心和模拟盘。所有模拟对象均明确标注。
-            </p>
+            <h2>进入策略工作台</h2>
+            <p>浏览策略、查看信号，并用模拟盘观察执行过程。</p>
           </div>
           <Link className="primary-link" href="/login?next=/app/strategies">
             进入应用 <ArrowRight aria-hidden="true" size={17} />

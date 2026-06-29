@@ -58,8 +58,8 @@ async function LoginPageContent({
       <section className="auth-page__grid">
         <div className="auth-copy">
           <p>QuantFlow</p>
-          <h2>登录你的策略工作台</h2>
-          <span>查看策略、信号和模拟盘。</span>
+          <h2>进入策略工作台</h2>
+          <span>查看策略、信号、会员权益和模拟盘。</span>
         </div>
         <EmailOtpLogin
           apiBaseUrl={apiBaseUrl}

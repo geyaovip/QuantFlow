@@ -39,7 +39,7 @@ export default async function SignalDetailPage({
       <PageHeader
         eyebrow="信号详情"
         title={`${signal.strategyName} · ${formatSignalDirection(signal.direction)}`}
-        description="信号仅用于观察和模拟验证，不提供真实下单、半自动或自动交易入口。"
+        description="查看价格、仓位、有效期和风险确认。信号仅用于观察和模拟验证。"
       />
       <section className="signal-detail-grid">
         <Card className="signal-card">
@@ -87,8 +87,7 @@ export default async function SignalDetailPage({
           <Card className="paper-create-panel" id="paper-create">
             <h2>创建模拟盘</h2>
             <p>
-              创建后可按 paper-engine-v1
-              规则尝试模拟执行该信号。观望信号仅创建账户，不自动成交。
+              创建后按模拟盘规则处理该信号。观望信号仅创建账户，不自动成交。
             </p>
             <PaperAccountCreateForm
               defaults={{
@@ -112,7 +111,7 @@ export default async function SignalDetailPage({
             <h2>暂不可加入模拟盘</h2>
             <p>
               当前信号状态为{formatSignalStatus(signal.status)}
-              。为避免把过期或异常信号纳入模拟，系统只允许有效信号创建并执行模拟。
+              。仅有效信号可以创建并执行模拟。
             </p>
           </Card>
         )}

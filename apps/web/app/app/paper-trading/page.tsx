@@ -20,7 +20,7 @@ export default async function PaperTradingPage() {
       <PageHeader
         eyebrow="仅限模拟"
         title="模拟盘"
-        description="用模拟余额观察策略执行过程。余额、订单、持仓、成交与权益均为模拟数据，不连接交易所或真实资产。"
+        description="用模拟余额观察策略执行过程。余额、订单、持仓、成交与权益均为模拟数据。"
         action={
           <Link className="primary-link" href="/app/strategies">
             从策略创建
@@ -31,17 +31,17 @@ export default async function PaperTradingPage() {
         <Card className="paper-status-card">
           <span>模拟账户</span>
           <strong>独立模拟余额</strong>
-          <p>模拟资金、持仓和成交与真实账户完全隔离，不读取交易所资产。</p>
+          <p>模拟资金、持仓和成交与真实账户完全隔离。</p>
         </Card>
         <Card className="paper-status-card">
           <span>权益跟踪</span>
           <strong>收益与回撤并列</strong>
-          <p>模拟权益、收益率和最大回撤会随成交同步更新，仅供过程观察。</p>
+          <p>模拟权益、收益率和最大回撤随模拟成交同步更新。</p>
         </Card>
         <Card className="paper-status-card">
           <span>执行边界</span>
           <strong>不做真实下单</strong>
-          <p>模拟盘只用于验证策略过程，不提供半自动或全自动交易入口。</p>
+          <p>模拟盘只用于验证策略过程，不提供真实交易入口。</p>
         </Card>
       </section>
       {accounts?.data.length ? (
@@ -82,11 +82,9 @@ export default async function PaperTradingPage() {
       ) : (
         <div className="empty-state">
           <strong>还没有创建模拟盘</strong>
-          <p>
-            订阅策略后，可在信号详情页创建模拟盘并执行模拟成交，跟踪权益曲线与回撤。
-          </p>
-          <Link className="primary-link" href="/app/signals">
-            查看信号中心
+          <p>先订阅策略并查看有效信号，再创建模拟盘跟踪权益曲线与回撤。</p>
+          <Link className="primary-link" href="/app/strategies">
+            浏览策略
           </Link>
         </div>
       )}

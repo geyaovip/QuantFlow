@@ -37,7 +37,7 @@ export default async function ProfilePage() {
       <PageHeader
         eyebrow="个人中心"
         title="我的 QuantFlow"
-        description="查看邮箱登录状态、访问权益、订阅配额和安全记录。用户端与管理端统一使用邮箱验证码登录。"
+        description="查看账户状态、访问权益、订阅配额、通知设置和安全记录。"
       />
       {session ? (
         <div className="profile-panel">
@@ -105,19 +105,19 @@ export default async function ProfilePage() {
                 ))}
               </ul>
             ) : (
-              <p>登录、验证码和会话相关事件会显示在这里。</p>
+              <p>账户登录和会话相关记录会显示在这里。</p>
             )}
           </section>
           <section className="profile-panel__section">
             <h2>通知与边界</h2>
             <p>
               可在{" "}
-              <Link className="secondary-link" href="/app/notifications">
+              <Link className="inline-link" href="/app/notifications">
                 通知中心
               </Link>{" "}
               查看站内提醒，或在{" "}
               <Link
-                className="secondary-link"
+                className="inline-link"
                 href="/app/notifications/preferences"
               >
                 通知偏好

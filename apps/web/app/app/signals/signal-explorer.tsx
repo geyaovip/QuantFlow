@@ -78,6 +78,7 @@ export function SignalExplorer({
     <>
       <div className="filter-bar" aria-label="信号筛选">
         <div className="filter-group" role="group" aria-label="信号方向">
+          <span className="filter-label">方向</span>
           {directionOptions.map((item) => {
             const active = item === direction;
             return (
@@ -96,6 +97,7 @@ export function SignalExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="信号状态">
+          <span className="filter-label">状态</span>
           {statusOptions.map((item) => {
             const active = item === status;
             return (
@@ -111,6 +113,7 @@ export function SignalExplorer({
           })}
         </div>
         <div className="filter-group" role="group" aria-label="模拟使用">
+          <span className="filter-label">模拟</span>
           {usedInPaperOptions.map((item) => {
             const active = item.value === usedInPaperValue;
             return (

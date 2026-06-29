@@ -222,7 +222,7 @@ export function EmailOtpLogin({
       <div className="auth-card__header">
         <p>登录</p>
         <h1>进入应用</h1>
-        <span>输入邮箱，获取一次性验证码。</span>
+        <span>输入邮箱完成登录。</span>
       </div>
 
       <form

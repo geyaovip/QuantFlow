@@ -77,14 +77,14 @@ export default async function StrategiesPage({
     <>
       <PageHeader
         eyebrow="策略广场"
-        title="发现可跟踪的策略"
-        description="先看策略逻辑、风险等级和样本，再决定是否订阅信号或进入模拟验证。收益、最大回撤和交易样本始终并列展示。"
+        title="策略广场"
+        description="按风险、市场和表现筛选策略。收益、最大回撤和样本量并列展示。"
       />
       <section className="app-hero-panel" aria-label="策略广场概览">
         <Card className="app-hero-card">
-          <h2>筛选策略前，先确认风险边界</h2>
+          <h2>用风险边界筛选策略</h2>
           <p>
-            当前列表仅展示已发布策略。高风险策略不会被隐藏，但会在卡片和详情页持续标记风险等级、回撤和失效场景。
+            列表仅展示已发布策略。高风险、回撤和失效场景会在卡片与详情页持续标记。
           </p>
           <div className="app-hero-actions">
             <Link className="secondary-link" href="/app/signals">

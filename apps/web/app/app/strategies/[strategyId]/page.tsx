@@ -150,7 +150,7 @@ export default async function StrategyDetailPage({
 
         <Card className="strategy-detail-side">
           <h2>多周期表现</h2>
-          <p>收益与最大回撤按同一周期并列展示，避免只看单一收益。</p>
+          <p>同一周期内同时查看收益与最大回撤。</p>
           <div className="metric-bars" aria-label="多周期收益与回撤">
             {strategy.metrics.map((metric) => (
               <div className="metric-bars__row" key={metric.period}>
@@ -182,9 +182,7 @@ export default async function StrategyDetailPage({
       <section className="strategy-detail-grid" aria-label="策略说明">
         <Card className="strategy-detail-note strategy-detail-note--wide">
           <h2>收益与回撤曲线</h2>
-          <p>
-            基于当前策略多周期指标绘制。曲线用于观察收益与风险是否同步变化，不代表未来表现。
-          </p>
+          <p>用曲线观察收益与风险是否同步变化，不代表未来表现。</p>
           <StrategyPerformanceChart metrics={strategy.metrics} />
         </Card>
         <Card className="strategy-detail-note">
@@ -253,7 +251,7 @@ export default async function StrategyDetailPage({
           <h2>模拟盘入口</h2>
           <p>
             当前策略订阅状态：{strategy.isSubscribed ? "已订阅" : "未订阅"}。
-            模拟盘仅使用模拟资金记录策略过程，不连接交易所或真实资产。
+            模拟盘仅使用模拟资金记录策略过程。
           </p>
           {strategy.isSubscribed ? (
             <PaperAccountCreateForm
@@ -273,7 +271,7 @@ export default async function StrategyDetailPage({
           )}
         </Card>
         <Card className="strategy-detail-side">
-          <h2>阅读顺序</h2>
+          <h2>决策检查</h2>
           <ul className="app-muted-list">
             <li>
               <span>先看</span>
@@ -285,7 +283,7 @@ export default async function StrategyDetailPage({
             </li>
             <li>
               <span>最后</span>
-              <strong>订阅信号或等待模拟验证</strong>
+              <strong>订阅信号或创建模拟盘</strong>
             </li>
           </ul>
         </Card>

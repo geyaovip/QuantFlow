@@ -347,6 +347,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+}
+.filter-label {
+  width: 64px;
+  color: var(--qf-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
 }
 .filter-chip {
   display: inline-flex;
@@ -730,8 +737,24 @@
   color: var(--qf-text-secondary);
 }
 .notification-item button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--qf-border);
+  border-radius: 8px;
+  color: var(--qf-text);
+  background: var(--qf-surface);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
   align-self: flex-start;
   white-space: nowrap;
+}
+.notification-item button:hover {
+  background: var(--qf-surface-muted);
+}
+.notification-item button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 .paper-account-actions {
   display: grid;
@@ -792,19 +815,6 @@
   margin: 6px 0 0;
   color: var(--qf-text);
   font-weight: 750;
-}
-.paper-create-form {
-  display: grid;
-  gap: 12px;
-}
-.paper-create-form__field {
-  display: grid;
-  gap: 6px;
-}
-.paper-create-form__note {
-  margin: 0;
-  color: var(--qf-text-secondary);
-  font-size: 14px;
 }
 .paper-rule-summary {
   display: grid;

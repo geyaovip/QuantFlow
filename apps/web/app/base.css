@@ -111,10 +111,25 @@ body {
   margin-top: 32px;
 }
 .secondary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 40px;
-  padding: 10px 14px;
-  color: var(--qf-text-secondary);
+  padding: 0 14px;
+  border: 1px solid var(--qf-border);
+  border-radius: 8px;
+  color: var(--qf-text);
+  background: var(--qf-surface);
   font-weight: 650;
+  text-decoration: none;
+  transition:
+    background 120ms ease-out,
+    border-color 120ms ease-out;
+}
+.secondary-link:hover {
+  border-color: #cbd5e1;
+  background: var(--qf-surface-muted);
 }
 .hero__trust {
   display: flex;
@@ -224,6 +239,7 @@ body {
 .section-heading {
   max-width: 760px;
   margin-bottom: 24px;
+  text-align: left;
 }
 .section-heading p,
 .landing-cta p {
@@ -293,8 +309,10 @@ body {
   letter-spacing: -0.03em;
 }
 .pricing-card__header {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
 }
 .pricing-card__header strong {
   display: block;
@@ -457,7 +475,7 @@ body {
 }
 .pricing-card--featured {
   border-color: var(--qf-accent);
-  box-shadow: 0 0 0 1px rgb(37 99 235 / 0.08);
+  box-shadow: 0 0 0 1px rgb(100 116 139 / 0.12);
 }
 .risk-disclosure-card {
   display: grid;

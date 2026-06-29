@@ -157,8 +157,7 @@ export function MembershipCheckout({
       <Card className="membership-checkout-panel">
         <h2>支付确认</h2>
         <p>
-          选择计划并确认风险提示后，将跳转到 Plisio 完成 USDT
-          支付。支付成功后由系统回调自动开通会员，不提供收益承诺。
+          选择计划并确认风险提示后进入支付页。支付成功后系统会自动开通会员权益。
         </p>
         <label className="membership-risk-check">
           <input
@@ -169,8 +168,11 @@ export function MembershipCheckout({
           <span>{RISK_DISCLOSURE}</span>
         </label>
         {error ? <p className="auth-error">{error}</p> : null}
-        <Button disabled={loading} onClick={handleCheckout}>
-          {loading ? "正在创建支付订单..." : "去支付"}
+        <Button
+          disabled={loading || !selectedTier || !accepted}
+          onClick={handleCheckout}
+        >
+          {loading ? "正在创建支付订单..." : "确认并去支付"}
         </Button>
       </Card>
     </div>

@@ -45,14 +45,14 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
     <div className="app-page-stack">
       <PageHeader
         eyebrow="信号中心"
-        title="跟踪可解释信号"
-        description="每条信号都带触发价格、有效期、风险等级和失效条件。QuantFlow 不提供真实下单入口。"
+        title="信号中心"
+        description="查看触发价格、有效期、风险等级和失效条件。信号仅用于观察和模拟验证。"
       />
       <section className="app-hero-panel" aria-label="信号中心概览">
         <Card className="app-hero-card">
-          <h2>信号用于观察和模拟，不是交易指令</h2>
+          <h2>先确认状态，再加入模拟</h2>
           <p>
-            先确认策略来源、有效期和当前价格快照，再决定是否进入策略详情或等待模拟盘能力接入。
+            先确认策略来源、有效期和当前价格快照，再决定查看详情或创建模拟盘。
           </p>
           <div className="app-hero-actions">
             <Link className="secondary-link" href="/app/strategies">
