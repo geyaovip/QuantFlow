@@ -10,6 +10,12 @@ test.describe("Paper trading journey API", () => {
 
     const subscribeResponse = await request.post(
       `${authBaseUrl}/api/v1/strategies/${SEED_FREE_STRATEGY_ID}/subscriptions`,
+      {
+        data: {
+          riskDisclosureVersion: "risk-v1",
+          riskAccepted: true,
+        },
+      },
     );
     expect(subscribeResponse.ok()).toBeTruthy();
 

@@ -14,7 +14,9 @@ test.describe("User journey web", () => {
       page.getByRole("heading", { name: "发现可跟踪的策略" }),
     ).toBeVisible();
     expect(Date.now() - startedAt).toBeLessThan(3000);
-    await expect(page.getByText("最大回撤", { exact: false })).toBeVisible();
+    await expect(
+      page.getByRole("term", { name: "最大回撤" }).first(),
+    ).toBeVisible();
 
     await page.goto("/app/paper-trading");
     await expect(page.getByRole("heading", { name: "模拟盘" })).toBeVisible();

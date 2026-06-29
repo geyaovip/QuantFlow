@@ -11,7 +11,9 @@ test.describe("Marketing website", () => {
       page.getByRole("banner").getByRole("link", { name: "进入应用" }),
     ).toBeVisible();
     await expect(
-      page.getByText("QuantFlow 不提供投资建议", { exact: false }),
+      page.locator("#risk-disclosure").getByText("QuantFlow 不提供投资建议", {
+        exact: false,
+      }),
     ).toBeVisible();
   });
 
