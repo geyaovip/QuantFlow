@@ -19,11 +19,19 @@ export type ListStrategiesInput = {
   riskLevel?: string;
   type?: string;
   symbol?: string;
-  sortBy?: "publishedAt" | "riskLevel";
+  sortBy?:
+    | "publishedAt"
+    | "riskLevel"
+    | "subscriberCount"
+    | "returnRate"
+    | "maxDrawdown"
+    | "recommended";
   sortOrder?: "asc" | "desc";
   period?: string;
   maxTier?: MembershipTier;
   paperEnabled?: boolean;
+  access?: "free";
+  maxDrawdownLte?: string;
 };
 
 export type ListSignalsInput = {
@@ -32,6 +40,7 @@ export type ListSignalsInput = {
   userId?: string;
   direction?: string;
   status?: string;
+  usedInPaper?: boolean;
   historySince?: Date;
   signalVisibleBefore?: Date;
 };

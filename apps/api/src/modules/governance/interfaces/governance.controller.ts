@@ -13,6 +13,7 @@ import { z } from "zod";
 
 import {
   adminMembershipActionSchema,
+  adminMembershipInviteCreateSchema,
   adminMembershipManualGrantSchema,
   adminRiskActionSchema,
   adminUserStatusSchema,
@@ -169,6 +170,75 @@ export class GovernanceController {
       );
       return this.governanceService.cancelMembership(
         subscriptionId,
+        this.adminSession.auditContext(
+          request,
+          session.subjectId,
+          parsed.data.reason,
+        ),
+      );
+    } catch (error) {
+      throw this.adminSession.toHttpError(error);
+    }
+  }
+
+  @Get("admin/membership-invite-codes")
+  async listInviteCodes(@Query() query: unknown, @Req() request: RequestLike) {
+    const parsed = listQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+    try {
+      await this.adminSession.requirePermission(
+        request,
+        ADMIN_PERMISSIONS.membershipRead,
+      );
+      return this.governanceService.listInviteCodes(
+        parsed.data.page ?? 1,
+        parsed.data.pageSize ?? 50,
+      );
+    } catch (error) {
+      throw this.adminSession.toHttpError(error);
+    }
+  }
+
+  @Post("admin/membership-invite-codes")
+  async createInviteCode(@Body() body: unknown, @Req() request: RequestLike) {
+    const parsed = adminMembershipInviteCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+    try {
+      const session = await this.adminSession.requirePermission(
+        request,
+        ADMIN_PERMISSIONS.membershipWrite,
+      );
+      const { reason, ...input } = parsed.data;
+      return this.governanceService.createInviteCode(input, {
+        ...this.adminSession.auditContext(request, session.subjectId, reason),
+        actorAdminId: session.subjectId,
+      });
+    } catch (error) {
+      throw this.adminSession.toHttpError(error);
+    }
+  }
+
+  @Post("admin/membership-invite-codes/:inviteCodeId/disable")
+  async disableInviteCode(
+    @Param("inviteCodeId") inviteCodeId: string,
+    @Body() body: unknown,
+    @Req() request: RequestLike,
+  ) {
+    const parsed = adminMembershipActionSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+    try {
+      const session = await this.adminSession.requirePermission(
+        request,
+        ADMIN_PERMISSIONS.membershipWrite,
+      );
+      return this.governanceService.disableInviteCode(
+        inviteCodeId,
         this.adminSession.auditContext(
           request,
           session.subjectId,

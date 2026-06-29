@@ -266,6 +266,12 @@ export const membershipCheckoutCreateSchema = z.object({
   riskAccepted: z.literal(true),
 });
 
+export const membershipInviteRedeemSchema = z.object({
+  code: z.string().min(4).max(64),
+  riskDisclosureVersion: z.literal("risk-v1"),
+  riskAccepted: z.literal(true),
+});
+
 export const membershipPaymentSchema = z.object({
   id: z.uuid(),
   tier: z.enum(["pro", "premium"]),
@@ -615,6 +621,39 @@ export const adminMembershipActionSchema = z.object({
   reason: z.string().min(3),
 });
 
+export const adminMembershipInviteCodeSchema = z.object({
+  id: z.uuid(),
+  codeLabel: z.string(),
+  tier: z.enum(["pro", "premium"]),
+  billingCycle: z.enum(["monthly", "yearly"]),
+  maxRedemptions: z.number().int().min(1),
+  redemptionCount: z.number().int().min(0),
+  expiresAt: z.iso.datetime().nullable(),
+  status: z.enum(["active", "disabled"]),
+  note: z.string().nullable(),
+  createdAt: z.iso.datetime(),
+});
+
+export const adminMembershipInviteListResponseSchema = z.object({
+  data: z.array(adminMembershipInviteCodeSchema),
+  pagination: paginationSchema,
+});
+
+export const adminMembershipInviteCreateSchema = z.object({
+  code: z.string().min(4).max(64),
+  tier: z.enum(["pro", "premium"]),
+  billingCycle: z.enum(["monthly", "yearly"]),
+  maxRedemptions: z.number().int().min(1).max(10000),
+  expiresAt: z.iso.datetime().optional(),
+  note: z.string().max(200).optional(),
+  reason: z.string().min(3),
+});
+
+export const strategySubscribeSchema = z.object({
+  riskDisclosureVersion: z.literal("risk-v1"),
+  riskAccepted: z.literal(true),
+});
+
 export const adminRiskEventSchema = z.object({
   id: z.uuid(),
   type: z.string(),
@@ -753,6 +792,9 @@ export type MembershipMockCheckout = z.infer<
 export type MembershipCheckoutCreate = z.infer<
   typeof membershipCheckoutCreateSchema
 >;
+export type MembershipInviteRedeem = z.infer<
+  typeof membershipInviteRedeemSchema
+>;
 export type MembershipPayment = z.infer<typeof membershipPaymentSchema>;
 export type MembershipPaymentResponse = z.infer<
   typeof membershipPaymentResponseSchema
@@ -856,6 +898,16 @@ export type AdminMembershipManualGrant = z.infer<
   typeof adminMembershipManualGrantSchema
 >;
 export type AdminMembershipAction = z.infer<typeof adminMembershipActionSchema>;
+export type AdminMembershipInviteCode = z.infer<
+  typeof adminMembershipInviteCodeSchema
+>;
+export type AdminMembershipInviteListResponse = z.infer<
+  typeof adminMembershipInviteListResponseSchema
+>;
+export type AdminMembershipInviteCreate = z.infer<
+  typeof adminMembershipInviteCreateSchema
+>;
+export type StrategySubscribe = z.infer<typeof strategySubscribeSchema>;
 export type AdminRiskEvent = z.infer<typeof adminRiskEventSchema>;
 export type AdminRiskEventListResponse = z.infer<
   typeof adminRiskEventListResponseSchema

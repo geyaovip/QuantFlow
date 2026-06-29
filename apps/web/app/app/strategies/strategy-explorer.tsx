@@ -7,12 +7,16 @@ import { ListPagination } from "../../../components/list-pagination";
 import type { StrategyCardRecord } from "../../../lib/strategy-format";
 import {
   riskLevelLabel,
+  strategyPeriodLabel,
   strategySymbolLabel,
   strategyTypeLabel,
+  type StrategyMetricPeriod,
 } from "../../../lib/list-query";
 
 type StrategyExplorerProps = {
+  access?: string;
   pagination: Pagination;
+  period?: StrategyMetricPeriod;
   query: Record<string, string | undefined>;
   riskLevel?: RiskLevel;
   sortBy?: string;
@@ -47,8 +51,26 @@ const symbolOptions = [
 ] as const;
 
 const sortOptions = [
-  { value: undefined, label: "最新上线" },
-  { value: "riskLevel", label: "风险等级" },
+  { sortBy: undefined, period: undefined, label: "最新上线" },
+  { sortBy: "recommended", period: "thirty_days", label: "综合推荐" },
+  { sortBy: "subscriberCount", period: undefined, label: "订阅人数" },
+  { sortBy: "returnRate", period: "seven_days", label: "近 7 日表现" },
+  { sortBy: "returnRate", period: "thirty_days", label: "近 30 日表现" },
+  { sortBy: "maxDrawdown", period: "thirty_days", label: "最大回撤" },
+  { sortBy: "riskLevel", period: undefined, label: "风险等级" },
+] as const;
+
+const periodOptions: Array<StrategyMetricPeriod | undefined> = [
+  undefined,
+  "seven_days",
+  "thirty_days",
+  "ninety_days",
+  "all_time",
+];
+
+const accessOptions = [
+  { value: undefined, label: "全部权限" },
+  { value: "free", label: "免费策略" },
 ] as const;
 
 function buildHref(
@@ -75,7 +97,9 @@ const paperOptions = [
 ] as const;
 
 export function StrategyExplorer({
+  access,
   pagination,
+  period,
   query,
   riskLevel,
   sortBy,
@@ -84,7 +108,15 @@ export function StrategyExplorer({
   type,
   paperEnabled,
 }: StrategyExplorerProps) {
-  const baseQuery = { ...query, risk: riskLevel, type, symbol, sortBy };
+  const baseQuery = {
+    ...query,
+    risk: riskLevel,
+    type,
+    symbol,
+    sortBy,
+    access,
+    period,
+  };
   const paperValue =
     paperEnabled === true
       ? "true"
@@ -158,15 +190,51 @@ export function StrategyExplorer({
             );
           })}
         </div>
-        <div className="filter-group" role="group" aria-label="排序">
-          {sortOptions.map((item) => {
-            const active = item.value === sortBy;
+        <div className="filter-group" role="group" aria-label="收益周期">
+          {periodOptions.map((item) => {
+            const active = item === period;
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "filter-chip is-active" : "filter-chip"}
+                href={buildHref(baseQuery, { period: item, page: undefined })}
+                key={item ?? "default-period"}
+              >
+                {strategyPeriodLabel(item)}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="filter-group" role="group" aria-label="访问权限">
+          {accessOptions.map((item) => {
+            const active = item.value === access;
             return (
               <Link
                 aria-current={active ? "page" : undefined}
                 className={active ? "filter-chip is-active" : "filter-chip"}
                 href={buildHref(baseQuery, {
-                  sortBy: item.value,
+                  access: item.value,
+                  page: undefined,
+                })}
+                key={item.label}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="filter-group" role="group" aria-label="排序">
+          {sortOptions.map((item) => {
+            const active =
+              item.sortBy === sortBy &&
+              (item.period ?? undefined) === (period ?? undefined);
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "filter-chip is-active" : "filter-chip"}
+                href={buildHref(baseQuery, {
+                  sortBy: item.sortBy,
+                  period: item.period,
                   page: undefined,
                 })}
                 key={item.label}

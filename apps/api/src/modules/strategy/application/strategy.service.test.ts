@@ -244,6 +244,7 @@ describe("StrategyService", () => {
     return new StrategyService(
       repository,
       membershipService,
+      { record: async () => undefined } as never,
       new MemoryNotificationService() as never,
     );
   }

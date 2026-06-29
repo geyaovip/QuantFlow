@@ -50,6 +50,25 @@ export class GovernanceService {
       .then((data) => ({ data }));
   }
 
+  listInviteCodes(page: number, pageSize: number) {
+    return this.repository.listInviteCodes(page, pageSize);
+  }
+
+  createInviteCode(
+    input: Parameters<GovernanceRepository["createInviteCode"]>[0],
+    context: AuditContext,
+  ) {
+    return this.repository
+      .createInviteCode(input, context)
+      .then((data) => ({ data }));
+  }
+
+  disableInviteCode(inviteCodeId: string, context: AuditContext) {
+    return this.repository
+      .disableInviteCode(inviteCodeId, context)
+      .then((data) => ({ data }));
+  }
+
   listRiskEvents(page: number, pageSize: number) {
     return this.repository.listRiskEvents(page, pageSize);
   }

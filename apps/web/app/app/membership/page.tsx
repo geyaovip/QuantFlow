@@ -1,6 +1,7 @@
 import { Card, PageHeader } from "@quantflow/ui";
 
 import { MembershipCheckout } from "../../../components/membership-checkout";
+import { MembershipInviteRedeem } from "../../../components/membership-invite-redeem";
 import {
   getMembershipEntitlements,
   getMembershipPlans,
@@ -77,6 +78,7 @@ export default async function MembershipPage({
         currentTier={entitlements.tier}
         plans={plans.data}
       />
+      <MembershipInviteRedeem apiBaseUrl={resolveMembershipApiBaseUrl()} />
     </>
   );
 }

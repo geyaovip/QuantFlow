@@ -91,6 +91,28 @@ export type ManualGrantInput = {
   reason: string;
 };
 
+export type InviteCodeListItem = {
+  id: string;
+  codeLabel: string;
+  tier: "pro" | "premium";
+  billingCycle: "monthly" | "yearly";
+  maxRedemptions: number;
+  redemptionCount: number;
+  expiresAt: string | null;
+  status: "active" | "disabled";
+  note: string | null;
+  createdAt: string;
+};
+
+export type InviteCodeCreateInput = {
+  code: string;
+  tier: "pro" | "premium";
+  billingCycle: "monthly" | "yearly";
+  maxRedemptions: number;
+  expiresAt?: string;
+  note?: string;
+};
+
 export const GOVERNANCE_REPOSITORY = Symbol("GOVERNANCE_REPOSITORY");
 
 export interface GovernanceRepository {
@@ -115,6 +137,18 @@ export interface GovernanceRepository {
     subscriptionId: string,
     context: AuditContext,
   ): Promise<AdminSubscriptionListItem>;
+  listInviteCodes(
+    page: number,
+    pageSize: number,
+  ): Promise<Paginated<InviteCodeListItem>>;
+  createInviteCode(
+    input: InviteCodeCreateInput,
+    context: AuditContext,
+  ): Promise<InviteCodeListItem>;
+  disableInviteCode(
+    inviteCodeId: string,
+    context: AuditContext,
+  ): Promise<InviteCodeListItem>;
   listRiskEvents(
     page: number,
     pageSize: number,

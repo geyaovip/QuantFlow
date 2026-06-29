@@ -26,6 +26,9 @@ type StrategyListQuery = {
   sortBy?: string;
   sortOrder?: string;
   paperEnabled?: boolean;
+  access?: string;
+  period?: string;
+  maxDrawdownLte?: string;
 };
 
 type SignalListQuery = {
@@ -33,6 +36,7 @@ type SignalListQuery = {
   pageSize?: number;
   direction?: string;
   status?: string;
+  usedInPaper?: boolean;
 };
 
 export async function getStrategies(
@@ -60,6 +64,15 @@ export async function getStrategies(
   if (typeof query.paperEnabled === "boolean") {
     params.set("paperEnabled", query.paperEnabled ? "true" : "false");
   }
+  if (query.access) {
+    params.set("access", query.access);
+  }
+  if (query.period) {
+    params.set("period", query.period);
+  }
+  if (query.maxDrawdownLte) {
+    params.set("maxDrawdownLte", query.maxDrawdownLte);
+  }
   const payload = await getJson(`/api/v1/strategies?${params.toString()}`);
   return strategyListResponseSchema.parse(payload);
 }
@@ -83,6 +96,9 @@ export async function getSignals(
   }
   if (query.status) {
     params.set("status", query.status);
+  }
+  if (typeof query.usedInPaper === "boolean") {
+    params.set("usedInPaper", query.usedInPaper ? "true" : "false");
   }
   const payload = await getJson(`/api/v1/signals?${params.toString()}`);
   return signalListResponseSchema.parse(payload);

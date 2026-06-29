@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.7.0-dev.1` - 2026-06-27
+
+- 类型：Added / API / Web / Admin / Data
+- 摘要：邀请码兑换与管理端创建/停用、风险确认留痕、策略广场扩展排序筛选、信号中心全状态与模拟使用筛选。
+- MVP 边界影响：无；仍无实盘交易与生产支付强制开启。
+- API / 数据 / 权限 / 风控影响：新增 `POST /membership/redeem-invite`、`/admin/membership-invite-codes*`；`user_risk_acceptances` 与邀请码表；策略订阅要求 `riskAccepted`。
+- 迁移与兼容：需执行 `202606270001_mvp_invite_risk` migration。
+- 验证：`pnpm check`。
+- 监控与回滚：邀请码可停用；订阅取消沿用既有治理 API。
+
 ### `v0.6.0-dev.6` - 2026-06-26
 
 - 类型：Removed / Ops / Docs

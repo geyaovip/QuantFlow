@@ -4,6 +4,7 @@ import {
   adminAccountListResponseSchema,
   adminAnnouncementListResponseSchema,
   adminDashboardSummaryResponseSchema,
+  adminMembershipInviteListResponseSchema,
   adminRiskEventListResponseSchema,
   adminRoleListResponseSchema,
   adminSubscriptionListResponseSchema,
@@ -56,6 +57,14 @@ export async function getAdminSubscriptions(
   return adminSubscriptionListResponseSchema.parse(
     await getJson(
       `/api/v1/admin/subscriptions?page=${page}&pageSize=${pageSize}`,
+    ),
+  );
+}
+
+export async function getAdminInviteCodes(page = 1, pageSize = 50) {
+  return adminMembershipInviteListResponseSchema.parse(
+    await getJson(
+      `/api/v1/admin/membership-invite-codes?page=${page}&pageSize=${pageSize}`,
     ),
   );
 }

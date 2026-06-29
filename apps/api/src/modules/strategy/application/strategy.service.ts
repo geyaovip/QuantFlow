@@ -7,6 +7,7 @@ import type {
   AdminStrategyListResponse,
   SignalDetailResponse,
   SignalListResponse,
+  StrategySubscribe,
   StrategySubscriptionListResponse,
   StrategySubscriptionResponse,
   StrategyDetail,
@@ -20,10 +21,12 @@ import {
   tierMeetsRequired,
 } from "../../membership/domain/tier-access.js";
 import { MembershipService } from "../../membership/application/membership.service.js";
+import { RiskAcceptanceService } from "../../membership/application/risk-acceptance.service.js";
 import { NotificationService } from "../../notification/application/notification.service.js";
 import {
   SignalNotFoundError,
   StrategyNotFoundError,
+  StrategyRiskNotAcceptedError,
   StrategySubscriptionLimitError,
   StrategyTierAccessError,
 } from "../domain/strategy-errors.js";
@@ -53,6 +56,7 @@ export class StrategyService {
     private readonly repository: StrategyRepository,
     @Inject(forwardRef(() => MembershipService))
     private readonly membershipService: MembershipService,
+    private readonly riskAcceptanceService: RiskAcceptanceService,
     private readonly notificationService: NotificationService,
   ) {}
 
@@ -75,6 +79,8 @@ export class StrategyService {
         period: input.period,
         maxTier: entitlements.tier,
         paperEnabled: input.paperEnabled,
+        access: input.access,
+        maxDrawdownLte: input.maxDrawdownLte,
       },
       userId,
     );
@@ -117,6 +123,7 @@ export class StrategyService {
       userId,
       direction: input.direction,
       status: input.status,
+      usedInPaper: input.usedInPaper,
       ...buildSignalAccess(entitlements),
     });
 
@@ -144,7 +151,12 @@ export class StrategyService {
   async subscribeToStrategy(
     userId: string,
     strategyId: string,
+    input: StrategySubscribe,
   ): Promise<StrategySubscriptionResponse> {
+    if (!input.riskAccepted) {
+      throw new StrategyRiskNotAcceptedError();
+    }
+
     const entitlements = await this.membershipService.getEntitlements(userId);
     const strategy = await this.repository.findActiveStrategy(
       strategyId,
@@ -166,7 +178,12 @@ export class StrategyService {
     }
 
     return {
-      data: await this.repository.subscribeToStrategy(userId, strategyId),
+      data: await this.repository
+        .subscribeToStrategy(userId, strategyId)
+        .then(async (subscription) => {
+          await this.riskAcceptanceService.record(userId, "strategy_subscribe");
+          return subscription;
+        }),
     };
   }
 

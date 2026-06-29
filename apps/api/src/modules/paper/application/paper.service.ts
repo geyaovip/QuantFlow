@@ -18,6 +18,7 @@ import type {
 } from "@quantflow/contracts";
 
 import { MembershipService } from "../../membership/application/membership.service.js";
+import { RiskAcceptanceService } from "../../membership/application/risk-acceptance.service.js";
 import {
   PaperAccountLimitError,
   PaperAccountNotFoundError,
@@ -41,6 +42,7 @@ export class PaperService {
     @Inject(PAPER_REPOSITORY)
     private readonly repository: PaperRepository,
     private readonly membershipService: MembershipService,
+    private readonly riskAcceptanceService: RiskAcceptanceService,
   ) {}
 
   async listAccounts(
@@ -79,6 +81,7 @@ export class PaperService {
 
     await this.assertPaperQuota(userId);
     const data = await this.repository.createAccount(userId, input);
+    await this.riskAcceptanceService.record(userId, "paper_account_create");
     return { data };
   }
 
@@ -93,6 +96,7 @@ export class PaperService {
 
     await this.assertPaperQuota(userId);
     const data = await this.repository.copyAccount(userId, accountId, input);
+    await this.riskAcceptanceService.record(userId, "paper_account_create");
     return { data };
   }
 
@@ -116,6 +120,7 @@ export class PaperService {
     }
 
     const data = await this.repository.resetAccount(userId, accountId);
+    await this.riskAcceptanceService.record(userId, "paper_account_create");
     return { data };
   }
 
@@ -138,6 +143,7 @@ export class PaperService {
     }
 
     const data = await this.repository.executeSignal(userId, accountId, input);
+    await this.riskAcceptanceService.record(userId, "paper_account_create");
     return { data };
   }
 

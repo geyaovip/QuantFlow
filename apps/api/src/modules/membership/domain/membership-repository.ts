@@ -1,4 +1,5 @@
 import type {
+  MembershipInviteRedeem,
   MembershipMockCheckout,
   MembershipCheckoutCreate,
   MembershipPaymentResponse,
@@ -18,6 +19,10 @@ export interface MembershipRepository {
   mockCheckout(
     userId: string,
     input: MembershipMockCheckout,
+  ): Promise<MembershipSubscriptionResponse>;
+  redeemInviteCode(
+    userId: string,
+    input: MembershipInviteRedeem,
   ): Promise<MembershipSubscriptionResponse>;
   createPayment(
     userId: string,

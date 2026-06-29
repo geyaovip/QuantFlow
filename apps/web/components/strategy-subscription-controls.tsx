@@ -5,6 +5,9 @@ import { useState } from "react";
 
 import { Button } from "@quantflow/ui";
 
+const RISK_DISCLOSURE =
+  "QuantFlow 不提供投资建议，不承诺任何收益。所有策略信号仅供参考，加密资产价格波动较大，用户需自行承担交易风险。历史表现不代表未来收益。";
+
 type StrategySubscriptionControlsProps = {
   apiBaseUrl: string;
   isSubscribed: boolean;
@@ -20,8 +23,14 @@ export function StrategySubscriptionControls({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [riskAccepted, setRiskAccepted] = useState(subscribed);
 
   const submit = async () => {
+    if (!subscribed && !riskAccepted) {
+      setError("请先确认风险提示");
+      return;
+    }
+
     setIsSubmitting(true);
     setMessage("");
     setError("");
@@ -32,6 +41,15 @@ export function StrategySubscriptionControls({
         {
           method: subscribed ? "DELETE" : "POST",
           credentials: "include",
+          headers: subscribed
+            ? undefined
+            : { "content-type": "application/json" },
+          body: subscribed
+            ? undefined
+            : JSON.stringify({
+                riskDisclosureVersion: "risk-v1",
+                riskAccepted: true,
+              }),
         },
       );
 
@@ -62,6 +80,17 @@ export function StrategySubscriptionControls({
 
   return (
     <div className="strategy-subscription-controls">
+      {!subscribed ? (
+        <label className="membership-risk-check">
+          <input
+            checked={riskAccepted}
+            disabled={isSubmitting}
+            onChange={(event) => setRiskAccepted(event.target.checked)}
+            type="checkbox"
+          />
+          <span>{RISK_DISCLOSURE}</span>
+        </label>
+      ) : null}
       <Button
         disabled={isSubmitting}
         onClick={() => void submit()}

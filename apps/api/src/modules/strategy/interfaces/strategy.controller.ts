@@ -15,6 +15,7 @@ import { z } from "zod";
 import {
   adminStrategyActionSchema,
   adminStrategyCreateSchema,
+  strategySubscribeSchema,
 } from "@quantflow/contracts";
 
 import { AuthService } from "../../auth/application/auth.service.js";
@@ -26,6 +27,7 @@ import {
   SignalNotFoundError,
   StrategyInvalidStateError,
   StrategyNotFoundError,
+  StrategyRiskNotAcceptedError,
   StrategySubscriptionLimitError,
   StrategyTierAccessError,
 } from "../domain/strategy-errors.js";
@@ -41,10 +43,24 @@ const listStrategiesQuerySchema = z.object({
   riskLevel: z.enum(["low", "medium", "high", "critical"]).optional(),
   type: z.enum(["spot", "grid", "dca", "trend", "swing"]).optional(),
   symbol: z.string().min(3).optional(),
-  sortBy: z.enum(["publishedAt", "riskLevel"]).optional(),
+  sortBy: z
+    .enum([
+      "publishedAt",
+      "riskLevel",
+      "subscriberCount",
+      "returnRate",
+      "maxDrawdown",
+      "recommended",
+    ])
+    .optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
   period: z
     .enum(["seven_days", "thirty_days", "ninety_days", "all_time"])
+    .optional(),
+  access: z.enum(["free"]).optional(),
+  maxDrawdownLte: z
+    .string()
+    .regex(/^0(\.\d+)?$|^1(\.0+)?$/)
     .optional(),
   paperEnabled: z
     .enum(["true", "false"])
@@ -58,6 +74,10 @@ const listSignalsQuerySchema = z.object({
   direction: z.enum(["buy", "sell", "watch"]).optional(),
   status: z
     .enum(["active", "expired", "cancelled", "strategy_paused", "risk_blocked"])
+    .optional(),
+  usedInPaper: z
+    .enum(["true", "false"])
+    .transform((value) => value === "true")
     .optional(),
 });
 
@@ -99,13 +119,19 @@ export class StrategyController {
   @Post("strategies/:strategyId/subscriptions")
   async subscribeStrategy(
     @Param("strategyId") strategyId: string,
+    @Body() body: unknown,
     @Req() request: RequestLike,
   ) {
+    const parsed = strategySubscribeSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
     try {
       const session = await this.requireSession(request, "user");
       return await this.strategyService.subscribeToStrategy(
         session.subjectId,
         strategyId,
+        parsed.data,
       );
     } catch (error) {
       throw toHttpError(error);
@@ -396,6 +422,9 @@ function toHttpError(error: unknown) {
   }
   if (error instanceof StrategyTierAccessError) {
     return new HttpException(error.message, HttpStatus.FORBIDDEN);
+  }
+  if (error instanceof StrategyRiskNotAcceptedError) {
+    return new HttpException(error.message, HttpStatus.UNPROCESSABLE_ENTITY);
   }
   if (error instanceof StrategyInvalidStateError) {
     return new HttpException(error.message, HttpStatus.CONFLICT);

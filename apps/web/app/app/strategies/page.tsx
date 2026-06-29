@@ -5,6 +5,7 @@ import { Card, PageHeader } from "@quantflow/ui";
 import {
   parsePage,
   parseRiskLevel,
+  parseStrategyPeriod,
   parseStrategySymbol,
   parseStrategyType,
   USER_PAGE_SIZE,
@@ -24,6 +25,8 @@ type StrategiesPageProps = {
     sortOrder?: string;
     symbol?: string;
     paper?: string;
+    access?: string;
+    period?: string;
   }>;
 };
 
@@ -34,6 +37,7 @@ export default async function StrategiesPage({
   const riskLevel = parseRiskLevel(params.risk);
   const type = parseStrategyType(params.type);
   const symbol = parseStrategySymbol(params.symbol);
+  const period = parseStrategyPeriod(params.period);
   const paperEnabled =
     params.paper === "true"
       ? true
@@ -49,6 +53,9 @@ export default async function StrategiesPage({
     sortBy: params.sortBy,
     sortOrder: params.sortOrder,
     paperEnabled,
+    access: params.access === "free" ? "free" : undefined,
+    period:
+      period ?? (params.sortBy === "returnRate" ? "thirty_days" : undefined),
   });
   const visibleCount = strategies.data.length;
   const activeFilterCount = [
@@ -57,6 +64,8 @@ export default async function StrategiesPage({
     symbol,
     params.sortBy,
     params.paper,
+    params.access,
+    period,
   ].filter(Boolean).length;
 
   return (
@@ -99,13 +108,17 @@ export default async function StrategiesPage({
         </div>
       </section>
       <StrategyExplorer
+        access={params.access === "free" ? "free" : undefined}
         pagination={strategies.pagination}
+        period={period}
         query={{
           risk: riskLevel,
           type,
           symbol,
           sortBy: params.sortBy,
           paper: params.paper,
+          access: params.access,
+          period: params.period,
         }}
         paperEnabled={paperEnabled}
         riskLevel={riskLevel}

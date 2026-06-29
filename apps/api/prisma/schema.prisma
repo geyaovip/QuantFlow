@@ -183,6 +183,22 @@ enum PaperPositionStatus {
   @@map("paper_position_status")
 }
 
+enum RiskAcceptanceContext {
+  strategy_subscribe
+  paper_account_create
+  membership_checkout
+  membership_invite_redeem
+
+  @@map("risk_acceptance_context")
+}
+
+enum MembershipInviteCodeStatus {
+  active
+  disabled
+
+  @@map("membership_invite_code_status")
+}
+
 model User {
   id                 String                     @id @default(uuid()) @db.Uuid
   emailNormalized    String                     @unique @map("email_normalized")
@@ -199,6 +215,8 @@ model User {
   notifications      UserNotification[]
   notificationPrefs  NotificationPreference[]
   riskEvents         RiskEvent[]
+  riskAcceptances    UserRiskAcceptance[]
+  inviteRedemptions  MembershipInviteRedemption[]
 
   @@map("users")
 }
@@ -214,6 +232,7 @@ model AdminUser {
   auditLogs       AdminAuditLog[] @relation("AdminAuditActor")
   roles           AdminUserRole[]
   assignedRisks   RiskEvent[]     @relation("RiskAssignee")
+  inviteCodes     MembershipInviteCode[]
 
   @@map("admin_users")
 }
@@ -482,9 +501,60 @@ model UserSubscription {
   reason      String?
   createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+  inviteRedemptions MembershipInviteRedemption[]
 
   @@index([userId, status, endsAt(sort: Desc), id(sort: Desc)], map: "idx_user_subscriptions_user")
   @@map("user_subscriptions")
+}
+
+model UserRiskAcceptance {
+  id                 String                @id @default(uuid()) @db.Uuid
+  userId             String                @map("user_id") @db.Uuid
+  user               User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disclosureVersion  String                @map("disclosure_version")
+  context            RiskAcceptanceContext
+  acceptedAt         DateTime              @default(now()) @map("accepted_at") @db.Timestamptz(6)
+  createdAt          DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([userId, disclosureVersion, context], map: "uniq_user_risk_acceptances_user_version_context")
+  @@index([userId, acceptedAt(sort: Desc)], map: "idx_user_risk_acceptances_user_accepted")
+  @@map("user_risk_acceptances")
+}
+
+model MembershipInviteCode {
+  id                String                     @id @default(uuid()) @db.Uuid
+  codeNormalized    String                     @unique @map("code_normalized")
+  codeLabel         String                     @map("code_label")
+  tier              MembershipTier
+  billingCycle      String                     @map("billing_cycle")
+  maxRedemptions    Int                        @map("max_redemptions")
+  redemptionCount   Int                        @default(0) @map("redemption_count")
+  expiresAt         DateTime?                  @map("expires_at") @db.Timestamptz(6)
+  status            MembershipInviteCodeStatus @default(active)
+  note              String?
+  createdByAdminId  String?                    @map("created_by_admin_id") @db.Uuid
+  createdByAdmin    AdminUser?                 @relation(fields: [createdByAdminId], references: [id])
+  createdAt         DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  redemptions       MembershipInviteRedemption[]
+
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)], map: "idx_membership_invite_codes_status_created")
+  @@map("membership_invite_codes")
+}
+
+model MembershipInviteRedemption {
+  id             String               @id @default(uuid()) @db.Uuid
+  inviteCodeId   String               @map("invite_code_id") @db.Uuid
+  inviteCode     MembershipInviteCode @relation(fields: [inviteCodeId], references: [id], onDelete: Cascade)
+  userId         String               @map("user_id") @db.Uuid
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId String?              @map("subscription_id") @db.Uuid
+  subscription   UserSubscription?    @relation(fields: [subscriptionId], references: [id])
+  redeemedAt     DateTime             @default(now()) @map("redeemed_at") @db.Timestamptz(6)
+
+  @@unique([inviteCodeId, userId], map: "uniq_membership_invite_redemptions_code_user")
+  @@index([userId, redeemedAt(sort: Desc)], map: "idx_membership_invite_redemptions_user")
+  @@map("membership_invite_redemptions")
 }
 
 enum MarketSymbolStatus {

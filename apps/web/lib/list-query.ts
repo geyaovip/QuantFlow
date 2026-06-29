@@ -72,6 +72,42 @@ export function parseStrategySymbol(value: string | undefined) {
   return undefined;
 }
 
+export type StrategyMetricPeriod =
+  | "seven_days"
+  | "thirty_days"
+  | "ninety_days"
+  | "all_time";
+
+export function parseStrategyPeriod(
+  value: string | undefined,
+): StrategyMetricPeriod | undefined {
+  if (
+    value === "seven_days" ||
+    value === "thirty_days" ||
+    value === "ninety_days" ||
+    value === "all_time"
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+export function strategyPeriodLabel(period: StrategyMetricPeriod | undefined) {
+  if (period === "seven_days") {
+    return "近 7 日";
+  }
+  if (period === "thirty_days") {
+    return "近 30 日";
+  }
+  if (period === "ninety_days") {
+    return "近 90 日";
+  }
+  if (period === "all_time") {
+    return "全部周期";
+  }
+  return "默认 90 日";
+}
+
 export function strategySymbolLabel(symbol: string | undefined) {
   if (!symbol) {
     return "全部币种";
@@ -100,7 +136,13 @@ export function signalStatusLabel(status: SignalStatus | undefined) {
   if (status === "cancelled") {
     return "已取消";
   }
-  return "全部";
+  if (status === "strategy_paused") {
+    return "策略暂停";
+  }
+  if (status === "risk_blocked") {
+    return "风险阻断";
+  }
+  return "全部状态";
 }
 
 export function riskLevelLabel(level: RiskLevel | undefined) {

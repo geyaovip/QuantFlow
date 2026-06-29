@@ -66,6 +66,45 @@ if [ -n "$BASE_URL" ] && command -v curl >/dev/null 2>&1; then
       fi
     done
   fi
+
+  check_json() {
+    path=$1
+    label=$2
+    body=$(curl --silent --fail --max-time 8 "${BASE_URL}${path}" || true)
+    if [ -z "$body" ]; then
+      echo "runtime acceptance failed: ${label} (${path})"
+      failed=1
+      return
+    fi
+    printf '%s' "$body" | rg -q '"data"' || {
+      echo "runtime acceptance failed: ${label} missing data envelope"
+      failed=1
+    }
+  }
+
+  check_json "/api/v1/membership/plans" "membership plans"
+  check_json "/api/v1/strategies?page=1&pageSize=20&period=seven_days&sortBy=returnRate" \
+    "strategies period sort"
+  check_json "/api/v1/strategies?page=1&pageSize=20&access=free" "strategies free filter"
+
+  strategies_json=$(curl --silent --fail --max-time 8 \
+    "${BASE_URL}/api/v1/strategies?page=1&pageSize=1" || true)
+  if [ -n "$strategies_json" ]; then
+    if ! printf '%s' "$strategies_json" | rg -q '"maxDrawdown"'; then
+      echo "strategy list must pair return metrics with maxDrawdown"
+      failed=1
+    fi
+  fi
+
+  redeem_status=$(curl --silent --output /dev/null --write-out '%{http_code}' \
+    --max-time 8 \
+    -X POST "${BASE_URL}/api/v1/membership/redeem-invite" \
+    -H 'content-type: application/json' \
+    -d '{}' || true)
+  if [ "$redeem_status" != "401" ] && [ "$redeem_status" != "422" ]; then
+    echo "invite redeem must reject unauthenticated or invalid body (got ${redeem_status})"
+    failed=1
+  fi
 fi
 
 if [ "$failed" -ne 0 ]; then

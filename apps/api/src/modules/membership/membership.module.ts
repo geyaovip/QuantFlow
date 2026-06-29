@@ -4,6 +4,7 @@ import { AuthModule } from "../auth/auth.module.js";
 import { NotificationModule } from "../notification/notification.module.js";
 import { PrismaModule } from "../prisma/prisma.module.js";
 import { MembershipService } from "./application/membership.service.js";
+import { RiskAcceptanceService } from "./application/risk-acceptance.service.js";
 import { MEMBERSHIP_REPOSITORY } from "./domain/membership-repository.js";
 import { PlisioClient } from "./infrastructure/plisio-client.js";
 import { PrismaMembershipRepository } from "./infrastructure/prisma-membership-repository.js";
@@ -14,6 +15,7 @@ import { MembershipController } from "./interfaces/membership.controller.js";
   controllers: [MembershipController],
   providers: [
     MembershipService,
+    RiskAcceptanceService,
     PlisioClient,
     PrismaMembershipRepository,
     {
@@ -21,6 +23,6 @@ import { MembershipController } from "./interfaces/membership.controller.js";
       useExisting: PrismaMembershipRepository,
     },
   ],
-  exports: [MembershipService],
+  exports: [MembershipService, RiskAcceptanceService],
 })
 export class MembershipModule {}

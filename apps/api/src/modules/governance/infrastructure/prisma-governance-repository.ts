@@ -10,6 +10,8 @@ import type {
   AdminSubscriptionListItem,
   AdminUserListItem,
   GovernanceRepository,
+  InviteCodeCreateInput,
+  InviteCodeListItem,
   ManualGrantInput,
   Paginated,
   RiskEventListItem,
@@ -237,6 +239,104 @@ export class PrismaGovernanceRepository implements GovernanceRepository {
     });
 
     return mapSubscription(updated);
+  }
+
+  async listInviteCodes(page: number, pageSize: number) {
+    const skip = (page - 1) * pageSize;
+    const [total, rows] = await this.prisma.$transaction([
+      this.prisma.membershipInviteCode.count(),
+      this.prisma.membershipInviteCode.findMany({
+        skip,
+        take: pageSize,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      }),
+    ]);
+
+    return {
+      data: rows.map(mapInviteCode),
+      pagination: paginate(page, pageSize, total),
+    };
+  }
+
+  async createInviteCode(input: InviteCodeCreateInput, context: AuditContext) {
+    const codeNormalized = normalizeInviteCode(input.code);
+    const codeLabel = input.code.trim().toUpperCase();
+    const existing = await this.prisma.membershipInviteCode.findUnique({
+      where: { codeNormalized },
+    });
+    if (existing) {
+      throw new Error("邀请码已存在");
+    }
+
+    const created = await this.prisma.$transaction(async (tx) => {
+      const row = await tx.membershipInviteCode.create({
+        data: {
+          codeNormalized,
+          codeLabel,
+          tier: input.tier,
+          billingCycle: input.billingCycle,
+          maxRedemptions: input.maxRedemptions,
+          expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+          note: input.note ?? null,
+          createdByAdminId: context.actorAdminId ?? null,
+        },
+      });
+
+      await tx.adminAuditLog.create({
+        data: {
+          actorAdminId: context.actorAdminId,
+          action: "membership_invite_create",
+          resourceType: "membership_invite_code",
+          resourceId: row.id,
+          reason: context.reason,
+          before: Prisma.DbNull,
+          after: {
+            codeLabel: row.codeLabel,
+            tier: row.tier,
+            billingCycle: row.billingCycle,
+            maxRedemptions: row.maxRedemptions,
+          },
+          ip: context.ip ?? null,
+          userAgent: context.userAgent ?? null,
+        },
+      });
+
+      return row;
+    });
+
+    return mapInviteCode(created);
+  }
+
+  async disableInviteCode(inviteCodeId: string, context: AuditContext) {
+    const existing = await this.prisma.membershipInviteCode.findUnique({
+      where: { id: inviteCodeId },
+    });
+    if (!existing) {
+      throw new Error("邀请码不存在");
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const row = await tx.membershipInviteCode.update({
+        where: { id: inviteCodeId },
+        data: { status: "disabled" },
+      });
+      await tx.adminAuditLog.create({
+        data: {
+          actorAdminId: context.actorAdminId,
+          action: "membership_invite_disable",
+          resourceType: "membership_invite_code",
+          resourceId: inviteCodeId,
+          reason: context.reason,
+          before: { status: existing.status },
+          after: { status: "disabled" },
+          ip: context.ip ?? null,
+          userAgent: context.userAgent ?? null,
+        },
+      });
+      return row;
+    });
+
+    return mapInviteCode(updated);
   }
 
   async listRiskEvents(page: number, pageSize: number) {
@@ -587,4 +687,37 @@ function mapAnnouncement(row: {
     endsAt: row.endsAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
   };
+}
+
+function mapInviteCode(row: {
+  id: string;
+  codeLabel: string;
+  tier: "free" | "pro" | "premium";
+  billingCycle: string;
+  maxRedemptions: number;
+  redemptionCount: number;
+  expiresAt: Date | null;
+  status: "active" | "disabled";
+  note: string | null;
+  createdAt: Date;
+}): InviteCodeListItem {
+  return {
+    id: row.id,
+    codeLabel: row.codeLabel,
+    tier: row.tier as InviteCodeListItem["tier"],
+    billingCycle: row.billingCycle as InviteCodeListItem["billingCycle"],
+    maxRedemptions: row.maxRedemptions,
+    redemptionCount: row.redemptionCount,
+    expiresAt: row.expiresAt?.toISOString() ?? null,
+    status: row.status,
+    note: row.note,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
+function normalizeInviteCode(code: string) {
+  return code
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
 }

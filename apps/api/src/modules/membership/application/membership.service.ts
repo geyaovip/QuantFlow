@@ -3,6 +3,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import type {
   MembershipMockCheckout,
   MembershipCheckoutCreate,
+  MembershipInviteRedeem,
   MembershipPaymentResponse,
   MembershipPlanListResponse,
   MembershipSubscriptionResponse,
@@ -49,6 +50,18 @@ export class MembershipService {
     input: MembershipMockCheckout,
   ): Promise<MembershipSubscriptionResponse> {
     const result = await this.repository.mockCheckout(userId, input);
+    await this.notificationService.notifyMembershipActivated(
+      userId,
+      result.data.planName,
+    );
+    return result;
+  }
+
+  async redeemInviteCode(
+    userId: string,
+    input: MembershipInviteRedeem,
+  ): Promise<MembershipSubscriptionResponse> {
+    const result = await this.repository.redeemInviteCode(userId, input);
     await this.notificationService.notifyMembershipActivated(
       userId,
       result.data.planName,

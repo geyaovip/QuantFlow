@@ -39,3 +39,38 @@ export class MembershipRiskNotAcceptedError extends Error {
     this.name = "MembershipRiskNotAcceptedError";
   }
 }
+
+export class MembershipInviteNotFoundError extends Error {
+  constructor() {
+    super("membership invite code not found");
+    this.name = "MembershipInviteNotFoundError";
+  }
+}
+
+export class MembershipInviteDisabledError extends Error {
+  constructor() {
+    super("membership invite code disabled");
+    this.name = "MembershipInviteDisabledError";
+  }
+}
+
+export class MembershipInviteExpiredError extends Error {
+  constructor() {
+    super("membership invite code expired");
+    this.name = "MembershipInviteExpiredError";
+  }
+}
+
+export class MembershipInviteExhaustedError extends Error {
+  constructor() {
+    super("membership invite code exhausted");
+    this.name = "MembershipInviteExhaustedError";
+  }
+}
+
+export class MembershipInviteAlreadyRedeemedError extends Error {
+  constructor() {
+    super("membership invite code already redeemed");
+    this.name = "MembershipInviteAlreadyRedeemedError";
+  }
+}

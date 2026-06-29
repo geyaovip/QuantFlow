@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
 import type {
+  MembershipInviteRedeem,
   MembershipMockCheckout,
   MembershipCheckoutCreate,
   MembershipPaymentResponse,
@@ -12,10 +13,16 @@ import type {
 import { PrismaService } from "../../prisma/prisma.service.js";
 import {
   MembershipCheckoutNotAllowedError,
+  MembershipInviteAlreadyRedeemedError,
+  MembershipInviteDisabledError,
+  MembershipInviteExhaustedError,
+  MembershipInviteExpiredError,
+  MembershipInviteNotFoundError,
   MembershipPlanNotFoundError,
   MembershipRiskNotAcceptedError,
 } from "../domain/membership-errors.js";
 import type { MembershipRepository } from "../domain/membership-repository.js";
+import { RiskAcceptanceService } from "../application/risk-acceptance.service.js";
 
 const TIER_LABELS = {
   free: "Free",
@@ -25,7 +32,10 @@ const TIER_LABELS = {
 
 @Injectable()
 export class PrismaMembershipRepository implements MembershipRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly riskAcceptance: RiskAcceptanceService,
+  ) {}
 
   async listPlans(): Promise<MembershipPlanListResponse> {
     const plans = await this.prisma.membershipPlan.findMany({
@@ -114,6 +124,103 @@ export class PrismaMembershipRepository implements MembershipRepository {
         },
       });
     });
+
+    await this.riskAcceptance.record(userId, "membership_checkout");
+
+    const subscription = await this.findActiveSubscription(userId);
+    if (!subscription) {
+      throw new MembershipCheckoutNotAllowedError();
+    }
+
+    return { data: subscription };
+  }
+
+  async redeemInviteCode(
+    userId: string,
+    input: MembershipInviteRedeem,
+  ): Promise<MembershipSubscriptionResponse> {
+    if (!input.riskAccepted) {
+      throw new MembershipRiskNotAcceptedError();
+    }
+
+    const codeNormalized = normalizeInviteCode(input.code);
+    const invite = await this.prisma.membershipInviteCode.findUnique({
+      where: { codeNormalized },
+    });
+    if (!invite) {
+      throw new MembershipInviteNotFoundError();
+    }
+    if (invite.status !== "active") {
+      throw new MembershipInviteDisabledError();
+    }
+    if (invite.expiresAt && invite.expiresAt <= new Date()) {
+      throw new MembershipInviteExpiredError();
+    }
+    if (invite.redemptionCount >= invite.maxRedemptions) {
+      throw new MembershipInviteExhaustedError();
+    }
+
+    const existingRedemption =
+      await this.prisma.membershipInviteRedemption.findUnique({
+        where: {
+          inviteCodeId_userId: {
+            inviteCodeId: invite.id,
+            userId,
+          },
+        },
+      });
+    if (existingRedemption) {
+      throw new MembershipInviteAlreadyRedeemedError();
+    }
+
+    const plan = await this.prisma.membershipPlan.findFirst({
+      where: { tier: invite.tier, status: "active" },
+    });
+    if (!plan) {
+      throw new MembershipPlanNotFoundError();
+    }
+
+    const now = new Date();
+    const endsAt = new Date(now);
+    if (invite.billingCycle === "monthly") {
+      endsAt.setMonth(endsAt.getMonth() + 1);
+    } else {
+      endsAt.setFullYear(endsAt.getFullYear() + 1);
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.userSubscription.updateMany({
+        where: { userId, status: "active", endsAt: { gt: now } },
+        data: { status: "cancelled", cancelledAt: now },
+      });
+
+      const subscription = await tx.userSubscription.create({
+        data: {
+          userId,
+          planId: plan.id,
+          status: "active",
+          source: "invite",
+          startsAt: now,
+          endsAt,
+          reason: `邀请码 ${invite.codeLabel}`,
+        },
+      });
+
+      await tx.membershipInviteRedemption.create({
+        data: {
+          inviteCodeId: invite.id,
+          userId,
+          subscriptionId: subscription.id,
+        },
+      });
+
+      await tx.membershipInviteCode.update({
+        where: { id: invite.id },
+        data: { redemptionCount: { increment: 1 } },
+      });
+    });
+
+    await this.riskAcceptance.record(userId, "membership_invite_redeem");
 
     const subscription = await this.findActiveSubscription(userId);
     if (!subscription) {
@@ -272,6 +379,8 @@ export class PrismaMembershipRepository implements MembershipRepository {
       });
     });
 
+    await this.riskAcceptance.record(payment.userId, "membership_checkout");
+
     return {
       activated: true,
       userId: payment.userId,
@@ -346,4 +455,11 @@ export class PrismaMembershipRepository implements MembershipRepository {
 
 function toPrismaJson(value: unknown) {
   return JSON.parse(JSON.stringify(value ?? null));
+}
+
+function normalizeInviteCode(code: string) {
+  return code
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
 }

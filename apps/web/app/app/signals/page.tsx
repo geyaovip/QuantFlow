@@ -16,6 +16,7 @@ type SignalsPageProps = {
     page?: string;
     direction?: string;
     status?: string;
+    usedInPaper?: string;
   }>;
 };
 
@@ -23,13 +24,22 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
   const params = await searchParams;
   const direction = parseSignalDirection(params.direction);
   const status = parseSignalStatus(params.status);
+  const usedInPaper =
+    params.usedInPaper === "true"
+      ? true
+      : params.usedInPaper === "false"
+        ? false
+        : undefined;
   const signals = await getSignals({
     page: parsePage(params.page),
     pageSize: USER_PAGE_SIZE,
     direction,
     status,
+    usedInPaper,
   });
-  const activeFilterCount = [direction, status].filter(Boolean).length;
+  const activeFilterCount = [direction, status, params.usedInPaper].filter(
+    Boolean,
+  ).length;
 
   return (
     <div className="app-page-stack">
@@ -70,7 +80,12 @@ export default async function SignalsPage({ searchParams }: SignalsPageProps) {
           </div>
         </div>
       </section>
-      <SignalExplorer direction={direction} signals={signals} status={status} />
+      <SignalExplorer
+        direction={direction}
+        signals={signals}
+        status={status}
+        usedInPaper={usedInPaper}
+      />
     </div>
   );
 }

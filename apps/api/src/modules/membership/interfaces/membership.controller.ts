@@ -11,6 +11,7 @@ import {
 
 import {
   membershipCheckoutCreateSchema,
+  membershipInviteRedeemSchema,
   membershipMockCheckoutSchema,
 } from "@quantflow/contracts";
 
@@ -18,6 +19,11 @@ import { AuthService } from "../../auth/application/auth.service.js";
 import { MembershipService } from "../application/membership.service.js";
 import {
   MembershipCheckoutNotAllowedError,
+  MembershipInviteAlreadyRedeemedError,
+  MembershipInviteDisabledError,
+  MembershipInviteExhaustedError,
+  MembershipInviteExpiredError,
+  MembershipInviteNotFoundError,
   MembershipPaymentCallbackInvalidError,
   MembershipPaymentCreateError,
   MembershipPaymentDisabledError,
@@ -87,6 +93,24 @@ export class MembershipController {
     try {
       const session = await this.requireUserSession(request);
       return await this.membershipService.mockCheckout(
+        session.subjectId,
+        parsed.data,
+      );
+    } catch (error) {
+      throw toHttpError(error);
+    }
+  }
+
+  @Post("membership/redeem-invite")
+  async redeemInvite(@Req() request: RequestLike, @Body() body: unknown) {
+    const parsed = membershipInviteRedeemSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    try {
+      const session = await this.requireUserSession(request);
+      return await this.membershipService.redeemInviteCode(
         session.subjectId,
         parsed.data,
       );
@@ -166,6 +190,21 @@ function toHttpError(error: unknown) {
       "请先确认风险提示",
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
+  }
+  if (error instanceof MembershipInviteNotFoundError) {
+    return new HttpException("邀请码无效", HttpStatus.NOT_FOUND);
+  }
+  if (error instanceof MembershipInviteDisabledError) {
+    return new HttpException("邀请码已停用", HttpStatus.CONFLICT);
+  }
+  if (error instanceof MembershipInviteExpiredError) {
+    return new HttpException("邀请码已过期", HttpStatus.CONFLICT);
+  }
+  if (error instanceof MembershipInviteExhaustedError) {
+    return new HttpException("邀请码已达使用上限", HttpStatus.CONFLICT);
+  }
+  if (error instanceof MembershipInviteAlreadyRedeemedError) {
+    return new HttpException("你已使用过该邀请码", HttpStatus.CONFLICT);
   }
   if (error instanceof MembershipCheckoutNotAllowedError) {
     return new HttpException("当前无法完成开通", HttpStatus.CONFLICT);

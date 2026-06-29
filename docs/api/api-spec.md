@@ -142,6 +142,7 @@ MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件
 | POST | `/membership/checkout`               | 创建 Plisio 生产支付 invoice；要求登录与 `riskAccepted: true`  |
 | POST | `/membership/plisio/callback`        | Plisio 服务端回调；验签成功后按支付状态更新会员                |
 | POST | `/membership/mock-checkout`          | 开发/测试用模拟开通；要求 `riskAccepted: true`；不产生真实扣款 |
+| POST | `/membership/redeem-invite`          | 用户兑换邀请码开通会员；要求 `riskAccepted: true`              |
 | POST | `/integrations/email/resend/webhook` | 可选投递事件回调；验签、幂等，只更新投递监控，不改变认证结果   |
 
 `checkout` 请求体：`{ tier: "pro"|"premium", billingCycle: "monthly"|"yearly", riskAccepted: true }`。
@@ -151,6 +152,8 @@ MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件
 `plisio/callback` 接收 Plisio 带 `verify_hash` 的回调 payload；服务端去除 `verify_hash` 后使用 Plisio API key 做 HMAC-SHA1 校验。只有验签成功且状态为 `completed` 时，才创建 `source=plisio` 的有效订阅；其它状态只更新支付记录。
 
 `mock-checkout` 请求体：`{ tier: "pro"|"premium", billingCycle: "monthly"|"yearly", riskAccepted: true }`。订阅来源记为 `test`；仅开发/测试环境使用。
+
+`redeem-invite` 请求体：`{ code: string, riskDisclosureVersion: "risk-v1", riskAccepted: true }`。订阅来源记为 `invite`；同一用户同一邀请码不可重复兑换。
 
 生产支付由 `enableProductionPayments` 环境变量控制。会员亦可由管理端人工/邀请码开通；支付只开通会员容量，不承诺策略收益。
 
@@ -171,17 +174,17 @@ MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件
 
 管理端路径统一为 `/api/v1/admin`。所有接口要求管理员会话、资源级 RBAC；mutation 必须包含 `reason`，并在同一事务或可靠 outbox 中写审计记录。
 
-| 资源           | 查询                                     | 允许的 mutation                                               |
-| -------------- | ---------------------------------------- | ------------------------------------------------------------- |
-| Dashboard      | `/dashboard`                             | 无                                                            |
-| Users          | `/users`, `/users/{id}`                  | status、membership                                            |
-| Strategies     | `/strategies`, `/{id}`                   | create、update、submit-review、approve、reject、pause、delist |
-| Signals        | `/signals`, `/{id}`                      | cancel、mark-abnormal、repush                                 |
-| Paper accounts | `/paper-accounts`, `/{id}`               | pause、resume、mark-abnormal                                  |
-| Membership     | `/subscriptions`                         | manual-grant、extend、cancel；不包含支付和退款                |
-| Risk           | `/risk-events`, `/{id}`                  | assign、resolve、ignore、escalate                             |
-| Access         | `/roles`, `/permissions`, `/admin-users` | 角色与授权变更                                                |
-| Audit          | `/audit-logs`                            | 只读                                                          |
+| 资源           | 查询                                         | 允许的 mutation                                               |
+| -------------- | -------------------------------------------- | ------------------------------------------------------------- |
+| Dashboard      | `/dashboard`                                 | 无                                                            |
+| Users          | `/users`, `/users/{id}`                      | status、membership                                            |
+| Strategies     | `/strategies`, `/{id}`                       | create、update、submit-review、approve、reject、pause、delist |
+| Signals        | `/signals`, `/{id}`                          | cancel、mark-abnormal、repush                                 |
+| Paper accounts | `/paper-accounts`, `/{id}`                   | pause、resume、mark-abnormal                                  |
+| Membership     | `/subscriptions`、`/membership-invite-codes` | manual-grant、cancel；邀请码 create/disable；不包含支付和退款 |
+| Risk           | `/risk-events`, `/{id}`                      | assign、resolve、ignore、escalate                             |
+| Access         | `/roles`, `/permissions`, `/admin-users`     | 角色与授权变更                                                |
+| Audit          | `/audit-logs`                                | 只读                                                          |
 
 具体角色权限以 `../security/roles-and-permissions.md` 为准。
 

@@ -129,12 +129,37 @@ export class PrismaStrategyRepository implements StrategyRepository {
       | "ninety_days"
       | "all_time";
     const where = activeStrategyWhere(input, period);
-    const sortOrder: Prisma.SortOrder =
-      input.sortOrder === "asc" ? "asc" : "desc";
-    const orderBy =
-      input.sortBy === "riskLevel"
-        ? [{ riskLevel: sortOrder }, { id: "desc" as const }]
-        : [{ publishedAt: sortOrder }, { id: "desc" as const }];
+    const needsMetricSort =
+      input.sortBy === "returnRate" ||
+      input.sortBy === "maxDrawdown" ||
+      input.sortBy === "recommended";
+
+    if (needsMetricSort) {
+      const allStrategies = await this.prisma.strategy.findMany({
+        where,
+        include: strategyListIncludes(period),
+      });
+      const sorted = sortStrategiesByMetric(allStrategies, input);
+      const total = sorted.length;
+      const skip = (input.page - 1) * input.pageSize;
+      const strategies = sorted.slice(skip, skip + input.pageSize);
+      const subscriptions = await this.findActiveSubscriptionSet(
+        userId,
+        strategies.map((strategy) => strategy.id),
+      );
+
+      return {
+        total,
+        items: strategies.map((strategy) =>
+          mapStrategyListItem(
+            strategy as unknown as StrategyRecord,
+            subscriptions.has(strategy.id),
+          ),
+        ),
+      };
+    }
+
+    const orderBy = buildStrategyOrderBy(input);
 
     const [total, strategies] = await this.prisma.$transaction([
       this.prisma.strategy.count({ where }),
@@ -193,6 +218,7 @@ export class PrismaStrategyRepository implements StrategyRepository {
       userId: input.userId,
       direction: input.direction,
       status: input.status,
+      usedInPaper: input.usedInPaper,
       historySince: input.historySince,
       signalVisibleBefore: input.signalVisibleBefore,
     });
@@ -776,7 +802,13 @@ export class PrismaStrategyRepository implements StrategyRepository {
 const strategyListIncludes = (period: string) => ({
   versions: { orderBy: { version: "desc" as const }, take: 1 },
   metrics: {
-    where: { period: period as "ninety_days" },
+    where: {
+      period: period as
+        | "seven_days"
+        | "thirty_days"
+        | "ninety_days"
+        | "all_time",
+    },
     orderBy: { calculatedAt: "desc" as const },
     take: 1,
   },
@@ -802,7 +834,13 @@ const strategyDetailIncludes = {
 function activeStrategyWhere(
   input: Pick<
     ListStrategiesInput,
-    "riskLevel" | "type" | "symbol" | "maxTier" | "paperEnabled"
+    | "riskLevel"
+    | "type"
+    | "symbol"
+    | "maxTier"
+    | "paperEnabled"
+    | "access"
+    | "maxDrawdownLte"
   >,
   period = "ninety_days",
 ) {
@@ -811,6 +849,7 @@ function activeStrategyWhere(
     deletedAt: null,
     ...(input.paperEnabled === true ? { supportsPaperTrading: true } : {}),
     ...(input.paperEnabled === false ? { supportsPaperTrading: false } : {}),
+    ...(input.access === "free" ? { requiredTier: "free" as const } : {}),
     ...(input.riskLevel
       ? { riskLevel: input.riskLevel as PrismaRiskLevel }
       : {}),
@@ -825,30 +864,131 @@ function activeStrategyWhere(
           },
         }
       : {}),
-    metrics: { some: { period: period as "ninety_days" } },
+    ...(input.maxDrawdownLte
+      ? {
+          metrics: {
+            some: {
+              period: period as
+                | "seven_days"
+                | "thirty_days"
+                | "ninety_days"
+                | "all_time",
+              maxDrawdown: { lte: input.maxDrawdownLte },
+            },
+          },
+        }
+      : {
+          metrics: {
+            some: {
+              period: period as
+                | "seven_days"
+                | "thirty_days"
+                | "ninety_days"
+                | "all_time",
+            },
+          },
+        }),
     versions: { some: {} },
   } satisfies Prisma.StrategyWhereInput;
+}
+
+function buildStrategyOrderBy(
+  input: ListStrategiesInput,
+): Prisma.StrategyOrderByWithRelationInput[] {
+  const sortOrder: Prisma.SortOrder =
+    input.sortOrder === "asc" ? "asc" : "desc";
+
+  switch (input.sortBy) {
+    case "riskLevel":
+      return [{ riskLevel: sortOrder }, { id: "desc" }];
+    case "subscriberCount":
+      return [{ subscriptions: { _count: sortOrder } }, { id: "desc" }];
+    case "publishedAt":
+    default:
+      return [{ publishedAt: sortOrder }, { id: "desc" }];
+  }
+}
+
+function sortStrategiesByMetric(
+  strategies: Array<{
+    id: string;
+    publishedAt: Date | null;
+    metrics: StrategyMetricRecord[];
+  }>,
+  input: ListStrategiesInput,
+) {
+  const sortOrder = input.sortOrder === "asc" ? 1 : -1;
+
+  return [...strategies].sort((left, right) => {
+    const leftMetric = left.metrics[0];
+    const rightMetric = right.metrics[0];
+    const leftValue =
+      input.sortBy === "maxDrawdown"
+        ? Number(leftMetric?.maxDrawdown ?? 0)
+        : Number(leftMetric?.returnRate ?? 0);
+    const rightValue =
+      input.sortBy === "maxDrawdown"
+        ? Number(rightMetric?.maxDrawdown ?? 0)
+        : Number(rightMetric?.returnRate ?? 0);
+
+    if (leftValue !== rightValue) {
+      return (leftValue - rightValue) * sortOrder;
+    }
+
+    const leftPublished = left.publishedAt?.getTime() ?? 0;
+    const rightPublished = right.publishedAt?.getTime() ?? 0;
+    return rightPublished - leftPublished;
+  });
 }
 
 type SignalWhereInput = {
   userId?: string;
   direction?: string;
   status?: string;
+  usedInPaper?: boolean;
   historySince?: Date;
   signalVisibleBefore?: Date;
 };
 
 function signalWhere(input: SignalWhereInput) {
+  const paperOrderFilter =
+    input.userId && typeof input.usedInPaper === "boolean"
+      ? input.usedInPaper
+        ? {
+            paperOrders: {
+              some: {
+                status: "filled" as const,
+                account: { userId: input.userId, deletedAt: null },
+              },
+            },
+          }
+        : {
+            NOT: {
+              paperOrders: {
+                some: {
+                  status: "filled" as const,
+                  account: { userId: input.userId, deletedAt: null },
+                },
+              },
+            },
+          }
+      : {};
+
   return {
-    status: (input.status ?? "active") as
-      | "active"
-      | "expired"
-      | "cancelled"
-      | "strategy_paused"
-      | "risk_blocked",
+    ...(input.status
+      ? {
+          status: input.status as
+            | "active"
+            | "expired"
+            | "cancelled"
+            | "strategy_paused"
+            | "risk_blocked",
+        }
+      : {}),
     ...(input.direction
       ? { direction: input.direction as "buy" | "sell" | "watch" }
       : {}),
+    ...paperOrderFilter,
     ...(input.historySince || input.signalVisibleBefore
       ? {
           generatedAt: {

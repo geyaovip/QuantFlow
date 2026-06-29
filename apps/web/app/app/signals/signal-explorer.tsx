@@ -22,6 +22,7 @@ type SignalExplorerProps = {
   direction?: SignalDirection;
   signals: SignalListResponse;
   status?: SignalStatus;
+  usedInPaper?: boolean;
 };
 
 const directionOptions: Array<SignalDirection | undefined> = [
@@ -36,7 +37,15 @@ const statusOptions: Array<SignalStatus | undefined> = [
   "active",
   "expired",
   "cancelled",
+  "strategy_paused",
+  "risk_blocked",
 ];
+
+const usedInPaperOptions = [
+  { value: undefined, label: "全部模拟" },
+  { value: "false", label: "未用于模拟" },
+  { value: "true", label: "已用于模拟" },
+] as const;
 
 function buildHref(
   base: Record<string, string | undefined>,
@@ -59,8 +68,11 @@ export function SignalExplorer({
   direction,
   signals,
   status,
+  usedInPaper,
 }: SignalExplorerProps) {
-  const baseQuery = { direction, status };
+  const usedInPaperValue =
+    usedInPaper === true ? "true" : usedInPaper === false ? "false" : undefined;
+  const baseQuery = { direction, status, usedInPaper: usedInPaperValue };
 
   return (
     <>
@@ -94,6 +106,24 @@ export function SignalExplorer({
                 key={item ?? "all-status"}
               >
                 {signalStatusLabel(item)}
+              </Link>
+            );
+          })}
+        </div>
+        <div className="filter-group" role="group" aria-label="模拟使用">
+          {usedInPaperOptions.map((item) => {
+            const active = item.value === usedInPaperValue;
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={active ? "filter-chip is-active" : "filter-chip"}
+                href={buildHref(baseQuery, {
+                  usedInPaper: item.value,
+                  page: undefined,
+                })}
+                key={item.label}
+              >
+                {item.label}
               </Link>
             );
           })}
