@@ -64,6 +64,8 @@ Compose project name 固定为 `quantflow`，容器和 volume 使用 `quantflow-
 
 Release 镜像必须在 build/runtime 阶段预激活仓库声明的 pnpm 版本，发布脚本、migration 和服务启动不得依赖容器运行时再访问 npm registry 下载包管理器。
 
+Web/Admin release build 默认启用 `/api/v1/*` 同源 rewrite，并在生产镜像内将 `API_PROXY_TARGET` 设为 Compose 内部 `http://api:3002`。客户端交互优先请求同源 `/api/v1`，避免浏览器跨域/CORS 影响登录态和支付创建。
+
 GitHub Actions 使用 Buildx 和 GitHub Actions cache 缓存镜像层，VPS 不再承担默认构建压力。`scripts/deploy-production.sh` 保留 `QUANTFLOW_BUILD_ON_VPS=true` 作为应急回退；正常生产发布必须使用 `QUANTFLOW_BUILD_ON_VPS=false` 从 GHCR 拉取镜像。发布成功后只保留当前 release 镜像和上一健康 release 镜像，并清理 7 天前的 build cache。共享 VPS 根分区可用空间低于 10GB 时不得继续发布，需先检查 `docker system df`，确认不删除 PostgreSQL volume 的前提下清理旧应用镜像。
 
 生产 GitHub Environment `production` 至少需要：

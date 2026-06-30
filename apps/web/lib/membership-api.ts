@@ -13,7 +13,6 @@ import {
   type UserEntitlements,
 } from "@quantflow/contracts";
 
-import { resolveApiBaseUrl } from "./api-base-url";
 import { getJson, postJson } from "./strategy-api";
 
 export async function getMembershipPlans(): Promise<MembershipPlanListResponse> {
@@ -48,5 +47,5 @@ export async function createMembershipCheckout(
 }
 
 export function resolveMembershipApiBaseUrl() {
-  return resolveApiBaseUrl();
+  return "";
 }

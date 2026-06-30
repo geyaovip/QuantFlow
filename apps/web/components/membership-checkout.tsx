@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { MembershipPlan, MembershipTier } from "@quantflow/contracts";
 import { Button, Card } from "@quantflow/ui";
@@ -27,6 +27,35 @@ export function MembershipCheckout({
   const selectedPlan = selectedTier
     ? plans.find((plan) => plan.tier === selectedTier)
     : null;
+  const selectedPrice = selectedPlan
+    ? billingCycle === "monthly"
+      ? selectedPlan.monthlyPriceUsd
+      : selectedPlan.yearlyPriceUsd
+    : "0";
+  const selectedEntitlements = useMemo(
+    () =>
+      selectedPlan
+        ? Object.fromEntries(
+            selectedPlan.entitlements.map((item) => [item.key, item.value]),
+          )
+        : {},
+    [selectedPlan],
+  );
+
+  useEffect(() => {
+    if (!selectedPlan) {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeCheckout();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [loading, selectedPlan]);
 
   function openCheckout(plan: MembershipPlan) {
     if (plan.tier !== "plus" && plan.tier !== "pro") {
@@ -183,29 +212,64 @@ export function MembershipCheckout({
           <Card className="membership-modal__dialog">
             <div className="membership-modal__header">
               <div>
-                <span>支付确认</span>
+                <span>会员开通</span>
                 <h2 id="membership-checkout-title">
-                  {selectedPlan.name} ·{" "}
-                  {billingCycle === "monthly" ? "月付" : "年付"}
+                  确认开通 {selectedPlan.name}
                 </h2>
               </div>
-              <strong>
-                $
-                {trimPrice(
-                  billingCycle === "monthly"
-                    ? selectedPlan.monthlyPriceUsd
-                    : selectedPlan.yearlyPriceUsd,
-                )}
-              </strong>
+              <button
+                aria-label="关闭支付确认"
+                className="membership-modal__close"
+                disabled={loading}
+                onClick={closeCheckout}
+                type="button"
+              >
+                ×
+              </button>
             </div>
-            <p>
-              确认后将打开 Plisio
-              支付页。支付完成后，系统会根据支付回调自动开通会员容量。
-            </p>
-            {error ? <p className="auth-error">{error}</p> : null}
+            <div className="membership-modal__summary">
+              <div>
+                <span>{billingCycle === "monthly" ? "月付" : "年付"}</span>
+                <strong>${trimPrice(selectedPrice)}</strong>
+              </div>
+              <p>
+                支付完成后自动开通对应会员容量，不自动续费。年付价格按 10
+                个月计算。
+              </p>
+            </div>
+            <div className="membership-modal__methods" aria-label="支付方式">
+              <span>支付方式</span>
+              <div>
+                <strong>USDT BEP-20</strong>
+                <strong>USDT ERC-20</strong>
+              </div>
+            </div>
+            <div className="membership-modal__benefits">
+              <div>
+                <span>策略订阅</span>
+                <strong>
+                  {selectedEntitlements.strategy_subscriptions_max ?? "—"} 个
+                </strong>
+              </div>
+              <div>
+                <span>模拟盘</span>
+                <strong>
+                  {selectedEntitlements.paper_accounts_max ?? "—"} 个
+                </strong>
+              </div>
+              <div>
+                <span>历史数据</span>
+                <strong>{selectedEntitlements.history_days ?? "—"} 天</strong>
+              </div>
+            </div>
+            {error ? (
+              <p className="membership-modal__error" role="alert">
+                {error}
+              </p>
+            ) : null}
             <div className="membership-modal__actions">
               <Button disabled={loading} onClick={handleCheckout}>
-                {loading ? "正在创建支付订单..." : "确认并支付"}
+                {loading ? "正在创建订单..." : "去 Plisio 支付"}
               </Button>
               <Button
                 disabled={loading}
@@ -213,7 +277,7 @@ export function MembershipCheckout({
                 type="button"
                 variant="secondary"
               >
-                取消
+                返回
               </Button>
             </div>
           </Card>

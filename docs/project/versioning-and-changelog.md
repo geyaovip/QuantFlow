@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.7.0-dev.4` - 2026-06-30
+
+- 类型：Fixed / Web / Ops / Design
+- 摘要：会员支付创建改为同源 `/api/v1` 请求，避免浏览器跨域导致 `Failed to fetch`；重做会员支付确认弹窗的布局、文案、支付方式和权益摘要。
+- MVP 边界影响：无；仍只开通会员容量，不引入交易所连接、真实下单或收益承诺。
+- API / 数据 / 权限 / 风控影响：无 API schema 变化；Web/Admin release build 默认启用 API rewrite，生产镜像默认转发到 Compose 内部 `api:3002`。
+- 迁移与兼容：无数据库迁移。
+- 验证：`pnpm check`、`pnpm build`。
+- 监控与回滚：如同源 rewrite 异常，可通过 `NEXT_PROXY_API=false` 关闭；但生产支付建议保留同源请求以避免 CORS 影响。
+
 ### `v0.7.0-dev.3` - 2026-06-30
 
 - 类型：Changed / API / Web / Admin / Data / Docs

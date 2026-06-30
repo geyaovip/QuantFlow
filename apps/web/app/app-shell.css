@@ -874,21 +874,23 @@
   z-index: 80;
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: 24px;
 }
 .membership-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgb(17 24 39 / 0.36);
+  background: rgb(17 24 39 / 0.42);
+  backdrop-filter: blur(3px);
 }
 .membership-modal__dialog {
   position: relative;
   z-index: 1;
-  width: min(520px, 100%);
+  width: min(560px, 100%);
   display: grid;
-  gap: 18px;
-  padding: 24px;
-  box-shadow: 0 24px 60px rgb(15 23 42 / 0.18);
+  gap: 20px;
+  padding: 28px;
+  border-color: rgb(100 116 139 / 0.24);
+  box-shadow: 0 28px 80px rgb(15 23 42 / 0.22);
 }
 .membership-modal__header {
   display: flex;
@@ -903,24 +905,111 @@
   font-size: 13px;
   font-weight: 650;
 }
-.membership-modal__header h2,
-.membership-modal__dialog p {
+.membership-modal__header h2 {
   margin: 0;
-}
-.membership-modal__header strong {
   color: var(--qf-text);
-  font-size: 28px;
+  font-size: 24px;
+  line-height: 1.18;
+  letter-spacing: -0.04em;
+}
+.membership-modal__close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--qf-border);
+  border-radius: 999px;
+  color: var(--qf-text-secondary);
+  background: var(--qf-surface);
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+.membership-modal__close:hover {
+  color: var(--qf-text);
+  border-color: var(--qf-accent);
+}
+.membership-modal__summary {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--qf-border);
+  border-radius: 18px;
+  background: var(--qf-surface-muted);
+}
+.membership-modal__summary > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: baseline;
+}
+.membership-modal__summary span,
+.membership-modal__methods > span,
+.membership-modal__benefits span {
+  color: var(--qf-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+}
+.membership-modal__summary strong {
+  color: var(--qf-text);
+  font-size: 34px;
   line-height: 1;
   letter-spacing: -0.04em;
 }
-.membership-modal__dialog p {
+.membership-modal__summary p {
+  margin: 0;
   color: var(--qf-text-secondary);
-  line-height: 1.65;
+  font-size: 14px;
+  line-height: 1.6;
 }
-.membership-modal__actions {
+.membership-modal__methods {
+  display: grid;
+  gap: 10px;
+}
+.membership-modal__methods > div {
   display: flex;
   flex-wrap: wrap;
+  gap: 8px;
+}
+.membership-modal__methods strong {
+  padding: 7px 10px;
+  border: 1px solid var(--qf-border);
+  border-radius: 999px;
+  color: var(--qf-text);
+  background: var(--qf-surface);
+  font-size: 13px;
+}
+.membership-modal__benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+}
+.membership-modal__benefits > div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--qf-border);
+  border-radius: 14px;
+  background: var(--qf-surface);
+}
+.membership-modal__benefits strong {
+  color: var(--qf-text);
+  font-size: 18px;
+  line-height: 1.2;
+}
+.membership-modal__error {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgb(220 38 38 / 0.2);
+  border-radius: 12px;
+  color: var(--qf-loss);
+  background: rgb(220 38 38 / 0.06);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.membership-modal__actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
 }
 .membership-upgrade-card {
   display: grid;

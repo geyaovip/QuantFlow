@@ -109,6 +109,22 @@
   .membership-grid {
     grid-template-columns: 1fr;
   }
+  .membership-modal {
+    align-items: end;
+    padding: 12px;
+  }
+  .membership-modal__dialog {
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    padding: 22px;
+    border-radius: 18px;
+  }
+  .membership-modal__benefits {
+    grid-template-columns: 1fr;
+  }
+  .membership-modal__actions {
+    grid-template-columns: 1fr;
+  }
   .metric-bars__row {
     grid-template-columns: 1fr;
   }
