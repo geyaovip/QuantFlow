@@ -105,15 +105,6 @@ test.describe("Paper trading journey API", () => {
         .status,
     ).toBe("paused");
 
-    const resumeResponse = await request.post(
-      `${authBaseUrl}/api/v1/paper-accounts/${created.data.id}/resume`,
-    );
-    expect(resumeResponse.ok()).toBeTruthy();
-    expect(
-      ((await resumeResponse.json()) as { data: { status: string } }).data
-        .status,
-    ).toBe("running");
-
     const resetResponse = await request.post(
       `${authBaseUrl}/api/v1/paper-accounts/${created.data.id}/reset`,
       {
@@ -124,6 +115,24 @@ test.describe("Paper trading journey API", () => {
       },
     );
     expect(resetResponse.ok()).toBeTruthy();
+    expect(
+      ((await resetResponse.json()) as { data: { status: string } }).data
+        .status,
+    ).toBe("running");
+
+    const pauseAfterResetResponse = await request.post(
+      `${authBaseUrl}/api/v1/paper-accounts/${created.data.id}/pause`,
+    );
+    expect(pauseAfterResetResponse.ok()).toBeTruthy();
+
+    const resumeResponse = await request.post(
+      `${authBaseUrl}/api/v1/paper-accounts/${created.data.id}/resume`,
+    );
+    expect(resumeResponse.ok()).toBeTruthy();
+    expect(
+      ((await resumeResponse.json()) as { data: { status: string } }).data
+        .status,
+    ).toBe("running");
 
     const beforeExpiredSignalResponse = await request.get(
       `${authBaseUrl}/api/v1/paper-accounts?page=1&pageSize=20`,
