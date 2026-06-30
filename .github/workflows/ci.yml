@@ -95,7 +95,7 @@ jobs:
       - run: >-
           pnpm exec playwright test
           api-smoke user-journey user-journey-web paper-journey marketing
-          mvp-acceptance invite-journey
+          mvp-acceptance invite-journey admin-governance
         timeout-minutes: 8
         working-directory: packages/e2e
         env:
