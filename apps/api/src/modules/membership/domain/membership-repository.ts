@@ -28,7 +28,7 @@ export interface MembershipRepository {
     userId: string,
     input: MembershipCheckoutCreate,
     createInvoice: (input: {
-      amountCny: string;
+      amountUsd: string;
       email?: string;
       orderName: string;
       orderNumber: string;

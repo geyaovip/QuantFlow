@@ -26,8 +26,8 @@ import { RiskAcceptanceService } from "../application/risk-acceptance.service.js
 
 const TIER_LABELS = {
   free: "Free",
+  plus: "Plus",
   pro: "Pro",
-  premium: "Premium",
 } as const;
 
 @Injectable()
@@ -48,8 +48,8 @@ export class PrismaMembershipRepository implements MembershipRepository {
       data: plans.map((plan) => ({
         tier: plan.tier,
         name: plan.name,
-        monthlyPriceCny: plan.monthlyPriceCny.toString(),
-        yearlyPriceCny: plan.yearlyPriceCny.toString(),
+        monthlyPriceUsd: plan.monthlyPriceUsd.toString(),
+        yearlyPriceUsd: plan.yearlyPriceUsd.toString(),
         entitlements: plan.entitlements.map((item) => ({
           key: item.key,
           valueType: item.valueType as "int" | "bool" | "string",
@@ -250,10 +250,10 @@ export class PrismaMembershipRepository implements MembershipRepository {
       where: { id: userId },
       select: { email: true },
     });
-    const amountCny =
+    const amountUsd =
       input.billingCycle === "monthly"
-        ? plan.monthlyPriceCny.toString()
-        : plan.yearlyPriceCny.toString();
+        ? plan.monthlyPriceUsd.toString()
+        : plan.yearlyPriceUsd.toString();
 
     const payment = await this.prisma.membershipPayment.create({
       data: {
@@ -263,13 +263,14 @@ export class PrismaMembershipRepository implements MembershipRepository {
         billingCycle: input.billingCycle,
         provider: "plisio",
         status: "created",
-        amountCny,
+        amountUsd,
+        sourceCurrency: "USD",
         allowedPsysCids: ["USDT_BSC", "USDT"],
       },
     });
 
     const invoice = await createInvoice({
-      amountCny,
+      amountUsd,
       email: user?.email,
       orderName: `QuantFlow ${plan.name} ${input.billingCycle === "monthly" ? "月付" : "年付"}`,
       orderNumber: payment.id,
@@ -294,7 +295,7 @@ export class PrismaMembershipRepository implements MembershipRepository {
         status: updated.status,
         provider: "plisio",
         invoiceUrl: updated.invoiceUrl ?? invoice.invoiceUrl,
-        amountCny: updated.amountCny.toString(),
+        amountUsd: updated.amountUsd.toString(),
         allowedCurrencies: ["USDT_BSC", "USDT"],
         expiresAt: updated.expiresAt?.toISOString() ?? null,
       },

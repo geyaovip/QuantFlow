@@ -96,7 +96,7 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
               item.tier,
               item.billingCycle,
               item.status,
-              `¥${formatMoney(item.amountCny)}`,
+              `$${formatMoney(item.amountUsd)}`,
               item.paidAt ? formatDate(item.paidAt) : "未支付",
             ])}
           />

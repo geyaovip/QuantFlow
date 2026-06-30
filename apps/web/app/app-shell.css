@@ -868,6 +868,60 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+.membership-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.membership-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(17 24 39 / 0.36);
+}
+.membership-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgb(15 23 42 / 0.18);
+}
+.membership-modal__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+.membership-modal__header span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--qf-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+}
+.membership-modal__header h2,
+.membership-modal__dialog p {
+  margin: 0;
+}
+.membership-modal__header strong {
+  color: var(--qf-text);
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.membership-modal__dialog p {
+  color: var(--qf-text-secondary);
+  line-height: 1.65;
+}
+.membership-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .membership-upgrade-card {
   display: grid;
   gap: 16px;

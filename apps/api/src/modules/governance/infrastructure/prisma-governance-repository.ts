@@ -162,7 +162,7 @@ export class PrismaGovernanceRepository implements GovernanceRepository {
         tier: item.tier,
         billingCycle: item.billingCycle,
         status: item.status,
-        amountCny: item.amountCny.toString(),
+        amountUsd: item.amountUsd.toString(),
         providerInvoiceId: item.providerInvoiceId,
         createdAt: item.createdAt.toISOString(),
         paidAt: item.paidAt?.toISOString() ?? null,
@@ -803,10 +803,10 @@ function mapSubscription(row: {
 function mapMembershipPayment(row: {
   id: string;
   userId: string;
-  tier: "free" | "pro" | "premium";
+  tier: "free" | "plus" | "pro";
   billingCycle: string;
   status: string;
-  amountCny: Prisma.Decimal;
+  amountUsd: Prisma.Decimal;
   providerInvoiceId: string | null;
   invoiceUrl: string | null;
   createdAt: Date;
@@ -823,7 +823,7 @@ function mapMembershipPayment(row: {
     planName: row.plan.name,
     billingCycle: row.billingCycle,
     status: row.status,
-    amountCny: row.amountCny.toString(),
+    amountUsd: row.amountUsd.toString(),
     providerInvoiceId: row.providerInvoiceId,
     invoiceUrl: row.invoiceUrl,
     createdAt: row.createdAt.toISOString(),
@@ -887,7 +887,7 @@ function mapAnnouncement(row: {
 function mapInviteCode(row: {
   id: string;
   codeLabel: string;
-  tier: "free" | "pro" | "premium";
+  tier: "free" | "plus" | "pro";
   billingCycle: string;
   maxRedemptions: number;
   redemptionCount: number;

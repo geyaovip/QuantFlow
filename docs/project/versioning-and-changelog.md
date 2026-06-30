@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.7.0-dev.3` - 2026-06-30
+
+- 类型：Changed / API / Web / Admin / Data / Docs
+- 摘要：会员付费档位由 Pro/Premium 改为 Plus/Pro，价格切换为 Plus $4.90/月、$49/年与 Pro $9.90/月、$99/年；会员支付确认改为弹窗，邀请码兑换移除长风险文案。
+- MVP 边界影响：无；仍只开通会员容量，不引入交易所连接、真实下单或收益承诺。
+- API / 数据 / 权限 / 风控影响：会员 API 付费 tier 改为 `plus|pro`，金额字段改为 `amountUsd`，Plisio invoice 使用 USD source amount；管理端人工开通、邀请码和支付核查同步更新。
+- 迁移与兼容：新增 `202606300001_membership_plus_pro_usd` migration，旧 Pro 前滚映射为 Plus，旧 Premium 前滚映射为 Pro，并将会员计划/支付金额列从 CNY 命名迁移到 USD。
+- 验证：`pnpm check`、`pnpm build`。
+- 监控与回滚：支付创建失败会在 API 日志输出 Plisio 非敏感错误摘要；如迁移后需回滚，优先前滚修正 tier/价格，不建议回退 enum rename。
+
 ### `v0.7.0-dev.1` - 2026-06-27
 
 - 类型：Added / API / Web / Admin / Data

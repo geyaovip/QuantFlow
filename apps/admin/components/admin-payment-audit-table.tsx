@@ -46,7 +46,7 @@ export function AdminPaymentAuditTable({
                   {payment.planName} · {payment.billingCycle}
                 </td>
                 <td>{payment.status}</td>
-                <td>¥{formatMoney(payment.amountCny)}</td>
+                <td>${formatMoney(payment.amountUsd)}</td>
                 <td>
                   {payment.invoiceUrl ? (
                     <Link

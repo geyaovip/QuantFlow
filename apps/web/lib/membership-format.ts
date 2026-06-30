@@ -2,10 +2,10 @@ import type { MembershipPlan } from "@quantflow/contracts";
 
 export function formatPlanPrice(plan: MembershipPlan) {
   if (plan.tier === "free") {
-    return "¥0";
+    return "$0";
   }
 
-  return `¥${trimPrice(plan.monthlyPriceCny)}/月`;
+  return `$${trimPrice(plan.monthlyPriceUsd)}/月`;
 }
 
 export function formatPlanPerks(plan: MembershipPlan) {
@@ -19,7 +19,7 @@ export function formatPlanPerks(plan: MembershipPlan) {
     plan.tier === "free" ? "15 分钟信号延迟" : "更快信号触达",
   ];
 
-  if (plan.tier === "premium") {
+  if (plan.tier === "pro") {
     perks.push("优先客服支持");
   }
 
@@ -30,7 +30,7 @@ export function formatPlanSummary(plan: MembershipPlan) {
   if (plan.tier === "free") {
     return "体验策略浏览与基础模拟容量。";
   }
-  if (plan.tier === "pro") {
+  if (plan.tier === "plus") {
     return "适合持续跟踪策略与信号。";
   }
   return "更高配额与深度分析能力。";

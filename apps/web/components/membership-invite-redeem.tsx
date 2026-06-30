@@ -5,9 +5,6 @@ import { useState } from "react";
 
 import { Button, Card } from "@quantflow/ui";
 
-const RISK_DISCLOSURE =
-  "QuantFlow 不提供投资建议，不承诺任何收益。所有策略信号仅供参考，加密资产价格波动较大，用户需自行承担交易风险。历史表现不代表未来收益。";
-
 type MembershipInviteRedeemProps = {
   apiBaseUrl: string;
 };
@@ -17,7 +14,6 @@ export function MembershipInviteRedeem({
 }: MembershipInviteRedeemProps) {
   const router = useRouter();
   const [code, setCode] = useState("");
-  const [riskAccepted, setRiskAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -25,10 +21,6 @@ export function MembershipInviteRedeem({
   const submit = async () => {
     if (!code.trim()) {
       setError("请输入邀请码");
-      return;
-    }
-    if (!riskAccepted) {
-      setError("请先确认风险提示");
       return;
     }
 
@@ -58,7 +50,6 @@ export function MembershipInviteRedeem({
       }
       setMessage("邀请码兑换成功，会员权益已开通。");
       setCode("");
-      setRiskAccepted(false);
       router.refresh();
     } catch (submitError) {
       setError(
@@ -74,9 +65,7 @@ export function MembershipInviteRedeem({
   return (
     <Card className="membership-invite-card">
       <h2>邀请码兑换</h2>
-      <p>
-        输入运营发放的邀请码可开通对应会员计划。邀请码只开通功能容量，不代表更高收益。
-      </p>
+      <p>输入运营发放的邀请码可开通对应会员计划。邀请码只开通功能容量。</p>
       <label className="membership-field">
         <span>邀请码</span>
         <input
@@ -87,17 +76,8 @@ export function MembershipInviteRedeem({
           value={code}
         />
       </label>
-      <label className="membership-risk-check">
-        <input
-          checked={riskAccepted}
-          disabled={isSubmitting}
-          onChange={(event) => setRiskAccepted(event.target.checked)}
-          type="checkbox"
-        />
-        <span>{RISK_DISCLOSURE}</span>
-      </label>
       <Button
-        disabled={isSubmitting || !code.trim() || !riskAccepted}
+        disabled={isSubmitting || !code.trim()}
         onClick={() => void submit()}
         type="button"
       >

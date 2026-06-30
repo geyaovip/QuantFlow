@@ -37,7 +37,8 @@ export const featureFlagsSchema = z.object({
 });
 
 export const riskLevelSchema = z.enum(["low", "medium", "high", "critical"]);
-export const membershipTierSchema = z.enum(["free", "pro", "premium"]);
+export const membershipTierSchema = z.enum(["free", "plus", "pro"]);
+export const paidMembershipTierSchema = z.enum(["plus", "pro"]);
 export const strategyStatusSchema = z.enum([
   "draft",
   "pending_review",
@@ -223,8 +224,8 @@ export const membershipEntitlementSchema = z.object({
 export const membershipPlanSchema = z.object({
   tier: membershipTierSchema,
   name: z.string(),
-  monthlyPriceCny: z.string(),
-  yearlyPriceCny: z.string(),
+  monthlyPriceUsd: z.string(),
+  yearlyPriceUsd: z.string(),
   entitlements: z.array(membershipEntitlementSchema),
 });
 
@@ -255,13 +256,13 @@ export const userEntitlementsSchema = z.object({
 });
 
 export const membershipMockCheckoutSchema = z.object({
-  tier: z.enum(["pro", "premium"]),
+  tier: paidMembershipTierSchema,
   billingCycle: z.enum(["monthly", "yearly"]),
   riskAccepted: z.literal(true),
 });
 
 export const membershipCheckoutCreateSchema = z.object({
-  tier: z.enum(["pro", "premium"]),
+  tier: paidMembershipTierSchema,
   billingCycle: z.enum(["monthly", "yearly"]),
   riskAccepted: z.literal(true),
 });
@@ -274,12 +275,12 @@ export const membershipInviteRedeemSchema = z.object({
 
 export const membershipPaymentSchema = z.object({
   id: z.uuid(),
-  tier: z.enum(["pro", "premium"]),
+  tier: paidMembershipTierSchema,
   billingCycle: z.enum(["monthly", "yearly"]),
   status: z.string(),
   provider: z.literal("plisio"),
   invoiceUrl: z.url(),
-  amountCny: z.string(),
+  amountUsd: z.string(),
   allowedCurrencies: z.array(z.enum(["USDT_BSC", "USDT"])),
   expiresAt: z.iso.datetime().nullable(),
 });
@@ -618,7 +619,7 @@ export const adminMembershipPaymentSchema = z.object({
   planName: z.string(),
   billingCycle: z.string(),
   status: z.string(),
-  amountCny: z.string(),
+  amountUsd: z.string(),
   providerInvoiceId: z.string().nullable(),
   invoiceUrl: z.string().nullable(),
   createdAt: z.iso.datetime(),
@@ -684,7 +685,7 @@ export const adminUserDetailSchema = adminUserListItemSchema.extend({
       tier: membershipTierSchema,
       billingCycle: z.string(),
       status: z.string(),
-      amountCny: z.string(),
+      amountUsd: z.string(),
       providerInvoiceId: z.string().nullable(),
       createdAt: z.iso.datetime(),
       paidAt: z.iso.datetime().nullable(),
@@ -699,7 +700,7 @@ export const adminUserDetailResponseSchema = z.object({
 
 export const adminMembershipManualGrantSchema = z.object({
   userId: z.uuid(),
-  tier: z.enum(["pro", "premium"]),
+  tier: paidMembershipTierSchema,
   billingCycle: z.enum(["monthly", "yearly"]),
   reason: z.string().min(3),
 });
@@ -711,7 +712,7 @@ export const adminMembershipActionSchema = z.object({
 export const adminMembershipInviteCodeSchema = z.object({
   id: z.uuid(),
   codeLabel: z.string(),
-  tier: z.enum(["pro", "premium"]),
+  tier: paidMembershipTierSchema,
   billingCycle: z.enum(["monthly", "yearly"]),
   maxRedemptions: z.number().int().min(1),
   redemptionCount: z.number().int().min(0),
@@ -728,7 +729,7 @@ export const adminMembershipInviteListResponseSchema = z.object({
 
 export const adminMembershipInviteCreateSchema = z.object({
   code: z.string().min(4).max(64),
-  tier: z.enum(["pro", "premium"]),
+  tier: paidMembershipTierSchema,
   billingCycle: z.enum(["monthly", "yearly"]),
   maxRedemptions: z.number().int().min(1).max(10000),
   expiresAt: z.iso.datetime().optional(),

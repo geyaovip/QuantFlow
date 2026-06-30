@@ -2,11 +2,11 @@ import type { MembershipTier } from "@quantflow/contracts";
 
 const TIER_RANK: Record<MembershipTier, number> = {
   free: 0,
-  pro: 1,
-  premium: 2,
+  plus: 1,
+  pro: 2,
 };
 
-const ALL_TIERS: MembershipTier[] = ["free", "pro", "premium"];
+const ALL_TIERS: MembershipTier[] = ["free", "plus", "pro"];
 
 export const FREE_SIGNAL_DELAY_MINUTES = 15;
 

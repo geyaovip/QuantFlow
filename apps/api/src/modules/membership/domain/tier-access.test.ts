@@ -9,12 +9,12 @@ import {
 describe("tier-access", () => {
   it("compares membership tiers", () => {
     expect(tierMeetsRequired("free", "free")).toBe(true);
-    expect(tierMeetsRequired("free", "pro")).toBe(false);
-    expect(tierMeetsRequired("premium", "pro")).toBe(true);
+    expect(tierMeetsRequired("free", "plus")).toBe(false);
+    expect(tierMeetsRequired("pro", "plus")).toBe(true);
   });
 
   it("lists accessible tiers", () => {
-    expect(accessibleTiers("pro")).toEqual(["free", "pro"]);
+    expect(accessibleTiers("plus")).toEqual(["free", "plus"]);
   });
 
   it("applies free signal delay", () => {

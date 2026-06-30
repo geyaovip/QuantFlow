@@ -18,7 +18,7 @@
 | 枚举                   | 值                                                                      |
 | ---------------------- | ----------------------------------------------------------------------- |
 | `user_status`          | `active`, `disabled`, `risk_watch`, `deleting`                          |
-| `membership_tier`      | `free`, `pro`, `premium`                                                |
+| `membership_tier`      | `free`, `plus`, `pro`                                                   |
 | `subscription_status`  | `pending`, `active`, `expired`, `cancelled`                             |
 | `strategy_status`      | `draft`, `pending_review`, `active`, `paused`, `risk_watch`, `delisted` |
 | `signal_status`        | `active`, `expired`, `cancelled`, `strategy_paused`, `risk_blocked`     |
@@ -82,13 +82,13 @@
 
 | 表                              | 关键字段与约束                                                                                                                                                                  |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `membership_plans`              | tier unique、名称、月/年价、CNY、状态、展示顺序                                                                                                                                 |
+| `membership_plans`              | tier unique、名称、月/年价、USD、状态、展示顺序                                                                                                                                 |
 | `membership_entitlements`       | plan FK、`key`、typed value；unique(plan, key)                                                                                                                                  |
 | `user_subscriptions`            | user/plan FK、status、source(`manual/invite/test/plisio`)、周期起止、取消时间、reason nullable                                                                                  |
 | `membership_invite_codes`       | code_normalized unique、tier、billing_cycle、max/redemption_count、expires_at nullable、status、note、created_by_admin                                                          |
 | `membership_invite_redemptions` | invite/user FK unique(invite,user)、subscription FK nullable、redeemed_at                                                                                                       |
 | `user_risk_acceptances`         | user FK、disclosure_version、context(`strategy_subscribe`/`paper_account_create`/`membership_checkout`/`membership_invite_redeem`)、accepted_at；unique(user, version, context) |
-| `membership_payments`           | user/plan FK、provider、provider_invoice_id unique、status、CNY 金额、allowed_psys_cids、invoice_url、raw_payload                                                               |
+| `membership_payments`           | user/plan FK、provider、provider_invoice_id unique、status、USD 金额、allowed_psys_cids、invoice_url、raw_payload                                                               |
 | `user_notifications`            | user FK、type、title、content、read_at、created_at                                                                                                                              |
 | `notification_preferences`      | user/channel/type、enabled；unique(user, channel, type)                                                                                                                         |
 | `system_announcements`          | title、content、status、发布/结束时间                                                                                                                                           |

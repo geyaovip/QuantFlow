@@ -39,7 +39,7 @@ export default async function MembershipPage({
         <Card className="app-hero-card">
           <h2>升级容量，不承诺收益</h2>
           <p>
-            Pro 和 Premium
+            Plus 和 Pro
             提供更多策略订阅、模拟盘和历史数据容量。支付只开通功能权益，不改变策略风险。
           </p>
         </Card>

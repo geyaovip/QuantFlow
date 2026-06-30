@@ -5,7 +5,7 @@ import { Injectable } from "@nestjs/common";
 import { loadAppConfig } from "../../../config/app-config.js";
 
 type PlisioInvoiceInput = {
-  amountCny: string;
+  amountUsd: string;
   email?: string;
   orderName: string;
   orderNumber: string;
@@ -44,7 +44,7 @@ export class PlisioClient {
       api_key: this.config.plisioApiKey,
       callback_url: callbackUrl,
       currency: "USDT_BSC",
-      description: `${input.orderName}，仅开通会员容量，不承诺策略收益。`,
+      description: `${input.orderName}，仅开通会员容量。`,
       expire_min: "30",
       fail_callback_url: failUrl,
       fail_invoice_url: failUrl,
@@ -53,7 +53,7 @@ export class PlisioClient {
       order_number: input.orderNumber,
       plugin: "QuantFlow",
       redirect_to_invoice: "false",
-      source_amount: input.amountCny,
+      source_amount: input.amountUsd,
       source_currency: this.config.sourceCurrency,
       success_callback_url: successUrl,
       success_invoice_url: successUrl,
@@ -72,6 +72,16 @@ export class PlisioClient {
       .catch(() => null)) as PlisioInvoiceResponse | null;
 
     if (!response.ok || payload?.status === "error" || !payload?.data) {
+      const errorMessage =
+        payload && typeof payload === "object" && "data" in payload
+          ? JSON.stringify(payload.data).slice(0, 300)
+          : null;
+      console.warn("Plisio invoice create failed", {
+        httpStatus: response.status,
+        providerStatus: payload?.status ?? null,
+        providerError: errorMessage,
+        sourceCurrency: this.config.sourceCurrency,
+      });
       throw new Error("plisio invoice create failed");
     }
 

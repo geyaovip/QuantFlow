@@ -247,8 +247,8 @@ MVP 可先使用轮询，后续接入 WebSocket。
 
 1. Anonymous。
 2. Free。
-3. Pro。
-4. Premium。
+3. Plus。
+4. Pro。
 5. Admin。
 
 ### 7.2 功能开关

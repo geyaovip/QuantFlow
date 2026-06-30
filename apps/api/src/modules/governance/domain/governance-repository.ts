@@ -46,7 +46,7 @@ export type AdminUserDetail = AdminUserListItem & {
   inviteRedemptions: Array<{
     id: string;
     codeLabel: string;
-    tier: "free" | "pro" | "premium";
+    tier: "free" | "plus" | "pro";
     billingCycle: string;
     redeemedAt: string;
   }>;
@@ -58,10 +58,10 @@ export type AdminUserDetail = AdminUserListItem & {
   }>;
   payments: Array<{
     id: string;
-    tier: "free" | "pro" | "premium";
+    tier: "free" | "plus" | "pro";
     billingCycle: string;
     status: string;
-    amountCny: string;
+    amountUsd: string;
     providerInvoiceId: string | null;
     createdAt: string;
     paidAt: string | null;
@@ -99,11 +99,11 @@ export type AdminMembershipPaymentListItem = {
   id: string;
   userId: string;
   userEmail: string;
-  tier: "free" | "pro" | "premium";
+  tier: "free" | "plus" | "pro";
   planName: string;
   billingCycle: string;
   status: string;
-  amountCny: string;
+  amountUsd: string;
   providerInvoiceId: string | null;
   invoiceUrl: string | null;
   createdAt: string;
@@ -162,7 +162,7 @@ export type SystemAnnouncementItem = {
 
 export type ManualGrantInput = {
   userId: string;
-  tier: "pro" | "premium";
+  tier: "plus" | "pro";
   billingCycle: "monthly" | "yearly";
   reason: string;
 };
@@ -170,7 +170,7 @@ export type ManualGrantInput = {
 export type InviteCodeListItem = {
   id: string;
   codeLabel: string;
-  tier: "pro" | "premium";
+  tier: "plus" | "pro";
   billingCycle: "monthly" | "yearly";
   maxRedemptions: number;
   redemptionCount: number;
@@ -182,7 +182,7 @@ export type InviteCodeListItem = {
 
 export type InviteCodeCreateInput = {
   code: string;
-  tier: "pro" | "premium";
+  tier: "plus" | "pro";
   billingCycle: "monthly" | "yearly";
   maxRedemptions: number;
   expiresAt?: string;

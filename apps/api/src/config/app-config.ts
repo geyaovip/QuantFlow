@@ -117,7 +117,7 @@ export function loadAppConfig(environment: NodeJS.ProcessEnv = process.env) {
       publicWebUrl: parsed.PUBLIC_WEB_URL.replace(/\/$/, ""),
       publicApiUrl: parsed.PUBLIC_API_URL.replace(/\/$/, ""),
       allowedPsysCids: ["USDT_BSC", "USDT"] as const,
-      sourceCurrency: "CNY" as const,
+      sourceCurrency: "USD" as const,
     },
   } as const;
 }

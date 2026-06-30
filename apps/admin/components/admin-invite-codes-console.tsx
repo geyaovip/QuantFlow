@@ -19,7 +19,7 @@ export function AdminInviteCodesConsole({
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [code, setCode] = useState("");
-  const [tier, setTier] = useState<"pro" | "premium">("pro");
+  const [tier, setTier] = useState<"plus" | "pro">("plus");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
     "monthly",
   );
@@ -128,12 +128,12 @@ export function AdminInviteCodesConsole({
             <select
               disabled={isSubmitting}
               onChange={(event) =>
-                setTier(event.target.value as "pro" | "premium")
+                setTier(event.target.value as "plus" | "pro")
               }
               value={tier}
             >
+              <option value="plus">Plus</option>
               <option value="pro">Pro</option>
-              <option value="premium">Premium</option>
             </select>
           </label>
           <label>

@@ -20,7 +20,7 @@ export function AdminUsersConsole({
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [grantUserId, setGrantUserId] = useState(users[0]?.id ?? "");
-  const [grantTier, setGrantTier] = useState<"pro" | "premium">("pro");
+  const [grantTier, setGrantTier] = useState<"plus" | "pro">("plus");
   const [grantCycle, setGrantCycle] = useState<"monthly" | "yearly">("monthly");
 
   const manualGrant = async () => {
@@ -127,12 +127,12 @@ export function AdminUsersConsole({
           <select
             disabled={isSubmitting}
             onChange={(event) =>
-              setGrantTier(event.target.value as "pro" | "premium")
+              setGrantTier(event.target.value as "plus" | "pro")
             }
             value={grantTier}
           >
+            <option value="plus">Plus</option>
             <option value="pro">Pro</option>
-            <option value="premium">Premium</option>
           </select>
         </label>
         <label>

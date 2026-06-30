@@ -145,13 +145,13 @@ MVP 不提供密码注册、密码登录和密码重置。Resend 只负责邮件
 | POST | `/membership/redeem-invite`          | 用户兑换邀请码开通会员；要求 `riskAccepted: true`              |
 | POST | `/integrations/email/resend/webhook` | 可选投递事件回调；验签、幂等，只更新投递监控，不改变认证结果   |
 
-`checkout` 请求体：`{ tier: "pro"|"premium", billingCycle: "monthly"|"yearly", riskAccepted: true }`。
+`checkout` 请求体：`{ tier: "plus"|"pro", billingCycle: "monthly"|"yearly", riskAccepted: true }`。
 
-响应体：`{ data: { id, tier, billingCycle, status, provider: "plisio", invoiceUrl, amountCny, allowedCurrencies, expiresAt } }`。`allowedCurrencies` 固定为 `["USDT_BSC","USDT"]`。前端必须跳转 `invoiceUrl`，不得提供“我已支付”手动开通按钮。
+响应体：`{ data: { id, tier, billingCycle, status, provider: "plisio", invoiceUrl, amountUsd, allowedCurrencies, expiresAt } }`。`allowedCurrencies` 固定为 `["USDT_BSC","USDT"]`。前端必须跳转 `invoiceUrl`，不得提供“我已支付”手动开通按钮。
 
 `plisio/callback` 接收 Plisio 带 `verify_hash` 的回调 payload；服务端去除 `verify_hash` 后使用 Plisio API key 做 HMAC-SHA1 校验。只有验签成功且状态为 `completed` 时，才创建 `source=plisio` 的有效订阅；其它状态只更新支付记录。
 
-`mock-checkout` 请求体：`{ tier: "pro"|"premium", billingCycle: "monthly"|"yearly", riskAccepted: true }`。订阅来源记为 `test`；仅开发/测试环境使用。
+`mock-checkout` 请求体：`{ tier: "plus"|"pro", billingCycle: "monthly"|"yearly", riskAccepted: true }`。订阅来源记为 `test`；仅开发/测试环境使用。
 
 `redeem-invite` 请求体：`{ code: string, riskDisclosureVersion: "risk-v1", riskAccepted: true }`。订阅来源记为 `invite`；同一用户同一邀请码不可重复兑换。
 

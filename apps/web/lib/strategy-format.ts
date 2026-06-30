@@ -123,8 +123,8 @@ function formatStrategyType(type: StrategyType) {
 export function formatTier(tier: StrategyListItem["requiredTier"]) {
   const labels: Record<StrategyListItem["requiredTier"], string> = {
     free: "Free",
+    plus: "Plus",
     pro: "Pro",
-    premium: "Premium",
   };
   return labels[tier];
 }

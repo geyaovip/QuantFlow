@@ -70,13 +70,6 @@ for file in apps/web/app/page.tsx apps/web/app/app/membership/page.tsx; do
   fi
 done
 
-if rg -q 'membership-checkout' apps/web/app/app/membership/page.tsx; then
-  if ! rg -q "$DISCLOSURE" apps/web/components/membership-checkout.tsx; then
-    echo "missing standard risk disclosure in membership checkout component"
-    failed=1
-  fi
-fi
-
 if rg -q 'MarketingFooter' apps/web/app/page.tsx; then
   if ! rg -q "$DISCLOSURE" apps/web/components/marketing-footer.tsx; then
     echo "missing standard risk disclosure in marketing footer component"

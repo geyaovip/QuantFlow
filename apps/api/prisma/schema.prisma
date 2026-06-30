@@ -50,8 +50,8 @@ enum SecurityEventType {
 
 enum MembershipTier {
   free
+  plus
   pro
-  premium
 
   @@map("membership_tier")
 }
@@ -433,8 +433,8 @@ model MembershipPlan {
   id              String                  @id @default(uuid()) @db.Uuid
   tier            MembershipTier          @unique
   name            String
-  monthlyPriceCny Decimal                 @map("monthly_price_cny") @db.Decimal(10, 2)
-  yearlyPriceCny  Decimal                 @map("yearly_price_cny") @db.Decimal(10, 2)
+  monthlyPriceUsd Decimal                 @map("monthly_price_usd") @db.Decimal(10, 2)
+  yearlyPriceUsd  Decimal                 @map("yearly_price_usd") @db.Decimal(10, 2)
   displayOrder    Int                     @map("display_order")
   status          MembershipPlanStatus    @default(active)
   createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -457,8 +457,8 @@ model MembershipPayment {
   provider          String         @default("plisio")
   providerInvoiceId String?        @unique @map("provider_invoice_id")
   status            String
-  amountCny         Decimal        @map("amount_cny") @db.Decimal(10, 2)
-  sourceCurrency    String         @default("CNY") @map("source_currency")
+  amountUsd         Decimal        @map("amount_usd") @db.Decimal(10, 2)
+  sourceCurrency    String         @default("USD") @map("source_currency")
   allowedPsysCids   String[]       @map("allowed_psys_cids")
   invoiceUrl        String?        @map("invoice_url")
   rawPayload        Json?          @map("raw_payload")
