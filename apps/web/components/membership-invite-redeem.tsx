@@ -97,7 +97,7 @@ export function MembershipInviteRedeem({
         <span>{RISK_DISCLOSURE}</span>
       </label>
       <Button
-        disabled={isSubmitting}
+        disabled={isSubmitting || !code.trim() || !riskAccepted}
         onClick={() => void submit()}
         type="button"
       >

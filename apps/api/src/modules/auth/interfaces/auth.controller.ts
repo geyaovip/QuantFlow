@@ -62,7 +62,7 @@ export class AuthController {
         parsed.data.email,
         parsed.data.portal,
         {
-          ip: request.ip,
+          ip: clientIp(request),
           userAgent: headerValue(request.headers["user-agent"]),
           turnstileToken: parsed.data.turnstileToken,
         },
@@ -90,7 +90,7 @@ export class AuthController {
         parsed.data.portal,
         parsed.data.code,
         {
-          ip: request.ip,
+          ip: clientIp(request),
           userAgent: headerValue(request.headers["user-agent"]),
         },
       );
@@ -173,6 +173,31 @@ function cookieValue(cookieHeader: string | undefined, name: string) {
 
 function headerValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function clientIp(request: RequestLike) {
+  const forwardedIp =
+    headerValue(request.headers["cf-connecting-ip"]) ??
+    headerValue(request.headers["x-real-ip"]) ??
+    headerValue(request.headers["x-forwarded-for"])?.split(",")[0]?.trim();
+  const ip = forwardedIp || request.ip;
+  if (!ip || isLocalIp(ip)) {
+    return undefined;
+  }
+  return ip.replace(/^::ffff:/, "");
+}
+
+function isLocalIp(ip: string) {
+  const normalized = ip.replace(/^::ffff:/, "");
+  const secondOctet = Number(normalized.split(".")[1]);
+  return (
+    normalized === "::1" ||
+    normalized === "127.0.0.1" ||
+    normalized.startsWith("127.") ||
+    normalized.startsWith("10.") ||
+    normalized.startsWith("192.168.") ||
+    (normalized.startsWith("172.") && secondOctet >= 16 && secondOctet <= 31)
+  );
 }
 
 function toHttpError(error: unknown) {

@@ -28,6 +28,15 @@ export function MembershipCheckout({
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const selectedPlan = selectedTier
+    ? plans.find((plan) => plan.tier === selectedTier)
+    : null;
+
+  function selectPlan(tier: "pro" | "premium") {
+    setSelectedTier(tier);
+    setAccepted(false);
+    setError(null);
+  }
 
   async function handleCheckout() {
     if (!selectedTier || !accepted) {
@@ -75,7 +84,10 @@ export function MembershipCheckout({
           className={
             billingCycle === "monthly" ? "filter-chip is-active" : "filter-chip"
           }
-          onClick={() => setBillingCycle("monthly")}
+          onClick={() => {
+            setBillingCycle("monthly");
+            setAccepted(false);
+          }}
           type="button"
         >
           月付
@@ -85,7 +97,10 @@ export function MembershipCheckout({
           className={
             billingCycle === "yearly" ? "filter-chip is-active" : "filter-chip"
           }
-          onClick={() => setBillingCycle("yearly")}
+          onClick={() => {
+            setBillingCycle("yearly");
+            setAccepted(false);
+          }}
           type="button"
         >
           年付
@@ -143,38 +158,63 @@ export function MembershipCheckout({
                   disabled={!canSelect}
                   aria-pressed={isSelected}
                   variant={isSelected ? "primary" : "secondary"}
-                  onClick={() =>
-                    setSelectedTier(plan.tier as "pro" | "premium")
-                  }
+                  onClick={() => selectPlan(plan.tier as "pro" | "premium")}
                 >
-                  选择 {plan.name}
+                  {isSelected ? `已选择 ${plan.name}` : `选择 ${plan.name}`}
                 </Button>
               )}
             </Card>
           );
         })}
       </div>
-      <Card className="membership-checkout-panel">
-        <h2>支付确认</h2>
-        <p>
-          选择计划并确认风险提示后进入支付页。支付成功后系统会自动开通会员权益。
-        </p>
-        <label className="membership-risk-check">
-          <input
-            checked={accepted}
-            onChange={(event) => setAccepted(event.target.checked)}
-            type="checkbox"
-          />
-          <span>{RISK_DISCLOSURE}</span>
-        </label>
-        {error ? <p className="auth-error">{error}</p> : null}
-        <Button
-          disabled={loading || !selectedTier || !accepted}
-          onClick={handleCheckout}
-        >
-          {loading ? "正在创建支付订单..." : "确认并去支付"}
-        </Button>
-      </Card>
+      {selectedPlan ? (
+        <Card className="membership-checkout-panel">
+          <div className="membership-checkout-panel__header">
+            <div>
+              <span>支付确认</span>
+              <h2>
+                {selectedPlan.name} ·{" "}
+                {billingCycle === "monthly" ? "月付" : "年付"}
+              </h2>
+            </div>
+            <strong>
+              ¥
+              {billingCycle === "monthly"
+                ? selectedPlan.monthlyPriceCny
+                : selectedPlan.yearlyPriceCny}
+            </strong>
+          </div>
+          <p>
+            确认风险提示后进入 Plisio 支付页。支付成功后系统会自动开通会员权益。
+          </p>
+          <label className="membership-risk-check">
+            <input
+              checked={accepted}
+              onChange={(event) => setAccepted(event.target.checked)}
+              type="checkbox"
+            />
+            <span>{RISK_DISCLOSURE}</span>
+          </label>
+          {error ? <p className="auth-error">{error}</p> : null}
+          <div className="membership-checkout-panel__actions">
+            <Button disabled={loading || !accepted} onClick={handleCheckout}>
+              {loading ? "正在创建支付订单..." : "确认并去支付"}
+            </Button>
+            <Button
+              disabled={loading}
+              onClick={() => {
+                setSelectedTier(null);
+                setAccepted(false);
+                setError(null);
+              }}
+              type="button"
+              variant="secondary"
+            >
+              重新选择
+            </Button>
+          </div>
+        </Card>
+      ) : null}
     </div>
   );
 }

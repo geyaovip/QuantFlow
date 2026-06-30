@@ -21,6 +21,7 @@ declare global {
           "error-callback": () => void;
         },
       ) => string;
+      remove?: (widgetId: string) => void;
       reset: (widgetId?: string) => void;
     };
   }
@@ -77,8 +78,9 @@ export function EmailOtpLogin({
 
   const resetTurnstile = () => {
     if (widgetIdRef.current) {
-      window.turnstile?.reset(widgetIdRef.current);
+      window.turnstile?.remove?.(widgetIdRef.current);
     }
+    widgetIdRef.current = null;
     setTurnstileToken("");
     setShowTurnstile(false);
     awaitingTurnstileRef.current = false;
@@ -156,7 +158,11 @@ export function EmailOtpLogin({
         sitekey: siteKey,
         callback: handleTurnstileToken,
         "expired-callback": () => setTurnstileToken(""),
-        "error-callback": () => setTurnstileToken(""),
+        "error-callback": () => {
+          setTurnstileToken("");
+          setError("人机校验加载失败，请刷新页面后重试。");
+          awaitingTurnstileRef.current = false;
+        },
       });
     };
 

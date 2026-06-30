@@ -240,7 +240,7 @@ export default async function MarketingPage() {
               每条信号都关联策略、风险等级、样本规模和有效期限，避免孤立解读。
             </p>
           </div>
-          <Card className="signal-preview-card">
+          <div className="signal-preview-stack">
             <div className="signal-principles" aria-label="信号展示原则">
               {[
                 ["价格快照", "触发价与当前价并列。"],
@@ -253,32 +253,34 @@ export default async function MarketingPage() {
                 </div>
               ))}
             </div>
-            <div className="preview-table" role="table" aria-label="策略示例">
-              <div
-                className="preview-row preview-row--header preview-row--5"
-                role="row"
-              >
-                <span>策略</span>
-                <span>近 90 天收益</span>
-                <span>最大回撤</span>
-                <span>风险</span>
-                <span>样本</span>
-              </div>
-              {previewRows.map((row) => (
+            <Card className="signal-preview-card">
+              <div className="preview-table" role="table" aria-label="策略示例">
                 <div
-                  className="preview-row preview-row--5"
+                  className="preview-row preview-row--header preview-row--5"
                   role="row"
-                  key={row.name}
                 >
-                  <strong>{row.name}</strong>
-                  <span className="positive">{row.returnRate}</span>
-                  <span>{row.drawdown}</span>
-                  <RiskBadge level={row.risk} />
-                  <span>{row.trades} 笔</span>
+                  <span>策略</span>
+                  <span>近 90 天收益</span>
+                  <span>最大回撤</span>
+                  <span>风险</span>
+                  <span>样本</span>
                 </div>
-              ))}
-            </div>
-          </Card>
+                {previewRows.map((row) => (
+                  <div
+                    className="preview-row preview-row--5"
+                    role="row"
+                    key={row.name}
+                  >
+                    <strong>{row.name}</strong>
+                    <span className="positive">{row.returnRate}</span>
+                    <span>{row.drawdown}</span>
+                    <RiskBadge level={row.risk} />
+                    <span>{row.trades} 笔</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
           <p className="section-note">
             {featuredStrategy
               ? "上表展示当前已入库策略样本。登录应用后可查看完整策略列表与指标口径说明。"

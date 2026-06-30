@@ -339,6 +339,10 @@ body {
   font-size: 14px;
   line-height: 1.65;
 }
+.signal-preview-stack {
+  display: grid;
+  gap: 14px;
+}
 .signal-preview-card {
   overflow: hidden;
   padding: 0;
@@ -346,12 +350,12 @@ body {
 .signal-principles {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  border-bottom: 1px solid var(--qf-border);
-  background: var(--qf-border);
+  gap: 14px;
 }
 .signal-principles div {
   padding: 18px 20px;
+  border: 1px solid var(--qf-border);
+  border-radius: 12px;
   background: var(--qf-surface);
 }
 .signal-principles span {

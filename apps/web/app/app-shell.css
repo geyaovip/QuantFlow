@@ -845,6 +845,29 @@
   gap: 14px;
   padding: 24px;
 }
+.membership-checkout-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+.membership-checkout-panel__header span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--qf-text-secondary);
+  font-size: 13px;
+  font-weight: 650;
+}
+.membership-checkout-panel__header strong {
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+.membership-checkout-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .membership-upgrade-card {
   display: grid;
   gap: 16px;
@@ -861,12 +884,43 @@
   text-underline-offset: 3px;
 }
 .membership-checkout-panel h2,
-.membership-checkout-panel p {
+.membership-checkout-panel p,
+.membership-invite-card h2,
+.membership-invite-card p {
   margin: 0;
 }
-.membership-checkout-panel p {
+.membership-checkout-panel p,
+.membership-invite-card p {
   color: var(--qf-text-secondary);
   line-height: 1.65;
+}
+.membership-invite-card {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+}
+.membership-field {
+  display: grid;
+  gap: 8px;
+}
+.membership-field span {
+  color: var(--qf-text-secondary);
+  font-size: 14px;
+  font-weight: 650;
+}
+.membership-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--qf-border);
+  border-radius: 10px;
+  color: var(--qf-text);
+  background: var(--qf-surface);
+  font: inherit;
+}
+.membership-field input:focus-visible {
+  outline: 2px solid var(--qf-info);
+  outline-offset: 2px;
 }
 .membership-risk-check {
   display: grid;
