@@ -54,7 +54,6 @@ export class PlisioClient {
       order_name: input.orderName,
       order_number: input.orderNumber,
       plugin: "QuantFlow",
-      redirect_to_invoice: "false",
       source_amount: input.amountUsd,
       source_currency: this.config.sourceCurrency,
       success_callback_url: successUrl,
