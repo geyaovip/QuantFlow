@@ -27,6 +27,9 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
 
   return (
     <>
+      <Link className="admin-back-link" href="/admin/users">
+        ← 返回用户列表
+      </Link>
       <PageHeader
         eyebrow="用户管理"
         title={user.email}

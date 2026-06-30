@@ -23,6 +23,9 @@ export default async function AdminPaperAccountDetailPage({
 
   return (
     <>
+      <Link className="admin-back-link" href="/admin/paper-accounts">
+        ← 返回模拟盘列表
+      </Link>
       <PageHeader
         eyebrow="模拟盘详情"
         title={account.name}

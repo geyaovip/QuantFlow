@@ -19,13 +19,14 @@ export function AdminUsersConsole({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [grantUserId, setGrantUserId] = useState(users[0]?.id ?? "");
+  const [grantUserId, setGrantUserId] = useState("");
   const [grantTier, setGrantTier] = useState<"plus" | "pro">("plus");
   const [grantCycle, setGrantCycle] = useState<"monthly" | "yearly">("monthly");
+  const [grantReason, setGrantReason] = useState("");
 
   const manualGrant = async () => {
-    const reason = window.prompt("请输入人工开通原因");
-    if (!reason || reason.length < 3) {
+    if (!grantReason.trim() || grantReason.trim().length < 3) {
+      setError("请填写至少 3 个字的开通原因");
       return;
     }
     if (!grantUserId) {
@@ -48,7 +49,7 @@ export function AdminUsersConsole({
             userId: grantUserId,
             tier: grantTier,
             billingCycle: grantCycle,
-            reason,
+            reason: grantReason.trim(),
           }),
         },
       );
@@ -59,12 +60,29 @@ export function AdminUsersConsole({
         throw new Error(payload?.message ?? "开通失败");
       }
       setMessage("会员已人工开通。");
+      closeGrantModal();
       router.refresh();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "开通失败");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const openGrantModal = (userId: string) => {
+    setGrantUserId(userId);
+    setGrantTier("plus");
+    setGrantCycle("monthly");
+    setGrantReason("");
+    setError("");
+  };
+
+  const closeGrantModal = () => {
+    if (isSubmitting) {
+      return;
+    }
+    setGrantUserId("");
+    setGrantReason("");
   };
 
   const updateStatus = async (
@@ -107,55 +125,6 @@ export function AdminUsersConsole({
 
   return (
     <div className="admin-console">
-      <div className="admin-form-row">
-        <label>
-          人工开通会员
-          <select
-            disabled={isSubmitting}
-            onChange={(event) => setGrantUserId(event.target.value)}
-            value={grantUserId}
-          >
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.email}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          档位
-          <select
-            disabled={isSubmitting}
-            onChange={(event) =>
-              setGrantTier(event.target.value as "plus" | "pro")
-            }
-            value={grantTier}
-          >
-            <option value="plus">Plus</option>
-            <option value="pro">Pro</option>
-          </select>
-        </label>
-        <label>
-          周期
-          <select
-            disabled={isSubmitting}
-            onChange={(event) =>
-              setGrantCycle(event.target.value as "monthly" | "yearly")
-            }
-            value={grantCycle}
-          >
-            <option value="monthly">月付</option>
-            <option value="yearly">年付</option>
-          </select>
-        </label>
-        <button
-          disabled={isSubmitting || !users.length}
-          onClick={() => void manualGrant()}
-          type="button"
-        >
-          开通
-        </button>
-      </div>
       {message ? <p className="auth-message">{message}</p> : null}
       {error ? <p className="auth-error">{error}</p> : null}
       <div className="admin-table">
@@ -177,6 +146,13 @@ export function AdminUsersConsole({
             <span>{user.paperAccountCount}</span>
             <span>{user.strategySubscriptionCount}</span>
             <span className="admin-table__actions">
+              <button
+                disabled={isSubmitting}
+                onClick={() => openGrantModal(user.id)}
+                type="button"
+              >
+                开通会员
+              </button>
               {user.status !== "active" ? (
                 <button
                   disabled={isSubmitting}
@@ -214,6 +190,76 @@ export function AdminUsersConsole({
           </div>
         ))}
       </div>
+      {grantUserId ? (
+        <div aria-modal="true" className="admin-modal" role="dialog">
+          <button
+            aria-label="关闭"
+            className="admin-modal__backdrop"
+            onClick={closeGrantModal}
+            type="button"
+          />
+          <section className="admin-modal__dialog">
+            <div className="admin-section-title">
+              <div>
+                <h2>开通会员</h2>
+                <p>
+                  {users.find((user) => user.id === grantUserId)?.email ??
+                    "当前用户"}
+                </p>
+              </div>
+              <button onClick={closeGrantModal} type="button">
+                关闭
+              </button>
+            </div>
+            <div className="admin-form-grid">
+              <label>
+                档位
+                <select
+                  disabled={isSubmitting}
+                  onChange={(event) =>
+                    setGrantTier(event.target.value as "plus" | "pro")
+                  }
+                  value={grantTier}
+                >
+                  <option value="plus">Plus</option>
+                  <option value="pro">Pro</option>
+                </select>
+              </label>
+              <label>
+                周期
+                <select
+                  disabled={isSubmitting}
+                  onChange={(event) =>
+                    setGrantCycle(event.target.value as "monthly" | "yearly")
+                  }
+                  value={grantCycle}
+                >
+                  <option value="monthly">月付</option>
+                  <option value="yearly">年付</option>
+                </select>
+              </label>
+              <label className="admin-form-grid__wide">
+                开通原因
+                <textarea
+                  disabled={isSubmitting}
+                  onChange={(event) => setGrantReason(event.target.value)}
+                  placeholder="例如：线下付款已核验 / 内测名额开通"
+                  value={grantReason}
+                />
+              </label>
+            </div>
+            <div className="admin-modal__actions">
+              <button
+                disabled={isSubmitting}
+                onClick={() => void manualGrant()}
+                type="button"
+              >
+                {isSubmitting ? "处理中..." : "确认开通"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }

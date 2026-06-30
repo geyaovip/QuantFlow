@@ -18,6 +18,7 @@ export function AdminInviteCodesConsole({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const [code, setCode] = useState("");
   const [tier, setTier] = useState<"plus" | "pro">("plus");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
@@ -66,6 +67,7 @@ export function AdminInviteCodesConsole({
       setMessage("邀请码已创建。");
       setCode("");
       setNote("");
+      setShowCreate(false);
       router.refresh();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "创建失败");
@@ -111,71 +113,82 @@ export function AdminInviteCodesConsole({
 
   return (
     <div className="admin-console">
-      <section className="admin-form-panel" aria-label="创建邀请码">
-        <h2>创建邀请码</h2>
-        <div className="admin-form-grid">
-          <label>
-            <span>邀请码</span>
-            <input
-              disabled={isSubmitting}
-              onChange={(event) => setCode(event.target.value)}
-              placeholder="QF-PRO-2026"
-              value={code}
-            />
-          </label>
-          <label>
-            <span>计划</span>
-            <select
-              disabled={isSubmitting}
-              onChange={(event) =>
-                setTier(event.target.value as "plus" | "pro")
-              }
-              value={tier}
-            >
-              <option value="plus">Plus</option>
-              <option value="pro">Pro</option>
-            </select>
-          </label>
-          <label>
-            <span>周期</span>
-            <select
-              disabled={isSubmitting}
-              onChange={(event) =>
-                setBillingCycle(event.target.value as "monthly" | "yearly")
-              }
-              value={billingCycle}
-            >
-              <option value="monthly">月付</option>
-              <option value="yearly">年付</option>
-            </select>
-          </label>
-          <label>
-            <span>可用次数</span>
-            <input
-              disabled={isSubmitting}
-              min={1}
-              onChange={(event) => setMaxRedemptions(event.target.value)}
-              type="number"
-              value={maxRedemptions}
-            />
-          </label>
-          <label>
-            <span>备注</span>
-            <input
-              disabled={isSubmitting}
-              onChange={(event) => setNote(event.target.value)}
-              value={note}
-            />
-          </label>
+      <div className="admin-console__toolbar">
+        <div>
+          <strong>邀请码</strong>
+          <span>创建入口默认收起，避免列表页面被表单占据。</span>
         </div>
-        <button
-          disabled={isSubmitting}
-          onClick={() => void createInviteCode()}
-          type="button"
-        >
-          创建邀请码
+        <button onClick={() => setShowCreate((value) => !value)} type="button">
+          {showCreate ? "收起创建" : "新建邀请码"}
         </button>
-      </section>
+      </div>
+      {showCreate ? (
+        <section className="admin-form-panel" aria-label="创建邀请码">
+          <h2>创建邀请码</h2>
+          <div className="admin-form-grid">
+            <label>
+              <span>邀请码</span>
+              <input
+                disabled={isSubmitting}
+                onChange={(event) => setCode(event.target.value)}
+                placeholder="QF-PRO-2026"
+                value={code}
+              />
+            </label>
+            <label>
+              <span>计划</span>
+              <select
+                disabled={isSubmitting}
+                onChange={(event) =>
+                  setTier(event.target.value as "plus" | "pro")
+                }
+                value={tier}
+              >
+                <option value="plus">Plus</option>
+                <option value="pro">Pro</option>
+              </select>
+            </label>
+            <label>
+              <span>周期</span>
+              <select
+                disabled={isSubmitting}
+                onChange={(event) =>
+                  setBillingCycle(event.target.value as "monthly" | "yearly")
+                }
+                value={billingCycle}
+              >
+                <option value="monthly">月付</option>
+                <option value="yearly">年付</option>
+              </select>
+            </label>
+            <label>
+              <span>可用次数</span>
+              <input
+                disabled={isSubmitting}
+                min={1}
+                onChange={(event) => setMaxRedemptions(event.target.value)}
+                type="number"
+                value={maxRedemptions}
+              />
+            </label>
+            <label>
+              <span>备注</span>
+              <input
+                disabled={isSubmitting}
+                onChange={(event) => setNote(event.target.value)}
+                value={note}
+              />
+            </label>
+          </div>
+          <button
+            disabled={isSubmitting}
+            onClick={() => void createInviteCode()}
+            type="button"
+          >
+            创建邀请码
+          </button>
+        </section>
+      ) : null}
       {message ? <p className="auth-message">{message}</p> : null}
       {error ? <p className="auth-error">{error}</p> : null}
       {inviteCodes.length ? (

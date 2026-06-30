@@ -53,6 +53,10 @@ export default async function MembershipPage({
             <strong>{entitlements.strategySubscriptionsMax} 个</strong>
           </div>
           <div>
+            <span>模拟盘</span>
+            <strong>{entitlements.paperAccountsMax} 个</strong>
+          </div>
+          <div>
             <span>历史数据</span>
             <strong>{entitlements.historyDays} 天</strong>
           </div>

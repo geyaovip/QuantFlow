@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
 
 import { AdminShell } from "../../components/admin-shell";
+import { getAdminSession } from "../../lib/auth-session";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <AdminShell>{children}</AdminShell>;
+export default async function AdminLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await getAdminSession();
+  return <AdminShell session={session}>{children}</AdminShell>;
 }

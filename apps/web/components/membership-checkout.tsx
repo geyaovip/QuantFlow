@@ -233,16 +233,8 @@ export function MembershipCheckout({
                 <strong>${trimPrice(selectedPrice)}</strong>
               </div>
               <p>
-                支付完成后自动开通对应会员容量，不自动续费。年付价格按 10
-                个月计算。
+                确认后将创建订单并打开安全支付页。支付完成后自动开通对应会员容量，不自动续费。
               </p>
-            </div>
-            <div className="membership-modal__methods" aria-label="支付方式">
-              <span>支付方式</span>
-              <div>
-                <strong>USDT BEP-20</strong>
-                <strong>USDT ERC-20</strong>
-              </div>
             </div>
             <div className="membership-modal__benefits">
               <div>
@@ -269,15 +261,7 @@ export function MembershipCheckout({
             ) : null}
             <div className="membership-modal__actions">
               <Button disabled={loading} onClick={handleCheckout}>
-                {loading ? "正在创建订单..." : "去 Plisio 支付"}
-              </Button>
-              <Button
-                disabled={loading}
-                onClick={closeCheckout}
-                type="button"
-                variant="secondary"
-              >
-                返回
+                {loading ? "正在创建订单..." : "确认并支付"}
               </Button>
             </div>
           </Card>

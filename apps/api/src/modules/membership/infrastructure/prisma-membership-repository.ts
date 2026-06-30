@@ -274,6 +274,20 @@ export class PrismaMembershipRepository implements MembershipRepository {
       email: user?.email,
       orderName: `QuantFlow ${plan.name} ${input.billingCycle === "monthly" ? "月付" : "年付"}`,
       orderNumber: payment.id,
+    }).catch(async (error: unknown) => {
+      await this.prisma.membershipPayment.update({
+        where: { id: payment.id },
+        data: {
+          rawPayload: toPrismaJson({
+            error:
+              error instanceof Error
+                ? { message: error.message, name: error.name }
+                : { message: "unknown payment provider error" },
+          }),
+          status: "failed",
+        },
+      });
+      throw error;
     });
 
     const updated = await this.prisma.membershipPayment.update({

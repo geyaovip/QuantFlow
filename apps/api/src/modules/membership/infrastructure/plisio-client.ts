@@ -12,11 +12,14 @@ type PlisioInvoiceInput = {
 };
 
 type PlisioInvoiceResponse = {
-  data?: {
-    expire_utc?: number;
-    invoice_url?: string;
-    txn_id?: string;
-  };
+  data?:
+    | {
+        expire_utc?: number;
+        invoice_url?: string;
+        txn_id?: string;
+      }
+    | string;
+  message?: string;
   status?: string;
 };
 
@@ -43,7 +46,6 @@ export class PlisioClient {
       allowed_psys_cids: this.config.allowedPsysCids.join(","),
       api_key: this.config.plisioApiKey,
       callback_url: callbackUrl,
-      currency: "USDT_BSC",
       description: `${input.orderName}，仅开通会员容量。`,
       expire_min: "30",
       fail_callback_url: failUrl,
@@ -71,15 +73,17 @@ export class PlisioClient {
       .json()
       .catch(() => null)) as PlisioInvoiceResponse | null;
 
-    if (!response.ok || payload?.status === "error" || !payload?.data) {
-      const errorMessage =
-        payload && typeof payload === "object" && "data" in payload
-          ? JSON.stringify(payload.data).slice(0, 300)
-          : null;
+    if (
+      !response.ok ||
+      payload?.status === "error" ||
+      !payload?.data ||
+      typeof payload.data === "string"
+    ) {
       console.warn("Plisio invoice create failed", {
         httpStatus: response.status,
         providerStatus: payload?.status ?? null,
-        providerError: errorMessage,
+        providerError: compactProviderError(payload),
+        allowedPsysCids: this.config.allowedPsysCids,
         sourceCurrency: this.config.sourceCurrency,
       });
       throw new Error("plisio invoice create failed");
@@ -164,6 +168,19 @@ export class PlisioClient {
     }
     return JSON.stringify(value);
   }
+}
+
+function compactProviderError(payload: PlisioInvoiceResponse | null) {
+  if (!payload) {
+    return null;
+  }
+  const messageParts = [
+    typeof payload.message === "string" ? payload.message : null,
+    typeof payload.data === "string" ? payload.data : null,
+  ].filter(Boolean);
+  return messageParts.length
+    ? messageParts.join(" | ").slice(0, 300)
+    : JSON.stringify(payload.data ?? payload).slice(0, 300);
 }
 
 function readString(value: unknown) {

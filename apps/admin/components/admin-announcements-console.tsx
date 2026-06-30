@@ -18,6 +18,7 @@ export function AdminAnnouncementsConsole({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
@@ -50,6 +51,7 @@ export function AdminAnnouncementsConsole({
       }
       setTitle("");
       setContent("");
+      setShowCreate(false);
       setMessage("公告草稿已创建。");
       router.refresh();
     } catch (submitError) {
@@ -96,32 +98,43 @@ export function AdminAnnouncementsConsole({
 
   return (
     <div className="admin-console">
-      <div className="admin-form-row">
-        <label>
-          标题
-          <input
-            disabled={isSubmitting}
-            onChange={(event) => setTitle(event.target.value)}
-            value={title}
-          />
-        </label>
-        <label>
-          正文
-          <textarea
-            disabled={isSubmitting}
-            onChange={(event) => setContent(event.target.value)}
-            rows={3}
-            value={content}
-          />
-        </label>
-        <button
-          disabled={isSubmitting}
-          onClick={() => void createAnnouncement()}
-          type="button"
-        >
-          创建草稿
+      <div className="admin-console__toolbar">
+        <div>
+          <strong>系统公告</strong>
+          <span>默认只展示公告列表，需要时再创建草稿。</span>
+        </div>
+        <button onClick={() => setShowCreate((value) => !value)} type="button">
+          {showCreate ? "收起创建" : "新建公告"}
         </button>
       </div>
+      {showCreate ? (
+        <div className="admin-form-row">
+          <label>
+            标题
+            <input
+              disabled={isSubmitting}
+              onChange={(event) => setTitle(event.target.value)}
+              value={title}
+            />
+          </label>
+          <label>
+            正文
+            <textarea
+              disabled={isSubmitting}
+              onChange={(event) => setContent(event.target.value)}
+              rows={3}
+              value={content}
+            />
+          </label>
+          <button
+            disabled={isSubmitting}
+            onClick={() => void createAnnouncement()}
+            type="button"
+          >
+            创建草稿
+          </button>
+        </div>
+      ) : null}
       {message ? <p className="auth-message">{message}</p> : null}
       {error ? <p className="auth-error">{error}</p> : null}
       {announcements.length ? (

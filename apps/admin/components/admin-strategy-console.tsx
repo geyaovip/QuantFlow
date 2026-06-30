@@ -40,6 +40,7 @@ export function AdminStrategyConsole({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
 
   const createStrategy = async () => {
     setIsSubmitting(true);
@@ -64,6 +65,7 @@ export function AdminStrategyConsole({
         throw new Error("create failed");
       }
       setDraft(defaultDraft);
+      setShowCreate(false);
       setMessage("策略草稿已创建。");
       router.refresh();
     } catch {
@@ -103,135 +105,151 @@ export function AdminStrategyConsole({
 
   return (
     <div className="admin-strategy-console">
-      <section className="admin-form-card" aria-label="创建策略草稿">
-        <div className="admin-section-title">
-          <div>
-            <h2>创建策略草稿</h2>
-            <p>填写策略基础信息，审核通过后进入用户端展示。</p>
-          </div>
-          <button
-            disabled={isSubmitting}
-            onClick={() => void createStrategy()}
-            type="button"
-          >
-            {isSubmitting ? "创建中..." : "创建草稿"}
-          </button>
+      <div className="admin-console__toolbar">
+        <div>
+          <strong>策略运营</strong>
+          <span>列表优先处理审核、暂停和下架；创建草稿按需展开。</span>
         </div>
-        <div className="admin-form-grid">
-          <label>
-            Slug
-            <input
-              onChange={(event) =>
-                setDraft({ ...draft, slug: event.target.value })
-              }
-              placeholder="btc-trend-v2"
-              value={draft.slug}
-            />
-          </label>
-          <label>
-            名称
-            <input
-              onChange={(event) =>
-                setDraft({ ...draft, name: event.target.value })
-              }
-              placeholder="BTC 趋势过滤 V2"
-              value={draft.name}
-            />
-          </label>
-          <label>
-            币种
-            <input
-              onChange={(event) =>
-                setDraft({ ...draft, symbols: [event.target.value] })
-              }
-              placeholder="BTCUSDT,ETHUSDT"
-              value={draft.symbols.join(",")}
-            />
-          </label>
-          <label>
-            风险等级
-            <select
-              onChange={(event) =>
-                setDraft({
-                  ...draft,
-                  riskLevel: event.target
-                    .value as AdminStrategyCreate["riskLevel"],
-                })
-              }
-              value={draft.riskLevel}
+        <button onClick={() => setShowCreate((value) => !value)} type="button">
+          {showCreate ? "收起创建" : "新建策略"}
+        </button>
+      </div>
+      {showCreate ? (
+        <section className="admin-form-card" aria-label="创建策略草稿">
+          <div className="admin-section-title">
+            <div>
+              <h2>创建策略草稿</h2>
+              <p>填写策略基础信息，审核通过后进入用户端展示。</p>
+            </div>
+            <button
+              disabled={isSubmitting}
+              onClick={() => void createStrategy()}
+              type="button"
             >
-              <option value="low">低</option>
-              <option value="medium">中</option>
-              <option value="high">高</option>
-            </select>
-          </label>
-          <label className="admin-form-grid__wide">
-            摘要
-            <textarea
-              onChange={(event) =>
-                setDraft({ ...draft, summary: event.target.value })
-              }
-              value={draft.summary}
-            />
-          </label>
-          <label className="admin-form-grid__wide">
-            策略逻辑
-            <textarea
-              onChange={(event) =>
-                setDraft({ ...draft, logic: event.target.value })
-              }
-              value={draft.logic}
-            />
-          </label>
-          <label>
-            适合行情
-            <textarea
-              onChange={(event) =>
-                setDraft({ ...draft, suitableMarket: event.target.value })
-              }
-              value={draft.suitableMarket}
-            />
-          </label>
-          <label>
-            不适合行情
-            <textarea
-              onChange={(event) =>
-                setDraft({ ...draft, unsuitableMarket: event.target.value })
-              }
-              value={draft.unsuitableMarket}
-            />
-          </label>
-          <label>
-            止损逻辑
-            <textarea
-              onChange={(event) =>
-                setDraft({ ...draft, stopLossLogic: event.target.value })
-              }
-              value={draft.stopLossLogic}
-            />
-          </label>
-          <label>
-            止盈逻辑
-            <textarea
-              onChange={(event) =>
-                setDraft({ ...draft, takeProfitLogic: event.target.value })
-              }
-              value={draft.takeProfitLogic}
-            />
-          </label>
-          <label className="admin-form-grid__wide">
-            失效场景
-            <textarea
-              onChange={(event) =>
-                setDraft({ ...draft, failureModes: event.target.value })
-              }
-              value={draft.failureModes}
-            />
-          </label>
-        </div>
-        {message ? <p className="admin-message">{message}</p> : null}
-        {error ? <p className="admin-error">{error}</p> : null}
-      </section>
+              {isSubmitting ? "创建中..." : "创建草稿"}
+            </button>
+          </div>
+          <div className="admin-form-grid">
+            <label>
+              Slug
+              <input
+                onChange={(event) =>
+                  setDraft({ ...draft, slug: event.target.value })
+                }
+                placeholder="btc-trend-v2"
+                value={draft.slug}
+              />
+            </label>
+            <label>
+              名称
+              <input
+                onChange={(event) =>
+                  setDraft({ ...draft, name: event.target.value })
+                }
+                placeholder="BTC 趋势过滤 V2"
+                value={draft.name}
+              />
+            </label>
+            <label>
+              币种
+              <input
+                onChange={(event) =>
+                  setDraft({ ...draft, symbols: [event.target.value] })
+                }
+                placeholder="BTCUSDT,ETHUSDT"
+                value={draft.symbols.join(",")}
+              />
+            </label>
+            <label>
+              风险等级
+              <select
+                onChange={(event) =>
+                  setDraft({
+                    ...draft,
+                    riskLevel: event.target
+                      .value as AdminStrategyCreate["riskLevel"],
+                  })
+                }
+                value={draft.riskLevel}
+              >
+                <option value="low">低</option>
+                <option value="medium">中</option>
+                <option value="high">高</option>
+              </select>
+            </label>
+            <label className="admin-form-grid__wide">
+              摘要
+              <textarea
+                onChange={(event) =>
+                  setDraft({ ...draft, summary: event.target.value })
+                }
+                value={draft.summary}
+              />
+            </label>
+            <label className="admin-form-grid__wide">
+              策略逻辑
+              <textarea
+                onChange={(event) =>
+                  setDraft({ ...draft, logic: event.target.value })
+                }
+                value={draft.logic}
+              />
+            </label>
+            <label>
+              适合行情
+              <textarea
+                onChange={(event) =>
+                  setDraft({ ...draft, suitableMarket: event.target.value })
+                }
+                value={draft.suitableMarket}
+              />
+            </label>
+            <label>
+              不适合行情
+              <textarea
+                onChange={(event) =>
+                  setDraft({ ...draft, unsuitableMarket: event.target.value })
+                }
+                value={draft.unsuitableMarket}
+              />
+            </label>
+            <label>
+              止损逻辑
+              <textarea
+                onChange={(event) =>
+                  setDraft({ ...draft, stopLossLogic: event.target.value })
+                }
+                value={draft.stopLossLogic}
+              />
+            </label>
+            <label>
+              止盈逻辑
+              <textarea
+                onChange={(event) =>
+                  setDraft({ ...draft, takeProfitLogic: event.target.value })
+                }
+                value={draft.takeProfitLogic}
+              />
+            </label>
+            <label className="admin-form-grid__wide">
+              失效场景
+              <textarea
+                onChange={(event) =>
+                  setDraft({ ...draft, failureModes: event.target.value })
+                }
+                value={draft.failureModes}
+              />
+            </label>
+          </div>
+          {message ? <p className="admin-message">{message}</p> : null}
+          {error ? <p className="admin-error">{error}</p> : null}
+        </section>
+      ) : (
+        <>
+          {message ? <p className="admin-message">{message}</p> : null}
+          {error ? <p className="admin-error">{error}</p> : null}
+        </>
+      )}
 
       <section className="admin-table-card">
         <div className="admin-section-title">
