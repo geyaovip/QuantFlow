@@ -156,7 +156,7 @@ test.describe("Paper trading journey API", () => {
         },
       },
     );
-    expect(expiredSignalCreateResponse.status()).toBe(409);
+    expect(expiredSignalCreateResponse.status()).toBe(403);
     const afterExpiredSignalResponse = await request.get(
       `${authBaseUrl}/api/v1/paper-accounts?page=1&pageSize=20`,
     );
