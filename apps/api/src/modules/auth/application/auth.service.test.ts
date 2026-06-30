@@ -171,6 +171,11 @@ class MemoryAuthRepository implements AuthRepository {
     return email ? { email, nickname: null } : null;
   }
 
+  async findAdminProfileById(adminUserId: string) {
+    const email = adminUserId.replace(/^admin:/, "");
+    return email ? { email } : null;
+  }
+
   async touchSession() {}
 
   async recordSecurityEvent(input: SecurityEventInput) {

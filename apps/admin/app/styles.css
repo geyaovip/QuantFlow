@@ -105,6 +105,9 @@ body {
   display: grid;
   min-width: 0;
 }
+.admin-sidebar__identity--full {
+  grid-column: 1 / -1;
+}
 .admin-sidebar__identity span {
   overflow: hidden;
   color: #fff;

@@ -67,11 +67,14 @@ export class PlisioClient {
     }
 
     const response = await fetch(`${this.endpoint}?${params.toString()}`, {
+      headers: {
+        accept: "application/json",
+        "user-agent": "QuantFlow/1.0 (+https://quantflow.chat)",
+      },
       method: "GET",
     });
-    const payload = (await response
-      .json()
-      .catch(() => null)) as PlisioInvoiceResponse | null;
+    const responseText = await response.text();
+    const payload = parseJson(responseText);
 
     if (
       !response.ok ||
@@ -83,6 +86,7 @@ export class PlisioClient {
         httpStatus: response.status,
         providerStatus: payload?.status ?? null,
         providerError: compactProviderError(payload),
+        rawResponse: responseText.slice(0, 300),
         allowedPsysCids: this.config.allowedPsysCids,
         sourceCurrency: this.config.sourceCurrency,
       });
@@ -167,6 +171,14 @@ export class PlisioClient {
         .join(",")}}`;
     }
     return JSON.stringify(value);
+  }
+}
+
+function parseJson(value: string) {
+  try {
+    return JSON.parse(value) as PlisioInvoiceResponse;
+  } catch {
+    return null;
   }
 }
 

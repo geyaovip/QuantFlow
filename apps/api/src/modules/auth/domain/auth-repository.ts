@@ -1,5 +1,6 @@
 import type {
   AuthPortal,
+  AuthAdminProfile,
   AuthSessionSubject,
   AuthSubject,
   AuthUserProfile,
@@ -57,6 +58,7 @@ export interface AuthRepository {
     audience: AuthPortal,
     now: Date,
   ): Promise<AuthSessionSubject | null>;
+  findAdminProfileById(adminUserId: string): Promise<AuthAdminProfile | null>;
   findUserProfileById(userId: string): Promise<AuthUserProfile | null>;
   touchSession(tokenHash: string, at: Date): Promise<void>;
   recordSecurityEvent(input: SecurityEventInput): Promise<void>;

@@ -55,6 +55,10 @@ export type AuthUserProfile = {
   nickname: string | null;
 };
 
+export type AuthAdminProfile = {
+  email: string;
+};
+
 export type AuthSessionView = AuthSessionSubject & {
   email?: string;
   displayName?: string;

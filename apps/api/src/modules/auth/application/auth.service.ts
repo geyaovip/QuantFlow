@@ -279,8 +279,15 @@ export class AuthService {
 
     await this.repository.touchSession(tokenHash, this.clock.now());
 
-    if (audience !== "user") {
-      return session;
+    if (audience === "admin") {
+      const profile = await this.repository.findAdminProfileById(
+        session.subjectId,
+      );
+      return {
+        ...session,
+        email: profile?.email,
+        displayName: profile?.email.split("@")[0],
+      };
     }
 
     const profile = await this.repository.findUserProfileById(

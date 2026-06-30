@@ -56,7 +56,7 @@ export function AdminShell({
   children: ReactNode;
   session: AdminSession | null;
 }) {
-  const identity = session?.email ?? session?.displayName ?? "未登录";
+  const identity = session?.email ?? session?.displayName;
   const initials = (session?.displayName ?? session?.email ?? "A")
     .slice(0, 2)
     .toUpperCase();
@@ -91,12 +91,21 @@ export function AdminShell({
           ))}
         </nav>
         <div className="admin-sidebar__footer">
-          <div className="admin-sidebar__avatar">{initials}</div>
-          <div className="admin-sidebar__identity">
-            <span>{identity}</span>
-            <small>管理员</small>
-          </div>
-          <AdminLogoutButton apiBaseUrl={resolveApiBaseUrl()} />
+          {identity ? (
+            <>
+              <div className="admin-sidebar__avatar">{initials}</div>
+              <div className="admin-sidebar__identity">
+                <span>{identity}</span>
+                <small>管理员</small>
+              </div>
+              <AdminLogoutButton apiBaseUrl={resolveApiBaseUrl()} />
+            </>
+          ) : (
+            <div className="admin-sidebar__identity admin-sidebar__identity--full">
+              <span>会话读取中</span>
+              <small>刷新后仍异常请重新登录</small>
+            </div>
+          )}
         </div>
       </aside>
       <div className="admin-main">

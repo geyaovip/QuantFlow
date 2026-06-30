@@ -204,6 +204,15 @@ export class PrismaAuthRepository implements AuthRepository {
     return user ? { email: user.email, nickname: null } : null;
   }
 
+  async findAdminProfileById(adminUserId: string) {
+    const admin = await this.prisma.adminUser.findUnique({
+      where: { id: adminUserId },
+      select: { email: true },
+    });
+
+    return admin ? { email: admin.email } : null;
+  }
+
   async touchSession(tokenHash: string, at: Date) {
     await this.prisma.authSession.update({
       where: { tokenHash },
