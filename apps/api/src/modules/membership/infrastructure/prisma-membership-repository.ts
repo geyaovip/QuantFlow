@@ -38,6 +38,9 @@ export class PrismaMembershipRepository implements MembershipRepository {
   ) {}
 
   private readonly reusablePaymentWindowMs = 30 * 60 * 1000;
+  private readonly inProgressPaymentWindowMs = 60 * 1000;
+  private readonly inProgressPaymentPollAttempts = 15;
+  private readonly inProgressPaymentPollMs = 400;
 
   async listPlans(): Promise<MembershipPlanListResponse> {
     const plans = await this.prisma.membershipPlan.findMany({
@@ -266,6 +269,24 @@ export class PrismaMembershipRepository implements MembershipRepository {
     if (reusablePayment) {
       return toMembershipPaymentResponse(reusablePayment, input.tier);
     }
+    const inProgressPayment = await this.findInProgressPayment({
+      amountUsd,
+      billingCycle: input.billingCycle,
+      planId: plan.id,
+      tier: input.tier,
+      userId,
+    });
+    if (inProgressPayment) {
+      const completedInProgressPayment = await this.waitForPendingPayment(
+        inProgressPayment.id,
+      );
+      if (completedInProgressPayment) {
+        return toMembershipPaymentResponse(
+          completedInProgressPayment,
+          input.tier,
+        );
+      }
+    }
 
     const payment = await this.prisma.membershipPayment.create({
       data: {
@@ -343,6 +364,63 @@ export class PrismaMembershipRepository implements MembershipRepository {
     });
 
     return payment;
+  }
+
+  private async findInProgressPayment(input: {
+    amountUsd: string;
+    billingCycle: string;
+    planId: string;
+    tier: MembershipCheckoutCreate["tier"];
+    userId: string;
+  }) {
+    const createdAfter = new Date(Date.now() - this.inProgressPaymentWindowMs);
+    const payment = await this.prisma.membershipPayment.findFirst({
+      where: {
+        amountUsd: input.amountUsd,
+        billingCycle: input.billingCycle,
+        planId: input.planId,
+        status: "created",
+        tier: input.tier,
+        userId: input.userId,
+        createdAt: { gt: createdAfter },
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+
+    return payment;
+  }
+
+  private async waitForPendingPayment(paymentId: string) {
+    for (
+      let attempt = 0;
+      attempt < this.inProgressPaymentPollAttempts;
+      attempt++
+    ) {
+      await sleep(this.inProgressPaymentPollMs);
+      const payment = await this.prisma.membershipPayment.findFirst({
+        where: {
+          id: paymentId,
+          invoiceUrl: { not: null },
+          status: "pending",
+        },
+      });
+      if (payment) {
+        return payment;
+      }
+
+      const failedPayment = await this.prisma.membershipPayment.findFirst({
+        where: {
+          id: paymentId,
+          status: "failed",
+        },
+        select: { id: true },
+      });
+      if (failedPayment) {
+        return null;
+      }
+    }
+
+    return null;
   }
 
   async completePaymentFromCallback(input: {
@@ -538,4 +616,8 @@ function normalizeInviteCode(code: string) {
     .trim()
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

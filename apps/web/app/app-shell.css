@@ -1015,6 +1015,26 @@
   font-size: 14px;
   line-height: 1.5;
 }
+.membership-modal__payment-link {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--qf-text);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.membership-modal__payment-link:hover {
+  color: var(--qf-info);
+}
+.membership-modal__payment-link:focus-visible {
+  outline: 2px solid var(--qf-info);
+  outline-offset: 3px;
+}
 .membership-modal__actions {
   display: grid;
   grid-template-columns: 1fr;

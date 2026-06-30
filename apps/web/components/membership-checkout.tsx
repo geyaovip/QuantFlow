@@ -25,6 +25,7 @@ export function MembershipCheckout({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
+  const [activeInvoiceUrl, setActiveInvoiceUrl] = useState<string | null>(null);
   const selectedPlan = selectedTier
     ? plans.find((plan) => plan.tier === selectedTier)
     : null;
@@ -65,6 +66,7 @@ export function MembershipCheckout({
     setSelectedTier(plan.tier);
     setError(null);
     setCheckoutMessage(null);
+    setActiveInvoiceUrl(null);
   }
 
   function closeCheckout() {
@@ -74,11 +76,32 @@ export function MembershipCheckout({
     setSelectedTier(null);
     setError(null);
     setCheckoutMessage(null);
+    setActiveInvoiceUrl(null);
+  }
+
+  function openPaymentPage(invoiceUrl: string) {
+    const paymentWindow = window.open(invoiceUrl, "_blank", "noopener");
+    if (!paymentWindow) {
+      setCheckoutMessage("浏览器拦截了新标签页，请点击下方链接继续支付。");
+      return false;
+    }
+
+    setCheckoutMessage(
+      "支付页已在新标签打开。完成或取消支付后，可回到本页面查看状态。",
+    );
+    return true;
   }
 
   async function handleCheckout() {
     if (!selectedTier) {
       setError("请先选择会员计划。");
+      return;
+    }
+    if (loading) {
+      return;
+    }
+    if (activeInvoiceUrl) {
+      openPaymentPage(activeInvoiceUrl);
       return;
     }
 
@@ -106,18 +129,8 @@ export function MembershipCheckout({
         throw new Error(result?.message ?? "支付订单创建失败，请稍后重试。");
       }
 
-      const paymentWindow = window.open(
-        result.data.invoiceUrl,
-        "_blank",
-        "noopener,noreferrer",
-      );
-      if (!paymentWindow) {
-        window.location.href = result.data.invoiceUrl;
-        return;
-      }
-      setCheckoutMessage(
-        "支付页已在新标签打开。完成或取消支付后，可回到本页面查看状态。",
-      );
+      setActiveInvoiceUrl(result.data.invoiceUrl);
+      openPaymentPage(result.data.invoiceUrl);
     } catch (checkoutError) {
       setError(
         checkoutError instanceof Error
@@ -279,9 +292,23 @@ export function MembershipCheckout({
                 {checkoutMessage}
               </p>
             ) : null}
+            {activeInvoiceUrl ? (
+              <a
+                className="membership-modal__payment-link"
+                href={activeInvoiceUrl}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                打开支付页面
+              </a>
+            ) : null}
             <div className="membership-modal__actions">
               <Button disabled={loading} onClick={handleCheckout}>
-                {loading ? "正在创建订单..." : "确认并支付"}
+                {loading
+                  ? "正在创建订单..."
+                  : activeInvoiceUrl
+                    ? "重新打开支付页"
+                    : "确认并支付"}
               </Button>
             </div>
           </Card>
