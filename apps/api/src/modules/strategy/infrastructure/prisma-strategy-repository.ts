@@ -951,6 +951,7 @@ type SignalWhereInput = {
 };
 
 function signalWhere(input: SignalWhereInput) {
+  const now = new Date();
   const paperOrderFilter =
     input.userId && typeof input.usedInPaper === "boolean"
       ? input.usedInPaper
@@ -975,16 +976,7 @@ function signalWhere(input: SignalWhereInput) {
       : {};
 
   return {
-    ...(input.status
-      ? {
-          status: input.status as
-            | "active"
-            | "expired"
-            | "cancelled"
-            | "strategy_paused"
-            | "risk_blocked",
-        }
-      : {}),
+    ...buildSignalStatusWhere(input.status, now),
     ...(input.direction
       ? { direction: input.direction as "buy" | "sell" | "watch" }
       : {}),
@@ -1011,6 +1003,30 @@ function signalWhere(input: SignalWhereInput) {
         : {}),
     },
   } satisfies Prisma.StrategySignalWhereInput;
+}
+
+function buildSignalStatusWhere(
+  status: string | undefined,
+  now: Date,
+): Prisma.StrategySignalWhereInput {
+  if (status === "active") {
+    return { status: "active", validUntil: { gt: now } };
+  }
+  if (status === "expired") {
+    return {
+      OR: [
+        { status: "expired" },
+        { status: "active", validUntil: { lte: now } },
+      ],
+    };
+  }
+  if (status) {
+    return {
+      status: status as "cancelled" | "strategy_paused" | "risk_blocked",
+    };
+  }
+
+  return {};
 }
 
 function mapStrategyListItem(
@@ -1133,11 +1149,21 @@ function mapSignalItem(signal: SignalRecord): SignalListItem {
     stopLossPrice: signal.stopLossPrice.toString(),
     takeProfitPrice: signal.takeProfitPrice.toString(),
     rationale: signal.rationale,
-    status: signal.status as SignalListItem["status"],
+    status: effectiveSignalStatus(
+      signal.status,
+      signal.validUntil,
+    ) as SignalListItem["status"],
     riskLevel: signal.riskLevel as SignalListItem["riskLevel"],
     generatedAt: signal.generatedAt.toISOString(),
     validUntil: signal.validUntil.toISOString(),
   };
+}
+
+function effectiveSignalStatus(status: string, validUntil: Date) {
+  if (status === "active" && validUntil <= new Date()) {
+    return "expired";
+  }
+  return status;
 }
 
 function mapSubscription(

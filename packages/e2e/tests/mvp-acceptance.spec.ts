@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 
 import { loginAsAdmin } from "../helpers/admin-auth.js";
-import { loginWithEmailOtp } from "../helpers/auth.js";
+import { loginWithEmailOtp, SEED_FREE_STRATEGY_ID } from "../helpers/auth.js";
 
 const apiURL = process.env.E2E_API_URL ?? "http://127.0.0.1:3002";
+const SEED_EXPIRED_SIGNAL_ID = "11111111-1111-4111-8111-111111111114";
 
 test.describe("MVP acceptance API", () => {
   test("strategy list supports period sort and free filter", async ({
@@ -43,6 +44,45 @@ test.describe("MVP acceptance API", () => {
       pagination: { total: number };
     };
     expect(body.pagination.total).toBeGreaterThanOrEqual(0);
+  });
+
+  test("expired signals are not returned as active signals", async ({
+    request,
+  }) => {
+    const { authBaseUrl } = await loginWithEmailOtp(request);
+    const subscribeResponse = await request.post(
+      `${authBaseUrl}/api/v1/strategies/${SEED_FREE_STRATEGY_ID}/subscriptions`,
+      {
+        data: {
+          riskDisclosureVersion: "risk-v1",
+          riskAccepted: true,
+        },
+      },
+    );
+    expect(subscribeResponse.ok()).toBeTruthy();
+
+    const expiredResponse = await request.get(
+      `${authBaseUrl}/api/v1/signals?page=1&pageSize=20&status=expired`,
+    );
+    expect(expiredResponse.ok()).toBeTruthy();
+    const expiredBody = (await expiredResponse.json()) as {
+      data: Array<{ id: string; status: string }>;
+    };
+    const expiredSeedSignal = expiredBody.data.find(
+      (item) => item.id === SEED_EXPIRED_SIGNAL_ID,
+    );
+    expect(expiredSeedSignal?.status).toBe("expired");
+
+    const activeResponse = await request.get(
+      `${authBaseUrl}/api/v1/signals?page=1&pageSize=20&status=active`,
+    );
+    expect(activeResponse.ok()).toBeTruthy();
+    const activeBody = (await activeResponse.json()) as {
+      data: Array<{ id: string; status: string }>;
+    };
+    expect(
+      activeBody.data.some((item) => item.id === SEED_EXPIRED_SIGNAL_ID),
+    ).toBe(false);
   });
 
   test("admin can inspect user detail for operational support", async ({

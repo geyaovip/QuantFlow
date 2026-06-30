@@ -81,6 +81,12 @@ export class PrismaPaperRepository implements PaperRepository {
 
   async createAccount(userId: string, input: PaperAccountCreate) {
     const context = await this.resolveStrategyContext(userId, input);
+    if (input.signalId) {
+      await this.assertSignalCanCreatePaperAccount(
+        input.signalId,
+        input.strategyId,
+      );
+    }
     const initialBalance = new Prisma.Decimal(input.initialBalance);
 
     const accountId = await this.prisma.$transaction(async (tx) => {
@@ -1106,6 +1112,25 @@ export class PrismaPaperRepository implements PaperRepository {
       throw new PaperAccountNotFoundError();
     }
     return mapDetail(account);
+  }
+
+  private async assertSignalCanCreatePaperAccount(
+    signalId: string,
+    strategyId: string,
+  ) {
+    const signal = await this.prisma.strategySignal.findFirst({
+      where: {
+        id: signalId,
+        strategyId,
+        status: "active",
+        validUntil: { gt: new Date() },
+      },
+      select: { id: true },
+    });
+
+    if (!signal) {
+      throw new PaperExecutionRejectedError("信号不存在、已过期或不可执行");
+    }
   }
 }
 
