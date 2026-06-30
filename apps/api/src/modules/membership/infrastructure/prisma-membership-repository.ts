@@ -37,6 +37,8 @@ export class PrismaMembershipRepository implements MembershipRepository {
     private readonly riskAcceptance: RiskAcceptanceService,
   ) {}
 
+  private readonly reusablePaymentWindowMs = 30 * 60 * 1000;
+
   async listPlans(): Promise<MembershipPlanListResponse> {
     const plans = await this.prisma.membershipPlan.findMany({
       where: { status: "active" },
@@ -254,6 +256,16 @@ export class PrismaMembershipRepository implements MembershipRepository {
       input.billingCycle === "monthly"
         ? plan.monthlyPriceUsd.toString()
         : plan.yearlyPriceUsd.toString();
+    const reusablePayment = await this.findReusablePendingPayment({
+      amountUsd,
+      billingCycle: input.billingCycle,
+      planId: plan.id,
+      tier: input.tier,
+      userId,
+    });
+    if (reusablePayment) {
+      return toMembershipPaymentResponse(reusablePayment, input.tier);
+    }
 
     const payment = await this.prisma.membershipPayment.create({
       data: {
@@ -301,19 +313,36 @@ export class PrismaMembershipRepository implements MembershipRepository {
       },
     });
 
-    return {
-      data: {
-        id: updated.id,
-        tier: input.tier,
+    return toMembershipPaymentResponse(updated, input.tier, invoice.invoiceUrl);
+  }
+
+  private async findReusablePendingPayment(input: {
+    amountUsd: string;
+    billingCycle: string;
+    planId: string;
+    tier: MembershipCheckoutCreate["tier"];
+    userId: string;
+  }) {
+    const now = new Date();
+    const createdAfter = new Date(now.getTime() - this.reusablePaymentWindowMs);
+    const payment = await this.prisma.membershipPayment.findFirst({
+      where: {
+        amountUsd: input.amountUsd,
         billingCycle: input.billingCycle,
-        status: updated.status,
-        provider: "plisio",
-        invoiceUrl: updated.invoiceUrl ?? invoice.invoiceUrl,
-        amountUsd: updated.amountUsd.toString(),
-        allowedCurrencies: ["USDT_BSC", "USDT"],
-        expiresAt: updated.expiresAt?.toISOString() ?? null,
+        invoiceUrl: { not: null },
+        planId: input.planId,
+        status: "pending",
+        tier: input.tier,
+        userId: input.userId,
+        OR: [
+          { expiresAt: { gt: now } },
+          { expiresAt: null, createdAt: { gt: createdAfter } },
+        ],
       },
-    };
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+
+    return payment;
   }
 
   async completePaymentFromCallback(input: {
@@ -470,6 +499,38 @@ export class PrismaMembershipRepository implements MembershipRepository {
 
 function toPrismaJson(value: unknown) {
   return JSON.parse(JSON.stringify(value ?? null));
+}
+
+function toMembershipPaymentResponse(
+  payment: {
+    allowedPsysCids: string[];
+    amountUsd: { toString(): string };
+    billingCycle: string;
+    expiresAt: Date | null;
+    id: string;
+    invoiceUrl: string | null;
+    provider: string;
+    status: string;
+  },
+  tier: MembershipCheckoutCreate["tier"],
+  fallbackInvoiceUrl?: string,
+): MembershipPaymentResponse {
+  return {
+    data: {
+      id: payment.id,
+      tier,
+      billingCycle: payment.billingCycle === "yearly" ? "yearly" : "monthly",
+      status: payment.status,
+      provider: "plisio",
+      invoiceUrl: payment.invoiceUrl ?? fallbackInvoiceUrl ?? "",
+      amountUsd: payment.amountUsd.toString(),
+      allowedCurrencies: payment.allowedPsysCids.filter(
+        (currency): currency is "USDT_BSC" | "USDT" =>
+          currency === "USDT_BSC" || currency === "USDT",
+      ),
+      expiresAt: payment.expiresAt?.toISOString() ?? null,
+    },
+  };
 }
 
 function normalizeInviteCode(code: string) {
