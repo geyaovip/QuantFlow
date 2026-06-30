@@ -8,6 +8,8 @@ type Paginated<T> = {
   pagination: { page: number; pageSize: number; total: number };
 };
 
+const MVP_EXPIRED_SIGNAL_FIXTURE_ID = "11111111-1111-4111-8111-111111111114";
+
 test.describe("Admin governance API", () => {
   test("admin can govern membership, signals, risk events, announcements, and audit logs", async ({
     request,
@@ -184,10 +186,13 @@ test.describe("Admin governance API", () => {
       status: string;
     }>;
     expect(signals.data.length).toBeGreaterThan(0);
-    const signal = signals.data[0];
+    const signal = signals.data.find(
+      (item) => item.id !== MVP_EXPIRED_SIGNAL_FIXTURE_ID,
+    );
+    expect(signal?.id).toBeTruthy();
 
     const abnormalSignalResponse = await request.post(
-      `${adminSession.authBaseUrl}/api/v1/admin/signals/${signal.id}/mark-abnormal`,
+      `${adminSession.authBaseUrl}/api/v1/admin/signals/${signal?.id}/mark-abnormal`,
       {
         data: {
           reason: "e2e 信号异常验证",
@@ -211,7 +216,7 @@ test.describe("Admin governance API", () => {
       type: string;
     }>;
     const signalRiskEvent = riskEvents.data.find(
-      (item) => item.signalId === signal.id && item.type === "signal_abnormal",
+      (item) => item.signalId === signal?.id && item.type === "signal_abnormal",
     );
     expect(signalRiskEvent?.id).toBeTruthy();
 
