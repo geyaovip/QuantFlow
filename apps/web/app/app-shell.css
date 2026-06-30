@@ -1005,6 +1005,16 @@
   font-size: 14px;
   line-height: 1.5;
 }
+.membership-modal__message {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgb(2 132 199 / 0.18);
+  border-radius: 12px;
+  color: var(--qf-info);
+  background: rgb(2 132 199 / 0.06);
+  font-size: 14px;
+  line-height: 1.5;
+}
 .membership-modal__actions {
   display: grid;
   grid-template-columns: 1fr;

@@ -24,6 +24,7 @@ export function MembershipCheckout({
   const [selectedTier, setSelectedTier] = useState<PaidTier | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutMessage, setCheckoutMessage] = useState<string | null>(null);
   const selectedPlan = selectedTier
     ? plans.find((plan) => plan.tier === selectedTier)
     : null;
@@ -63,6 +64,7 @@ export function MembershipCheckout({
     }
     setSelectedTier(plan.tier);
     setError(null);
+    setCheckoutMessage(null);
   }
 
   function closeCheckout() {
@@ -71,6 +73,7 @@ export function MembershipCheckout({
     }
     setSelectedTier(null);
     setError(null);
+    setCheckoutMessage(null);
   }
 
   async function handleCheckout() {
@@ -81,6 +84,7 @@ export function MembershipCheckout({
 
     setLoading(true);
     setError(null);
+    setCheckoutMessage(null);
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/v1/membership/checkout`, {
@@ -102,7 +106,18 @@ export function MembershipCheckout({
         throw new Error(result?.message ?? "支付订单创建失败，请稍后重试。");
       }
 
-      window.location.href = result.data.invoiceUrl;
+      const paymentWindow = window.open(
+        result.data.invoiceUrl,
+        "_blank",
+        "noopener,noreferrer",
+      );
+      if (!paymentWindow) {
+        window.location.href = result.data.invoiceUrl;
+        return;
+      }
+      setCheckoutMessage(
+        "支付页已在新标签打开。完成或取消支付后，可回到本页面查看状态。",
+      );
     } catch (checkoutError) {
       setError(
         checkoutError instanceof Error
@@ -257,6 +272,11 @@ export function MembershipCheckout({
             {error ? (
               <p className="membership-modal__error" role="alert">
                 {error}
+              </p>
+            ) : null}
+            {checkoutMessage ? (
+              <p className="membership-modal__message" role="status">
+                {checkoutMessage}
               </p>
             ) : null}
             <div className="membership-modal__actions">
