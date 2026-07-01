@@ -125,6 +125,16 @@
   .membership-modal__actions {
     grid-template-columns: 1fr;
   }
+  .membership-invite-card__header {
+    display: grid;
+  }
+  .membership-invite-card__header p {
+    max-width: none;
+    text-align: left;
+  }
+  .membership-invite-card__actions .qf-button {
+    width: 100%;
+  }
   .metric-bars__row {
     grid-template-columns: 1fr;
   }

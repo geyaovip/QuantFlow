@@ -353,10 +353,15 @@ body {
   gap: 14px;
 }
 .signal-principles div {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 112px;
   padding: 18px 20px;
   border: 1px solid var(--qf-border);
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--qf-surface);
+  box-shadow: var(--qf-shadow-sm);
 }
 .signal-principles span {
   display: block;
@@ -366,7 +371,7 @@ body {
   letter-spacing: -0.02em;
 }
 .signal-principles p {
-  margin: 6px 0 0;
+  margin: 0;
   color: var(--qf-text-secondary);
   font-size: 14px;
   line-height: 1.6;
@@ -613,8 +618,8 @@ body {
 }
 .preview-row.preview-row--5 {
   grid-template-columns:
-    minmax(220px, 1.8fr) minmax(116px, 0.95fr) minmax(116px, 0.95fr)
-    minmax(92px, 0.75fr) minmax(92px, 0.75fr);
+    minmax(220px, 1.8fr) minmax(120px, 0.95fr) minmax(120px, 0.95fr)
+    minmax(104px, 0.75fr) minmax(104px, 0.75fr);
 }
 .preview-row > * {
   min-width: 0;
@@ -622,6 +627,7 @@ body {
 .preview-row > span:not(:first-child),
 .preview-row > strong:not(:first-child) {
   justify-self: start;
+  text-align: left;
 }
 .preview-row strong,
 .preview-row span {

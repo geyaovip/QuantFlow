@@ -64,8 +64,13 @@ export function MembershipInviteRedeem({
 
   return (
     <Card className="membership-invite-card">
-      <h2>邀请码兑换</h2>
-      <p>输入运营发放的邀请码可开通对应会员计划。邀请码只开通功能容量。</p>
+      <div className="membership-invite-card__header">
+        <div>
+          <span>运营发放</span>
+          <h2>邀请码兑换</h2>
+        </div>
+        <p>邀请码只开通功能容量，不改变策略风险。</p>
+      </div>
       <label className="membership-field">
         <span>邀请码</span>
         <input
@@ -76,13 +81,15 @@ export function MembershipInviteRedeem({
           value={code}
         />
       </label>
-      <Button
-        disabled={isSubmitting || !code.trim()}
-        onClick={() => void submit()}
-        type="button"
-      >
-        {isSubmitting ? "兑换中..." : "兑换邀请码"}
-      </Button>
+      <div className="membership-invite-card__actions">
+        <Button
+          disabled={isSubmitting || !code.trim()}
+          onClick={() => void submit()}
+          type="button"
+        >
+          {isSubmitting ? "兑换中..." : "兑换邀请码"}
+        </Button>
+      </div>
       {message ? <p className="auth-message">{message}</p> : null}
       {error ? <p className="auth-error">{error}</p> : null}
     </Card>

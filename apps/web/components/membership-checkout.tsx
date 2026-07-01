@@ -261,8 +261,15 @@ export function MembershipCheckout({
                 <strong>${trimPrice(selectedPrice)}</strong>
               </div>
               <p>
-                确认后将创建订单并打开安全支付页。支付完成后自动开通对应会员容量，不自动续费。
+                确认后会为当前计划创建一笔支付订单，并在新标签页打开支付页面。支付成功后自动开通会员容量，不自动续费。
               </p>
+            </div>
+            <div className="membership-modal__methods">
+              <span>支持方式</span>
+              <div>
+                <strong>USDT BEP-20</strong>
+                <strong>USDT ERC-20</strong>
+              </div>
             </div>
             <div className="membership-modal__benefits">
               <div>
@@ -299,7 +306,7 @@ export function MembershipCheckout({
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                打开支付页面
+                继续支付
               </a>
             ) : null}
             <div className="membership-modal__actions">

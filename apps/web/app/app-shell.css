@@ -506,6 +506,9 @@
   gap: 18px;
   padding: 22px;
 }
+.membership-card .qf-button {
+  margin-top: auto;
+}
 .membership-card--active {
   border-color: var(--qf-accent);
   box-shadow: 0 0 0 1px rgb(100 116 139 / 0.14);
@@ -1069,8 +1072,29 @@
 }
 .membership-invite-card {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   padding: 24px;
+}
+.membership-invite-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+.membership-invite-card__header span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--qf-text-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+.membership-invite-card__header p {
+  max-width: 420px;
+  text-align: right;
+}
+.membership-invite-card__actions {
+  display: flex;
+  justify-content: flex-start;
 }
 .membership-field {
   display: grid;
