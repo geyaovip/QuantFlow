@@ -85,6 +85,10 @@ export class MembershipController {
 
   @Post("membership/mock-checkout")
   async mockCheckout(@Req() request: RequestLike, @Body() body: unknown) {
+    if (process.env.NODE_ENV === "production") {
+      throw new HttpException("接口不存在", HttpStatus.NOT_FOUND);
+    }
+
     const parsed = membershipMockCheckoutSchema.safeParse(body);
     if (!parsed.success) {
       throw new HttpException("请求参数有误", HttpStatus.UNPROCESSABLE_ENTITY);

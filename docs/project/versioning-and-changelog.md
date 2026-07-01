@@ -31,6 +31,16 @@ Major 表示产品或兼容性边界变化，Minor 表示向后兼容能力，Pa
 
 ## 变更记录
 
+### `v0.7.0-dev.5` - 2026-07-01
+
+- 类型：Fixed / API / Security / Docs
+- 摘要：生产环境禁用会员测试开通接口 `/membership/mock-checkout`，接口仅保留给开发和 E2E 测试使用。
+- MVP 边界影响：无；仍只开通会员容量，不引入交易所连接、真实下单或收益承诺。
+- API / 数据 / 权限 / 风控影响：生产 `NODE_ENV=production` 下该接口返回 404；开发和测试环境行为不变。
+- 迁移与兼容：无数据库迁移。
+- 验证：`pnpm --filter @quantflow/api test -- membership`、`pnpm check`、`pnpm build`。
+- 监控与回滚：如测试环境误设为 production，会导致 E2E mock 开通不可用；修正环境变量即可。
+
 ### `v0.7.0-dev.4` - 2026-06-30
 
 - 类型：Fixed / Web / Ops / Design
