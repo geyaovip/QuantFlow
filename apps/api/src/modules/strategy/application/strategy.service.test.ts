@@ -64,9 +64,18 @@ class MemoryStrategyRepository implements StrategyRepository {
   }
 
   async listActiveSignals(input: ListSignalsInput) {
-    const filtered = input.direction
-      ? this.signals.filter((item) => item.direction === input.direction)
-      : this.signals;
+    const filtered = this.signals.filter((item) => {
+      if (input.direction && item.direction !== input.direction) {
+        return false;
+      }
+      if (
+        input.usedInPaper !== undefined &&
+        item.usedInPaperTrading !== input.usedInPaper
+      ) {
+        return false;
+      }
+      return true;
+    });
     return {
       total: filtered.length,
       items: filtered.slice(
@@ -299,6 +308,34 @@ describe("StrategyService", () => {
       service.listSignals({ direction: "sell" }),
     ).resolves.toMatchObject({
       data: [{ direction: "sell" }],
+      pagination: { total: 1 },
+    });
+  });
+
+  it("filters signals by paper trading usage", async () => {
+    const usedSignal = { ...signal, usedInPaperTrading: true };
+    const unusedSignal = {
+      ...signal,
+      id: "22222222-2222-4222-8222-222222222222",
+      usedInPaperTrading: false,
+    };
+    const service = createService(
+      new MemoryStrategyRepository([strategy], detail, [
+        usedSignal,
+        unusedSignal,
+      ]),
+    );
+
+    await expect(
+      service.listSignals({ usedInPaper: true }),
+    ).resolves.toMatchObject({
+      data: [{ id: usedSignal.id, usedInPaperTrading: true }],
+      pagination: { total: 1 },
+    });
+    await expect(
+      service.listSignals({ usedInPaper: false }),
+    ).resolves.toMatchObject({
+      data: [{ id: unusedSignal.id, usedInPaperTrading: false }],
       pagination: { total: 1 },
     });
   });
