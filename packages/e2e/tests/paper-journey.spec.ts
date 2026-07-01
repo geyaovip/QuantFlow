@@ -134,6 +134,60 @@ test.describe("Paper trading journey API", () => {
         .status,
     ).toBe("running");
 
+    const deleteRunningResponse = await request.delete(
+      `${authBaseUrl}/api/v1/paper-accounts/${created.data.id}`,
+    );
+    expect(deleteRunningResponse.status()).toBe(409);
+
+    const upgradeResponse = await request.post(
+      `${authBaseUrl}/api/v1/membership/mock-checkout`,
+      {
+        data: {
+          tier: "plus",
+          billingCycle: "monthly",
+          riskAccepted: true,
+        },
+      },
+    );
+    expect(upgradeResponse.ok()).toBeTruthy();
+
+    const copyResponse = await request.post(
+      `${authBaseUrl}/api/v1/paper-accounts/${created.data.id}/copies`,
+      {
+        data: {
+          name: "E2E 模拟盘副本",
+          riskDisclosureVersion: "risk-v1",
+          riskAccepted: true,
+        },
+      },
+    );
+    expect(copyResponse.ok()).toBeTruthy();
+    const copied = (await copyResponse.json()) as {
+      data: { id: string; name: string; status: string };
+    };
+    expect(copied.data.id).not.toBe(created.data.id);
+    expect(copied.data.name).toBe("E2E 模拟盘副本");
+    expect(copied.data.status).toBe("running");
+
+    const endCopiedResponse = await request.post(
+      `${authBaseUrl}/api/v1/paper-accounts/${copied.data.id}/end`,
+    );
+    expect(endCopiedResponse.ok()).toBeTruthy();
+    expect(
+      ((await endCopiedResponse.json()) as { data: { status: string } }).data
+        .status,
+    ).toBe("ended");
+
+    const deleteCopiedResponse = await request.delete(
+      `${authBaseUrl}/api/v1/paper-accounts/${copied.data.id}`,
+    );
+    expect(deleteCopiedResponse.status()).toBe(204);
+
+    const deletedCopiedDetailResponse = await request.get(
+      `${authBaseUrl}/api/v1/paper-accounts/${copied.data.id}`,
+    );
+    expect(deletedCopiedDetailResponse.status()).toBe(404);
+
     const beforeExpiredSignalResponse = await request.get(
       `${authBaseUrl}/api/v1/paper-accounts?page=1&pageSize=20`,
     );
