@@ -1,134 +1,84 @@
-# QuantFlow
+# QuantFlow · 策略研究与模拟验证平台
 
-QuantFlow 是面向中国用户的加密货币策略信号与模拟盘平台。当前仓库处于 `v0.2` 基础开发阶段，monorepo、三端页面骨架、API、Worker、共享组件和部署基础已经初始化。
+围绕加密资产策略信号与模拟盘验证的 Web 平台，将策略浏览、信号跟踪、模拟账户、会员权益和运营治理组织为完整的产品结构。采用官网、应用工作台、管理后台、API 与 Worker 分层部署。
 
-产品采用“官网营销页 + 应用工作台 + 管理后台”分离架构：根路径 `/` 是官网首页，`/app` 是用户应用工作台，`/admin` 是独立管理后台。
+[产品官网](https://quantflow.chat/) · [应用工作台](https://quantflow.chat/app/strategies) · [管理后台](https://admin.quantflow.chat/admin) · [实现状态](docs/project/implementation-status.md)
 
-> QuantFlow 不提供投资建议，不承诺任何收益。所有策略信号仅供参考，加密资产价格波动较大，用户需自行承担交易风险。历史表现不代表未来收益。
+官网可公开浏览；应用和后台按账号权限访问。**当前处于持续开发阶段，已接入模块与部分实现范围以状态地图为准。**
 
-## MVP 边界
+## 主要模块
 
-MVP 包含官网首页、应用工作台、策略广场、策略详情、信号中心、模拟盘、会员权益与订阅流程、通知、个人中心和管理后台。
+| 模块 | 当前实现内容 |
+| --- | --- |
+| 策略研究 | 策略列表、详情、订阅及服务端访问权益校验。 |
+| 信号中心 | 信号列表与详情、方向和状态筛选，并关联模拟盘使用。 |
+| 模拟盘 | 模拟账户、策略联动、恢复复检及行情过期校验。 |
+| 会员与通知 | 会员计划、邀请码、支付接口和通知偏好等部分流程。 |
+| 运营治理 | 策略审核、信号治理、用户管理、风险事件、权限与审计。 |
+| 行情与任务 | Worker 行情刷新、认证记录清理和相关后台处理。 |
 
-路径边界：
+本项目仅用于策略信息研究与模拟验证，不提供交易所连接、真实资产读取或实盘下单，不承诺投资收益。支付是否开放由部署配置控制；不应将接口存在视为真实支付验收完成。
 
-1. `/`：官网营销页，用于品牌、信任、转化和风险教育；主要 CTA 是“进入应用”。
-2. `/app`：应用工作台，承载策略广场、策略详情、信号中心、模拟盘、我的策略、会员订阅和个人中心；必须重定向到 `/app/strategies`。
-3. `/admin`：管理后台，承载数据看板、用户管理、策略管理、信号管理、模拟盘管理、会员管理、风险管理和权限审计。
+## 工程设计
 
-MVP 禁止提供真实交易所连接、真实资产读取、真实订单、半自动或全自动交易，以及用户提交交易所 API Key 的入口。所有模拟对象在代码和界面中必须使用 `paper` / “模拟”命名。
+- **前后端契约共享**：使用 `packages/contracts` 统一 API 类型和错误边界。
+- **服务端约束**：权限、会员权益、风控与功能开关在服务端校验。
+- **金额精度**：价格、数量、费用与比例按 Decimal 语义处理。
+- **模拟与实盘隔离**：模拟对象采用明确命名，实盘功能开关固定关闭。
+- **发布与恢复**：包含独立 Compose、数据库迁移、健康检查、备份与回滚脚本。
 
-## 开始开发前
+## 技术栈
 
-1. 阅读 [AGENTS.md](./AGENTS.md)；执行入口。
-2. 阅读 [任务路由](./docs/dev/task-router.md) 与 [实现状态地图](./docs/project/implementation-status.md)；确认该改哪里、现在做到哪了。
-3. 阅读 [项目宪法](./constitution.md)；长期原则与发布红线。
-4. 从 [文档索引](./docs/README.md) 找到当前任务的唯一事实来源。
-5. 按 [AI 开发工作流](./docs/dev/ai-development-workflow.md) 完成实现、测试和文档同步。
-
-## 当前基线
-
-| 项目         | 状态                                                                                          |
-| ------------ | --------------------------------------------------------------------------------------------- |
-| 产品目标     | `v1.0.0 MVP`                                                                                  |
-| 文档基线     | `docs-v0.5.0`                                                                                 |
-| 应用代码     | `v0.2` 开发中；Web、Admin、API、Worker 已可构建                                               |
-| 默认语言     | 简体中文                                                                                      |
-| 产品结构     | `/` 官网营销页、`/app` 应用工作台、`/admin` 管理后台                                          |
-| 实盘交易能力 | 禁止且默认关闭                                                                                |
-| 会员         | Free/Pro/Premium 权益已确定；MVP 仅人工/邀请码/测试开通，在线支付关闭                         |
-| 登录         | 用户端、管理端统一邮箱验证码；Resend 负责邮件投递                                             |
-| UI           | MVP 默认浅色；白/灰/黑、深色主操作、低频低饱和蓝                                              |
-| UI 基线      | v0 design tokens；基础组件优先；所有页面自适应                                                |
-| 品牌资源     | [`assets/brand/README.md`](./assets/brand/README.md)；含 favicon、PWA、用户端与管理端版本     |
-| 技术栈       | Node 24、pnpm 11、Next 16、Nest 11、Prisma 7、PostgreSQL 18                                   |
-| 行情         | CoinGecko；BTC/ETH/SOL USDT；60 秒采集                                                        |
-| 部署         | 现有 Ubuntu VPS；独立 Docker Compose + PostgreSQL 18 + Cloudflare Tunnel；本地备份与 WAL 归档 |
-| 分页         | 用户默认 20，管理端默认 50，最大 100，无限滚动禁用                                            |
-
-## 代码结构
-
-当前仓库采用 pnpm workspace monorepo：
-
-```text
-QuantFlow/
-├── apps/
-│   ├── web/          # 官网 / 与应用工作台 /app，Next.js
-│   ├── admin/        # 管理后台 /admin，Next.js
-│   ├── api/          # 后端 HTTP API，NestJS 模块化单体
-│   └── worker/       # 后台任务进程，行情采集、outbox、异步任务
-├── packages/
-│   ├── ui/           # 共享组件、设计 tokens、品牌资源同步目标
-│   └── contracts/    # API 契约、错误码、共享类型
-├── docs/             # 产品、设计、研发、架构、风控、测试文档
-├── assets/
-│   └── brand/        # QuantFlow Logo、favicon、PWA 图标源文件
-├── deploy/           # 生产部署 Dockerfile、Compose、Cloudflare 示例
-├── scripts/          # 文档检查、品牌资源生成/同步、部署脚本
-├── compose.yaml      # 本地开发依赖
-├── AGENTS.md         # Agent/贡献者执行规则
-├── constitution.md   # 项目宪法与发布红线
-└── README.md         # 项目总入口
-```
-
-产品路径与代码应用对应关系：
-
-| 产品入口  | 代码位置      | 说明                                       |
-| --------- | ------------- | ------------------------------------------ |
-| `/`       | `apps/web`    | 官网营销页，负责品牌、信任、转化和风险教育 |
-| `/app`    | `apps/web`    | 应用工作台，默认进入 `/app/strategies`     |
-| `/admin`  | `apps/admin`  | 管理后台，负责运营管理                     |
-| `/api/v1` | `apps/api`    | 后端 API                                   |
-| Worker    | `apps/worker` | 后台任务与异步处理                         |
+| 层级 | 技术 |
+| --- | --- |
+| 用户端与管理端 | Next.js、React、TypeScript |
+| API | NestJS 模块化单体 |
+| 数据 | PostgreSQL 18、Prisma |
+| 后台任务 | 独立 Node.js Worker |
+| 工程 | Node.js 24、pnpm 11、Vitest、端到端测试与 GitHub Actions |
+| 部署 | Docker Compose、GHCR、Cloudflare Tunnel |
 
 ## 本地运行
 
-前置要求：Node.js 24、pnpm 11、Docker（需要本地 PostgreSQL 时）。
+需要 Node.js 24、仓库指定的 pnpm 版本与 Docker。
 
 ```bash
+git clone https://github.com/geyaovip/QuantFlow.git
+cd QuantFlow
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 cp .env.example .env
 docker compose up -d postgres
+pnpm --filter @quantflow/api db:generate
+pnpm --filter @quantflow/api db:deploy
 pnpm dev
 ```
 
-本地入口：
+先按环境模板完成配置，数据库迁移与外部服务设置见[开发文档](docs/README.md)。测试和种子数据仅在独立开发环境执行。
 
-- 官网与应用工作台：`http://localhost:3000`、`http://localhost:3000/app/strategies`
-- 管理后台：`http://localhost:3001/admin`
-- API 健康检查：`http://localhost:3002/api/v1/health`
-- Feature flags：`http://localhost:3002/api/v1/system/feature-flags`
+| 服务 | 本地地址 |
+| --- | --- |
+| 官网 | http://localhost:3000 |
+| 应用工作台 | http://localhost:3000/app/strategies |
+| 管理后台 | http://localhost:3001/admin |
+| API 健康检查 | http://localhost:3002/api/v1/health |
 
-## 验证命令
+## 项目结构与检查
+
+```text
+apps/web/          官网与应用工作台
+apps/admin/        运营管理后台
+apps/api/          HTTP API 与领域模块
+apps/worker/       行情与后台任务
+packages/ui/       共享组件与品牌资源
+packages/contracts/ 共享接口契约
+packages/e2e/      端到端测试
+deploy/            生产部署配置
+```
 
 ```bash
 pnpm check
 pnpm build
 ```
 
-`pnpm check` 依次执行文档、格式、lint、类型和测试检查。品牌资源在 dev/build 前由 `scripts/sync-brand-assets.mjs` 同步到 Web 与 Admin 的 public 目录。
-
-当前可运行的仓库检查：`./scripts/check-docs.sh`。
-
-## 常用命令
-
-```bash
-pnpm check       # 文档、格式、lint、类型和测试
-pnpm build       # 构建全部 workspace
-pnpm test        # 运行测试
-pnpm typecheck   # TypeScript 类型检查
-pnpm lint        # ESLint
-pnpm format      # Prettier 格式化
-```
-
-## 贡献约束
-
-开发前先阅读：
-
-1. [项目宪法](./constitution.md)
-2. [Agent 执行规则](./AGENTS.md)
-3. [文档索引](./docs/README.md)
-4. [决策日志](./docs/project/decision-log.md)
-
-涉及范围、API、数据库、权限、风控、计算口径或页面路径的变更，必须同步更新对应事实来源文档。
+`check` 包含文档、产品边界文案、验收检查、格式、Lint、类型与测试。生产部署方式见[部署规范](docs/dev/deployment.md)，开发任务从[任务路由](docs/dev/task-router.md)进入。外部邮件、行情、支付与生产恢复能力需分别验证。
